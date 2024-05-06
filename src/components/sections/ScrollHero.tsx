@@ -1,10 +1,10 @@
 import Image from 'next/image';
 import LocomotiveScrollSection from '@/components/locomotiveScrollSection/LocomotiveScrollSection';
-import { heroImages } from '@/lib/Constants';
+import { HERO_IMAGES } from '@/lib/Constants';
 import { divideImagesArray } from '@/lib/utils';
 
 const ScrollHero = () => {
-  const arrays: string[][] = divideImagesArray(heroImages, 5);
+  const arrays: string[][] = divideImagesArray(HERO_IMAGES, 5);
 
   return (
     <LocomotiveScrollSection

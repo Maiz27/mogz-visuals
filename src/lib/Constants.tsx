@@ -1,4 +1,10 @@
-export const heroImages = [
+export const PAGE_SECTIONS = [
+  { name: 'About', href: '#about' },
+  { name: 'Services', href: '#services' },
+  { name: 'Contact', href: '#contact' },
+];
+
+export const HERO_IMAGES = [
   '/imgs/hero/1.jpg',
   '/imgs/hero/2.jpg',
   '/imgs/hero/3.jpg',
