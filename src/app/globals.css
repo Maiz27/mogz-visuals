@@ -1,3 +1,32 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@font-face {
+  font-family: 'Raleway';
+  src: url('/fonts/raleway/Raleway-VF-W.ttf') format('truetype'),
+    url('/fonts/raleway/Raleway-Italic-VF-W.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Lora';
+  src: url('/fonts/lora/Lora-VF-W.ttf') format('truetype'),
+    url('/fonts/lora/Lora-Italic-VF-W.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+}
+
+body {
+  font-family: 'Raleway', sans-serif;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: 'Lora', serif;
+}
