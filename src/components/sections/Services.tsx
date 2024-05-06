@@ -3,7 +3,10 @@ import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScroll
 
 const Services = () => {
   return (
-    <LocomotiveScrollSection id='services' className='min-h-screen'>
+    <LocomotiveScrollSection
+      id='services'
+      className='w-full min-h-screen flex justify-center items-center'
+    >
       Service
     </LocomotiveScrollSection>
   );
