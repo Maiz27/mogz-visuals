@@ -11,7 +11,7 @@ const Header = () => {
   };
 
   return (
-    <header className='fixed z-50 top-0 w-full p-8 px-4 lg:p-8 min-h-[90vh] flex flex-col '>
+    <header className='fixed z-30 top-0 w-full p-8 px-4 lg:p-8 flex flex-col '>
       <div className='flex justify-between items-center'>
         <Link href='/' className='text-xl font-bold'>
           Mogz Visuals
