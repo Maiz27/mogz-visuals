@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { ScrollProvider } from '@/lib/context/scrollContext';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -13,7 +14,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
-      <body className=''>{children}</body>
+      <body className=''>
+        <ScrollProvider>{children}</ScrollProvider>
+      </body>
     </html>
   );
 }
