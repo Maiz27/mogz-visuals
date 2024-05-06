@@ -36,9 +36,15 @@ h6 {
   font-family: 'Lora', serif;
 }
 
+p {
+  @apply tracking-wider;
+}
+
 /*! locomotive-scroll v4.1.3 | MIT License | https://github.com/locomotivemtl/locomotive-scroll */
 html.has-scroll-smooth {
   overflow: hidden;
+  scrollbar-width: none; /* For Firefox */
+  -ms-overflow-style: none; /* For Internet Explorer and Edge */
 }
 
 html.has-scroll-dragging {
@@ -115,7 +121,13 @@ html.has-scroll-dragging {
   cursor: -webkit-grabbing;
   cursor: grabbing;
 }
+
 [data-scroll-direction='horizontal'] .c-scrollbar_thumb {
   right: auto;
   bottom: 0;
+}
+
+/* Hide default scrollbar when Locomotive Scroll is active */
+html.has-scroll-smooth::-webkit-scrollbar {
+  display: none;
 }

@@ -1,12 +1,31 @@
 'use client';
-import { ReactNode, createContext, useContext, useEffect, useRef } from 'react';
+import {
+  ReactNode,
+  createContext,
+  useContext,
+  useEffect,
+  useRef,
+  useState,
+} from 'react';
 
-const ScrollContext = createContext<any>(null);
+type ScrollContextValue = {
+  scroll: number;
+  scrollToSection: (id: string) => void;
+};
 
-export const useScroll = () => useContext(ScrollContext);
+const ScrollContext = createContext<ScrollContextValue | null>(null);
+
+export const useScroll = (): ScrollContextValue => {
+  const context = useContext(ScrollContext);
+  if (!context) {
+    throw new Error('useScroll must be used within a ScrollProvider');
+  }
+  return context;
+};
 
 export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   const scrollRef = useRef<LocomotiveScroll | null>(null);
+  const [scrollPosition, setScrollPosition] = useState(0);
 
   useEffect(() => {
     if (!scrollRef.current) {
@@ -19,6 +38,10 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
           reloadOnContextChange: true,
           smartphone: { smooth: true },
           touchMultiplier: 3,
+        });
+
+        scrollRef.current.on('scroll', (event: any) => {
+          setScrollPosition(event.scroll.y);
         });
       };
 
@@ -33,8 +56,14 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
     };
   }, []);
 
+  const scrollToSection = (id: string) => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo(id);
+    }
+  };
+
   return (
-    <ScrollContext.Provider value={scrollRef.current}>
+    <ScrollContext.Provider value={{ scroll: scrollPosition, scrollToSection }}>
       {children}
     </ScrollContext.Provider>
   );

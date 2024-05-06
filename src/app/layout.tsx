@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import { ScrollProvider } from '@/lib/context/scrollContext';
+import ScrollToTop from '@/components/scrollToTop/ScrollToTop';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -15,7 +16,10 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className=''>
-        <ScrollProvider>{children}</ScrollProvider>
+        <ScrollProvider>
+          <div data-scroll-container>{children}</div>
+          <ScrollToTop />
+        </ScrollProvider>
       </body>
     </html>
   );

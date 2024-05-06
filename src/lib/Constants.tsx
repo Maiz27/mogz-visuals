@@ -1,7 +1,7 @@
 export const PAGE_SECTIONS = [
-  { name: 'About', href: '#about' },
-  { name: 'Services', href: '#services' },
-  { name: 'Contact', href: '#contact' },
+  { name: 'About', id: 'about' },
+  { name: 'Services', id: 'services' },
+  { name: 'Contact', id: 'contact' },
 ];
 
 export const HERO_IMAGES = [

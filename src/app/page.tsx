@@ -1,13 +1,15 @@
 import Header from '@/components/header/Header';
+import About from '@/components/sections/About';
 import ScrollHero from '@/components/sections/ScrollHero';
 
 export default function Home() {
   return (
-    <main data-scroll-container className=''>
+    <main>
       <Header />
+
       <ScrollHero />
 
-      <div id='about' className='min-h-screen'></div>
+      <About />
       <div id='services' className='min-h-screen'></div>
       <div id='contact' className='min-h-screen'></div>
     </main>

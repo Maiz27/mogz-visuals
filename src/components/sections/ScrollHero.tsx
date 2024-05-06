@@ -9,7 +9,7 @@ const ScrollHero = () => {
   return (
     <LocomotiveScrollSection
       className='w-full h-[180vmax] relative overflow-hidden'
-      id='grid'
+      id='heroGrid'
     >
       <div className='w-[150%] pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[22.5deg] flex justify-center items-center'>
         {arrays.map((array, index) => (
@@ -18,7 +18,7 @@ const ScrollHero = () => {
             className='w-96 block flex-none lg:w-[33vmax] p-6'
             data-scroll
             data-scroll-speed={index % 2 ? 2 : -2}
-            data-scroll-target='#grid'
+            data-scroll-target='#heroGrid'
           >
             {array.map((image, imageIdx) => (
               <Image
@@ -36,7 +36,7 @@ const ScrollHero = () => {
       </div>
       <div className='w-full px-8 text-balance z-10 flex flex-col items-center space-y-4 absolute left-1/2 top-1/4 lg:top-[20%] 2xl:top-[15%] -translate-x-1/2 -translate-y-1/2 text-center'>
         <h1 className='text-6xl font-black'>Mogz Visuals</h1>
-        <p className='text-lg lg:text-xl max-w-2xl tracking-wider'>
+        <p className='text-lg lg:text-xl max-w-2xl'>
           Lorem ipsum dolor sit amet consectetur, adipisicing elit. Aliquid
           laudantium corrupti rem sed deserunt minima aliquam, velit magnam
           doloremque optio, facere culpa illum nam? Ducimus doloremque quia quae
