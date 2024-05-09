@@ -29,7 +29,7 @@ const ScrollHero = () => {
                 height={500}
                 loading='eager'
                 alt={`Image {${imageIdx + 1} of ${arrays.length}}`}
-                className='w-full h-[400px] lg:h-[40vmax] bg-cover bg-center opacity-60 m-10'
+                className='w-full h-[400px] lg:h-[40vmax] bg-cover bg-center opacity-70 m-10'
               />
             ))}
           </div>
