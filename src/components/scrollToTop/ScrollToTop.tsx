@@ -23,8 +23,6 @@ const ScrollToTop = () => {
     scrollToSection('#heroGrid');
   };
 
-  console.log(windowHeight - scroll);
-
   if (isVisible)
     return (
       <button
