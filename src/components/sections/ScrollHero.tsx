@@ -37,7 +37,7 @@ const ScrollHero = () => {
       </div>
       <div className='w-full px-4 z-20 flex flex-col items-center space-y-8 absolute left-1/2 top-[30%] lg:top-[20%] 2xl:top-[15%] -translate-x-1/2 -translate-y-1/2 text-center'>
         <h1 className='text-4xl xl:text-5xl 2xl:text-6xl font-black'>{`Capturing Life's Moments, Frame by Frame`}</h1>
-        <p className='text-lg lg:text-xl max-w-4xl text-center'>
+        <p className=' max-w-4xl text-center'>
           At <span className='text-primary font-black'>Mogz Visual</span>, we
           believe every picture tells a story. Our dedicated team of
           photographers and videographers are experts at capturing the essence

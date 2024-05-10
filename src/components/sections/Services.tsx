@@ -46,11 +46,11 @@ const Service = ({ index, title, images }: Props) => {
     >
       <div className='w-[150%] h-full absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
         <div
-          className='h-full flex'
           data-scroll
-          data-scroll-speed={index % 2 ? 2 : -2}
+          data-scroll-speed={index % 2 ? -5 : 5}
           data-scroll-target={`#${id}`}
           data-scroll-direction='horizontal'
+          className='h-full w-full flex'
         >
           {images.map((img, i) => (
             <div
@@ -62,11 +62,11 @@ const Service = ({ index, title, images }: Props) => {
         </div>
       </div>
       <h3
-        className={`h-full w-full flex items-center p-12 text-6xl font-bold ${
-          index % 2 ? 'justify-end ' : ''
-        }`}
         data-scroll
         data-scroll-speed='2'
+        className={`h-full w-full flex items-center p-12 text-6xl font-bold ${
+          index % 2 ? '' : 'justify-end'
+        }`}
       >
         {title}
       </h3>
