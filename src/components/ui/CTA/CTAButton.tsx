@@ -25,7 +25,7 @@ const CTAButton = (props: ButtonProps) => {
   const { scrollToSection } = useScroll();
 
   const commonProps = {
-    className: `bg-transparent border-copy border-2 tracking-widest px-6 py-3 font-black uppercase transition-all duration-300 shadow-primary hover:translate-x-[-4px] hover:translate-y-[-4px] shadow-button hover:shadow-buttonHover active:translate-x-[0px] active:translate-y-[0px] active:shadow-none ${className}`,
+    className: `bg-transparent border-copy border-2 tracking-widest px-6 py-3 font-black transition-all duration-300 shadow-primary hover:translate-x-[-4px] hover:translate-y-[-4px] shadow-button hover:shadow-buttonHover active:translate-x-[0px] active:translate-y-[0px] active:shadow-none ${className}`,
   };
   if (navigationId) {
     const handleScroll = () => {

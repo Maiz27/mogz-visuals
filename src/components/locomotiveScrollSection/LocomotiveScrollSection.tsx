@@ -9,10 +9,15 @@ type LocomotiveScrollWrapperProps = {
 const LocomotiveScrollSection = ({
   children,
   className,
+  Tag = 'section',
   ...rest
 }: LocomotiveScrollWrapperProps) => {
   return (
-    <section data-scroll-section className={` ${className}`} {...rest}>
+    <section
+      data-scroll-section
+      className={`relative overflow-hidden ${className}`}
+      {...rest}
+    >
       {children}
     </section>
   );

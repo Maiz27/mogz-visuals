@@ -11,6 +11,7 @@ import {
 type ScrollContextValue = {
   scroll: number;
   scrollToSection: (id: string) => void;
+  windowHeight: number;
 };
 
 const ScrollContext = createContext<ScrollContextValue | null>(null);
@@ -26,6 +27,7 @@ export const useScroll = (): ScrollContextValue => {
 export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   const scrollRef = useRef<LocomotiveScroll | null>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
+  const [windowHeight, setWindowHeight] = useState(0);
 
   useEffect(() => {
     if (!scrollRef.current) {
@@ -42,6 +44,9 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
 
         scrollRef.current.on('scroll', (event: any) => {
           setScrollPosition(event.scroll.y);
+          if (windowHeight !== event.limit.y) {
+            setWindowHeight(event.limit.y);
+          }
         });
       };
 
@@ -54,6 +59,7 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
         scrollRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const scrollToSection = (id: string) => {
@@ -63,7 +69,9 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <ScrollContext.Provider value={{ scroll: scrollPosition, scrollToSection }}>
+    <ScrollContext.Provider
+      value={{ scroll: scrollPosition, scrollToSection, windowHeight }}
+    >
       {children}
     </ScrollContext.Provider>
   );
