@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { MOGZ } from '@/lib/Constants';
 
@@ -53,11 +54,15 @@ const Service = ({ index, title, images }: Props) => {
           className='h-full w-full flex'
         >
           {images.map((img, i) => (
-            <div
+            <Image
               key={i}
-              className='h-full w-1/5 flex-none bg-cover bg-center mx-1 md:mx-2 xl:mx-4 opacity-70'
-              style={{ backgroundImage: `url(${img})` }}
-            ></div>
+              src={img}
+              width={500}
+              height={500}
+              loading='lazy'
+              alt={`[MOGZ]-${title}-${i}`}
+              className='h-full w-1/5 flex-none object-cover object-center mx-1 md:mx-2 xl:mx-4 opacity-70'
+            />
           ))}
         </div>
       </div>

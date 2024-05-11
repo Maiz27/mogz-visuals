@@ -1,3 +1,4 @@
+import Image from 'next/image';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { MOGZ } from '@/lib/Constants';
 
@@ -113,17 +114,25 @@ const Grid = () => {
       <div className='w-[200%] md:w-full h-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
         {images.map((list, i) => (
           <div key={i} className='flex'>
-            {list.map((img, i) => {
-              const speed = getSpeed(i);
+            {list.map((img, idx) => {
+              const speed = getSpeed(idx);
               return (
                 <div
                   key={img}
                   data-scroll
                   data-scroll-speed={speed}
                   data-scroll-direction='horizontal'
-                  className='m-4 h-[calc((100vw/3)-(3*1rem/2))] md:h-[calc((65vw/3)-(3*1rem/2))]   w-[calc(16.666%-2rem)] flex-none bg-center bg-cover opacity-90'
-                  style={{ backgroundImage: `url(${img})` }}
-                ></div>
+                  className='m-4 h-[calc((100vw/3)-(3*1rem/2))] md:h-[calc((65vw/3)-(3*1rem/2))] w-[calc(16.666%-2rem)] flex-none opacity-90'
+                >
+                  <Image
+                    src={img}
+                    width={500}
+                    height={500}
+                    loading='lazy'
+                    alt={`[MOGZ]-Footer-${idx}`}
+                    className='w-full h-full object-center object-cover'
+                  />
+                </div>
               );
             })}
           </div>

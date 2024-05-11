@@ -1,10 +1,12 @@
 'use client';
-import React, { useRef, useMemo } from 'react';
-import { useGSAP } from '@gsap/react';
 import gsap from 'gsap';
+import Image from 'next/image';
+import { useRef, useMemo, memo } from 'react';
+import { useGSAP } from '@gsap/react';
 
 type Props = {
   src: string;
+  alt?: string;
   repetitionCount?: number;
   repetitionOrigin?: string;
   animate?: string; // scale, saleX, saleY
@@ -12,9 +14,10 @@ type Props = {
   [x: string]: any;
 };
 
-const ImageCard = React.memo(
+const ImageCard = memo(
   ({
     src,
+    alt = '',
     repetitionCount = 4,
     repetitionOrigin = '50% 50%',
     animate = 'scale',
@@ -54,16 +57,20 @@ const ImageCard = React.memo(
     const innerElements = useMemo(
       () =>
         Array.from({ length: repetitionCount }, (_, i) => (
-          <div
+          <Image
             key={i}
-            className='image__element bg-center bg-cover h-full w-full relative will-change-transform row-start-1 row-end-2 col-start-1 col-end-2 overflow-hidden'
+            src={src}
+            width={500}
+            height={500}
+            loading='lazy'
+            alt={`[MOGZ-${alt}]`}
+            className='image__element object-center object-cover h-full w-full relative will-change-transform row-start-1 row-end-2 col-start-1 col-end-2 overflow-hidden'
             style={{
-              backgroundImage: `url(${src})`,
               transformOrigin: repetitionOrigin,
             }}
           />
         )),
-      [src, repetitionCount, repetitionOrigin]
+      [repetitionCount, src, alt, repetitionOrigin]
     );
 
     return (
