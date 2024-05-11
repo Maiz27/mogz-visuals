@@ -7,7 +7,12 @@ const ContactForm = () => {
     'w-full bg-background border border-copy p-4 tracking-wider focus:outline-primary focus:border-none transition-all';
 
   return (
-    <form className='w-full max-w-xl flex flex-col space-y-4'>
+    <form
+      data-scroll
+      data-scroll-speed='1'
+      data-scroll-target='#contact'
+      className='w-full max-w-xl flex flex-col space-y-4'
+    >
       {CONTACT_FIELDS.map(({ type, placeholder, name, required }, i) => {
         if (type === 'textarea') {
           return (

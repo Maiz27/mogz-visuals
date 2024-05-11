@@ -11,6 +11,7 @@ type Props = {
   repetitionOrigin?: string;
   animate?: string; // scale, saleX, saleY
   stagger?: number;
+  className?: string;
   [x: string]: any;
 };
 
@@ -22,6 +23,7 @@ const ImageCard = memo(
     repetitionOrigin = '50% 50%',
     animate = 'scale',
     stagger = -0.1,
+    className,
     ...rest
   }: Props) => {
     const imageRef = useRef<HTMLDivElement | null>(null);
@@ -76,7 +78,7 @@ const ImageCard = memo(
     return (
       <div
         ref={imageRef}
-        className='image h-96 w-72 grid lg:max-w-[30vw] overflow-hidden relative'
+        className={`image h-96 w-72 grid lg:max-w-[30vw] overflow-hidden relative ${className}`}
         style={{ backgroundImage: 'none' }}
         onMouseEnter={() => hoverTimeline.current?.play()}
         onMouseLeave={() => hoverTimeline.current?.reverse()}

@@ -54,6 +54,7 @@ const Founder = () => {
     <div className='flex flex-col md:hidden justify-center items-center max-w-6xl mx-auto gap-12'>
       <ImageCard
         src='/imgs/founder/mogga.jpg'
+        alt='Jacob Mogga Kei'
         repetitionOrigin={IMAGE_CARD_ANIMATE_OPTIONS.slideLeft.origin}
         animate={IMAGE_CARD_ANIMATE_OPTIONS.slideLeft.animate}
         repetitionCount={5}
@@ -69,6 +70,7 @@ const Founder = () => {
       >
         <ImageCard
           src='/imgs/founder/mogga2.jpg'
+          alt='Jacob Mogga Kei'
           animate='scaleY'
           repetitionCount={5}
         />
@@ -79,6 +81,7 @@ const Founder = () => {
       </div>
       <ImageCard
         src='/imgs/founder/mogga3.jpg'
+        alt='Jacob Mogga Kei'
         repetitionOrigin={IMAGE_CARD_ANIMATE_OPTIONS.slideRight.origin}
         animate={IMAGE_CARD_ANIMATE_OPTIONS.slideRight.animate}
         repetitionCount={5}
@@ -101,6 +104,7 @@ const FounderMediumScreen = () => {
       >
         <ImageCard
           src='/imgs/founder/mogga2.jpg'
+          alt='Jacob Mogga Kei'
           animate='scaleY'
           repetitionCount={5}
         />
@@ -113,6 +117,7 @@ const FounderMediumScreen = () => {
       <div className='flex justify-around items-center gap-8'>
         <ImageCard
           src='/imgs/founder/mogga.jpg'
+          alt='Jacob Mogga Kei'
           repetitionOrigin={IMAGE_CARD_ANIMATE_OPTIONS.slideLeft.origin}
           animate={IMAGE_CARD_ANIMATE_OPTIONS.slideLeft.animate}
           repetitionCount={5}
@@ -123,6 +128,7 @@ const FounderMediumScreen = () => {
 
         <ImageCard
           src='/imgs/founder/mogga3.jpg'
+          alt='Jacob Mogga Kei'
           repetitionOrigin={IMAGE_CARD_ANIMATE_OPTIONS.slideRight.origin}
           animate={IMAGE_CARD_ANIMATE_OPTIONS.slideRight.animate}
           repetitionCount={5}
@@ -140,6 +146,7 @@ const FounderLargeScreen = () => {
     <div className='hidden lg:flex lg:flex-row justify-center items-center max-w-6xl mx-auto lg:gap-16'>
       <ImageCard
         src='/imgs/founder/mogga.jpg'
+        alt='Jacob Mogga Kei'
         repetitionOrigin={IMAGE_CARD_ANIMATE_OPTIONS.slideLeft.origin}
         animate={IMAGE_CARD_ANIMATE_OPTIONS.slideLeft.animate}
         repetitionCount={5}
@@ -155,6 +162,7 @@ const FounderLargeScreen = () => {
       >
         <ImageCard
           src='/imgs/founder/mogga2.jpg'
+          alt='Jacob Mogga Kei'
           animate='scaleY'
           repetitionCount={5}
         />
@@ -165,6 +173,7 @@ const FounderLargeScreen = () => {
       </div>
       <ImageCard
         src='/imgs/founder/mogga3.jpg'
+        alt='Jacob Mogga Kei'
         repetitionOrigin={IMAGE_CARD_ANIMATE_OPTIONS.slideRight.origin}
         animate={IMAGE_CARD_ANIMATE_OPTIONS.slideRight.animate}
         repetitionCount={5}

@@ -8,7 +8,7 @@ const Services = () => {
   return (
     <LocomotiveScrollSection
       id='services'
-      className='w-full min-h-screen flex flex-col justify-center items-center py-20 lg:py-40'
+      className='w-full min-h-screen flex flex-col justify-center items-center py-20'
     >
       <div className='lg:pt-20 text-center max-w-6xl'>
         <Heading text='Tailored Visual Services for Every Occasion' />

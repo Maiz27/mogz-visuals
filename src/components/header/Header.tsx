@@ -1,5 +1,6 @@
 'use client';
 import Link from 'next/link';
+import Image from 'next/image';
 import { PAGE_SECTIONS } from '@/lib/Constants';
 import { useScroll } from '@/lib/context/scrollContext';
 
@@ -11,10 +12,17 @@ const Header = () => {
   };
 
   return (
-    <header className='fixed z-30 top-0 w-full p-8 px-4 lg:p-8 flex flex-col '>
+    <header className='fixed z-30 top-0 w-full p-2 px-4 lg:p-4'>
       <div className='flex justify-between items-center'>
-        <Link href='/' className='text-xl font-bold'>
-          Mogz Visuals
+        <Link href='/' className='text-xl font-bold h-full'>
+          <Image
+            width={50}
+            height={50}
+            loading='eager'
+            src='/imgs/logo/logo.png'
+            alt='Mogz Visual'
+            className='h-full w-ful object-contain invert'
+          />
         </Link>
         <nav>
           <ul className='flex font-bold tracking-wider space-x-4 lg:text-lg'>
