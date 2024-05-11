@@ -28,7 +28,7 @@ const ScrollHero = () => {
                 width={500}
                 height={500}
                 loading='eager'
-                alt={`Image {${imageIdx + 1} of ${arrays.length}}`}
+                alt={`[MOGZ]-Tile(${index})-Image(${imageIdx})`}
                 className='w-full h-[400px] lg:h-[40vmax] bg-cover bg-center opacity-70 m-10'
               />
             ))}

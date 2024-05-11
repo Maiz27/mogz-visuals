@@ -17,7 +17,7 @@ const ContactForm = () => {
         if (type === 'textarea') {
           return (
             <textarea
-              key={i}
+              key={name}
               name={name}
               required={required}
               placeholder={placeholder}
@@ -27,7 +27,7 @@ const ContactForm = () => {
         }
         return (
           <input
-            key={i}
+            key={name}
             name={name}
             type={type}
             required={required}

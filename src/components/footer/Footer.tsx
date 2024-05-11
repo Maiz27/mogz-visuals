@@ -118,7 +118,7 @@ const Grid = () => {
               const speed = getSpeed(idx);
               return (
                 <div
-                  key={img}
+                  key={`List-${i}-Img-${idx}`}
                   data-scroll
                   data-scroll-speed={speed}
                   data-scroll-direction='horizontal'

@@ -26,10 +26,10 @@ const Contact = () => {
             visuals and expert craftsmanship.`}
           </p>
           <div className='flex flex-col 2xl:flex-row justify-around'>
-            {contact.map(({ text, href, icon, title }) => {
+            {contact.map(({ text, href, icon, title }, i) => {
               const Icon = icon;
               return (
-                <div key={href} className='flex space-x-2'>
+                <div key={i} className='flex space-x-2'>
                   <div className='text-3xl text-primary'>
                     <Icon />
                   </div>

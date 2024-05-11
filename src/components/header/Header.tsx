@@ -30,8 +30,8 @@ const Header = () => {
         {isHome && (
           <nav>
             <ul className='flex font-bold tracking-wider space-x-4 lg:text-lg'>
-              {PAGE_SECTIONS.map(({ name, id }, index) => (
-                <li key={index}>
+              {PAGE_SECTIONS.map(({ name, id }) => (
+                <li key={id}>
                   <button
                     onClick={() => handleScroll(id)}
                     className='relative group'
