@@ -8,11 +8,11 @@ const Contact = () => {
   return (
     <LocomotiveScrollSection
       id='contact'
-      className='w-full min-h-screen flex flex-col justify-center items-center'
+      className='w-full min-h-screen flex flex-col justify-center items-center my-8'
     >
       <Heading text='Get in Touch with Us' />
 
-      <div className='mt-16 px-12 w-full grid place-items-center grid-cols-1 md:grid-cols-2 gap-8 '>
+      <div className='mt-4 px-12 w-full grid place-items-center grid-cols-1 md:grid-cols-2 gap-8 '>
         <div
           data-scroll
           data-scroll-speed='2'
