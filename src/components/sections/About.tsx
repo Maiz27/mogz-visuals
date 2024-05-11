@@ -1,3 +1,4 @@
+import Heading from '../heading/Heading';
 import ImageCard from '../imageCard/ImageCard';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { IMAGE_CARD_ANIMATE_OPTIONS, MOGZ } from '@/lib/Constants';
@@ -16,9 +17,8 @@ const About = () => {
         className='w-full grid md:grid-cols-3 xl:grid-cols-5'
       >
         <div className='md:col-start-2 xl:col-start-3 col-span-2 xl:col-span-3'>
-          <h2 className='text-primary text-4xl mb-4 md:mr-8 font-bold'>
-            Beyond the Lens at Mogz Visual
-          </h2>
+          <Heading text='Beyond the Lens at Mogz Visual' className='md:mr-8' />
+
           <p className='max-w-2xl xl:max-w-5xl text-balance'>{about}</p>
         </div>
       </div>
@@ -36,9 +36,10 @@ const About = () => {
         className='w-full grid md:grid-cols-3 xl:grid-cols-5'
       >
         <div className=' col-span-2 xl:col-span-3'>
-          <h2 className='text-primary text-4xl mb-4 md:mr-8 font-bold'>
-            Driven by Diversity, Inspired by You
-          </h2>
+          <Heading
+            text='Driven by Diversity, Inspired by You'
+            className='md:mr-8'
+          />
           <p className='max-w-2xl xl:max-w-5xl text-balance'>{inspiration}</p>
         </div>
       </div>

@@ -120,6 +120,27 @@ export const MOGZ = {
   ],
 };
 
+export const CONTACT_FIELDS = [
+  {
+    name: 'name',
+    type: 'name',
+    placeholder: 'Your Full Name',
+    required: true,
+  },
+  {
+    name: 'email',
+    type: 'email',
+    placeholder: 'Your Email Address',
+    required: true,
+  },
+  {
+    name: 'message',
+    type: 'textarea',
+    placeholder: 'Write your message here...',
+    required: true,
+  },
+];
+
 export const IMAGE_CARD_ANIMATE_OPTIONS = {
   slideLeft: {
     origin: '0% 50%',
