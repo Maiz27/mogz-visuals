@@ -1,3 +1,9 @@
+import {
+  HiOutlineMapPin,
+  HiOutlineEnvelope,
+  HiOutlinePhone,
+} from 'react-icons/hi2';
+
 export const PAGE_SECTIONS = [
   { name: 'About', id: 'about' },
   { name: 'Services', id: 'services' },
@@ -45,6 +51,32 @@ export const MOGZ = {
       label: 'Twitter',
       url: 'https://twitter.com/MogzVisuals',
     },
+  ],
+  contact: [
+    {
+      title: 'Visit',
+      icon: HiOutlineMapPin,
+      href: undefined,
+      text: 'Phenicia Juba, CES, South Sudan.',
+    },
+    {
+      title: 'Email',
+      icon: HiOutlineEnvelope,
+      href: 'mailto:contact@mogz.studio',
+      text: 'contact@mogz.studio',
+    },
+    {
+      title: 'Call',
+      icon: HiOutlinePhone,
+      href: 'tel:+211924436655',
+      text: '+211-924-436-655',
+    },
+    // {
+    //   title: 'Call',
+    //   icon: HiOutlinePhone ,
+    //   href: 'tel:+211922222385',
+    //   text: '+211-922-222-385',
+    // },
   ],
   services: [
     {
@@ -119,6 +151,27 @@ export const MOGZ = {
     },
   ],
 };
+
+export const CONTACT_FIELDS = [
+  {
+    name: 'name',
+    type: 'name',
+    placeholder: 'Your Full Name',
+    required: true,
+  },
+  {
+    name: 'email',
+    type: 'email',
+    placeholder: 'Your Email Address',
+    required: true,
+  },
+  {
+    name: 'message',
+    type: 'textarea',
+    placeholder: 'Write your message here...',
+    required: true,
+  },
+];
 
 export const IMAGE_CARD_ANIMATE_OPTIONS = {
   slideLeft: {

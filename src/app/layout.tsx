@@ -1,4 +1,6 @@
 import type { Metadata } from 'next';
+import Header from '@/components/header/Header';
+import Footer from '@/components/footer/Footer';
 import { ScrollProvider } from '@/lib/context/scrollContext';
 import ScrollToTop from '@/components/scrollToTop/ScrollToTop';
 import './globals.css';
@@ -27,7 +29,11 @@ export default function RootLayout({
     <html lang='en'>
       <body className=''>
         <ScrollProvider>
-          <div data-scroll-container>{children}</div>
+          <div data-scroll-container>
+            <Header />
+            {children}
+            <Footer />
+          </div>
           <ScrollToTop />
         </ScrollProvider>
       </body>

@@ -1,3 +1,5 @@
+import Image from 'next/image';
+import Heading from '../heading/Heading';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { MOGZ } from '@/lib/Constants';
 
@@ -6,23 +8,19 @@ const Services = () => {
   return (
     <LocomotiveScrollSection
       id='services'
-      className='w-full min-h-screen flex flex-col justify-center items-center my-20 lg:my-40'
+      className='w-full min-h-screen flex flex-col justify-center items-center py-20'
     >
       <div className='lg:pt-20 text-center max-w-6xl'>
-        <h2 className='text-primary text-4xl mb-4 font-bold'>
-          Tailored Visual Services for Every Occasion
-        </h2>
+        <Heading text='Tailored Visual Services for Every Occasion' />
 
         <p>
-          {`
-          Explore a range of specialized visual services at Mogz Visual, from
+          {`Explore a range of specialized visual services at Mogz Visual, from
           breathtaking wedding photography to dynamic commercial visuals and
           more. Each service is crafted with precision and creativity to meet
           your unique needs. Don't see exactly what you're looking for? Contact
           us to discuss custom solutions designed just for you. Our team is
           ready to adapt our expertise to bring your vision to life, ensuring
-          every detail is captured with perfection.
-            `}
+          every detail is captured with perfection.`}
         </p>
       </div>
 
@@ -53,11 +51,15 @@ const Service = ({ index, title, images }: Props) => {
           className='h-full w-full flex'
         >
           {images.map((img, i) => (
-            <div
+            <Image
               key={i}
-              className='h-full w-1/5 flex-none bg-cover bg-center mx-1 md:mx-2 xl:mx-4 opacity-70'
-              style={{ backgroundImage: `url(${img})` }}
-            ></div>
+              src={img}
+              width={500}
+              height={500}
+              loading='lazy'
+              alt={`[MOGZ]-${title}-${i}`}
+              className='h-full w-1/5 flex-none object-cover object-center mx-1 md:mx-2 xl:mx-4 opacity-70'
+            />
           ))}
         </div>
       </div>
