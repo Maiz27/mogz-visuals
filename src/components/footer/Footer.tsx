@@ -9,7 +9,7 @@ const Footer = () => {
     <LocomotiveScrollSection className='w-full'>
       <Grid />
 
-      <footer className='p-4 lg:pb-6'>
+      <footer className='p-4'>
         <div className='flex justify-between items-center'>
           <span>
             &copy; {new Date().getFullYear().toString()} Mogz Visuals.

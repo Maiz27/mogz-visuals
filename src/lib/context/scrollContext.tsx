@@ -1,4 +1,5 @@
 'use client';
+import { usePathname } from 'next/navigation';
 import {
   ReactNode,
   createContext,
@@ -28,6 +29,7 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   const scrollRef = useRef<LocomotiveScroll | null>(null);
   const [scrollPosition, setScrollPosition] = useState(0);
   const [windowHeight, setWindowHeight] = useState(0);
+  const pathname = usePathname();
 
   useEffect(() => {
     if (!scrollRef.current) {
@@ -60,7 +62,7 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [pathname]);
 
   const scrollToSection = (id: string) => {
     if (scrollRef.current) {
