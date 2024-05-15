@@ -8,7 +8,9 @@ type Props = {
 
 const Heading = ({ Tag = 'h2', text, className }: Props) => {
   return (
-    <Tag className={`text-primary text-4xl font-bold mb-4 ${className}`}>
+    <Tag
+      className={`text-primary text-4xl 2xl:text-5xl font-bold mb-4 ${className}`}
+    >
       {text}
     </Tag>
   );

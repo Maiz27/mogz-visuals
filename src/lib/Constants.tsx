@@ -4,10 +4,10 @@ import {
   HiOutlinePhone,
 } from 'react-icons/hi2';
 
-export const PAGE_SECTIONS = [
-  { name: 'About', id: 'about' },
-  { name: 'Services', id: 'services' },
-  { name: 'Contact', id: 'contact' },
+export const ROUTES = [
+  { name: 'Home', path: '/' },
+  { name: 'Gallery', path: '/gallery' },
+  { name: 'Contact', path: '/contact' },
 ];
 
 export const HERO_IMAGES = [
