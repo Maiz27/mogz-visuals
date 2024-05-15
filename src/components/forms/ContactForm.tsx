@@ -1,11 +1,10 @@
 'use client';
+import Input from '@/components/ui/form/Input';
+import Textarea from '@/components/ui/form/Textarea';
+import CTAButton from '@/components/ui/CTA/CTAButton';
 import { CONTACT_FIELDS } from '@/lib/Constants';
-import CTAButton from '../ui/CTA/CTAButton';
 
 const ContactForm = () => {
-  const CommonClassName =
-    'w-full bg-background border border-copy p-4 tracking-wider focus:outline-primary focus:border-none transition-all';
-
   return (
     <form
       data-scroll
@@ -16,23 +15,22 @@ const ContactForm = () => {
       {CONTACT_FIELDS.map(({ type, placeholder, name, required }, i) => {
         if (type === 'textarea') {
           return (
-            <textarea
+            <Textarea
               key={name}
               name={name}
               required={required}
               placeholder={placeholder}
-              className={`h-64 resize-y ${CommonClassName}`}
+              className='h-64 resize-y'
             />
           );
         }
         return (
-          <input
+          <Input
             key={name}
             name={name}
             type={type}
             required={required}
             placeholder={placeholder}
-            className={` ${CommonClassName}`}
           />
         );
       })}

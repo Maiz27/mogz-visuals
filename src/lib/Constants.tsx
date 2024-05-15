@@ -1,3 +1,4 @@
+import { BiParagraph } from 'react-icons/bi';
 import {
   HiOutlineMapPin,
   HiOutlineEnvelope,
@@ -170,6 +171,23 @@ export const CONTACT_FIELDS = [
     type: 'textarea',
     placeholder: 'Write your message here...',
     required: true,
+  },
+];
+
+export const PAGE_HEADERS = [
+  {
+    title: 'Visual Stories, Captured Moments',
+    paragraph:
+      'Dive into our curated gallery of collections, where each card opens a window into a unique story captured through our lens. Every project reflects our dedication to visual excellence from weddings and corporate events to personal portraits and artistic endeavors. Click on any card to delve deeper into our creative world or enter a specific collection ID to access exclusive content.',
+  },
+  {
+    title: 'Contact Title',
+    paragraph: 'Contact paragraph',
+  },
+  {
+    title: 'Lost in the Frames?',
+    paragraph:
+      "It looks like the page you were searching for isn't in our gallery.  Don't worry, we can help guide you back to the main exhibit.  Click below to return to our homepage, or if you prefer a more  personal touch, reach out to us directly for assistance.",
   },
 ];
 
