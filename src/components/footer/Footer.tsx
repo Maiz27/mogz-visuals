@@ -7,8 +7,6 @@ const Footer = () => {
 
   return (
     <LocomotiveScrollSection className='w-full'>
-      <Grid />
-
       <footer className='p-4'>
         <div className='flex justify-between items-center'>
           <span>
@@ -59,7 +57,7 @@ const Footer = () => {
 
 export default Footer;
 
-const Grid = () => {
+export const Grid = () => {
   const images = [
     [
       '/imgs/hero/1.jpg',
@@ -110,7 +108,7 @@ const Grid = () => {
   };
 
   return (
-    <section className='w-full h-[100vw] md:h-[65vw] mb-2 '>
+    <LocomotiveScrollSection className='w-full h-[100vw] md:h-[65vw] mb-2 '>
       <div className='w-[200%] md:w-full h-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
         {images.map((list, i) => (
           <div key={i} className='flex'>
@@ -118,7 +116,7 @@ const Grid = () => {
               const speed = getSpeed(idx);
               return (
                 <div
-                  key={`List-${i}-Img-${idx}`}
+                  key={`List-${++i}-Img-${++idx}`}
                   data-scroll
                   data-scroll-speed={speed}
                   data-scroll-direction='horizontal'
@@ -138,6 +136,6 @@ const Grid = () => {
           </div>
         ))}
       </div>
-    </section>
+    </LocomotiveScrollSection>
   );
 };

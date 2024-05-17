@@ -4,6 +4,7 @@ import Footer from '@/components/footer/Footer';
 import { ScrollProvider } from '@/lib/context/scrollContext';
 import ScrollToTop from '@/components/scrollToTop/ScrollToTop';
 import './globals.css';
+import { IsClientCtxProvider } from '@/lib/context/IsClientContext';
 
 export const metadata: Metadata = {
   title: 'Mogz Visual - Professional Photography in South Sudan',
@@ -28,14 +29,16 @@ export default function RootLayout({
   return (
     <html lang='en'>
       <body className=''>
-        <ScrollProvider>
-          <div data-scroll-container>
-            <Header />
-            {children}
-            <Footer />
-          </div>
-          <ScrollToTop />
-        </ScrollProvider>
+        <IsClientCtxProvider>
+          <ScrollProvider>
+            <div data-scroll-container>
+              <Header />
+              {children}
+              <Footer />
+            </div>
+            <ScrollToTop />
+          </ScrollProvider>
+        </IsClientCtxProvider>
       </body>
     </html>
   );

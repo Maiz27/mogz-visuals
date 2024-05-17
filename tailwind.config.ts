@@ -32,6 +32,14 @@ const config: Config = {
       },
     },
   },
+  safelist: [
+    {
+      pattern: /bg-\w+/,
+    },
+    {
+      pattern: /text-\w+/,
+    },
+  ],
   plugins: [],
 };
 export default config;

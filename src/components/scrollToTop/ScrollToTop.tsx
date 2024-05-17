@@ -23,7 +23,7 @@ const ScrollToTop = () => {
   }, [isHome, scroll]);
 
   const scrollToTop = () => {
-    scrollToSection(isHome ? '#heroGrid' : '#default404');
+    scrollToSection('#top');
   };
 
   if (isVisible)
