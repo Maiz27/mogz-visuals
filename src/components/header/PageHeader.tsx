@@ -12,7 +12,7 @@ const PageHeader = ({ id, title, paragraph, children }: Props) => {
   return (
     <LocomotiveScrollSection
       id={id}
-      className='min-h-[85vh] grid place-items-center'
+      className='min-h-[90vh] lg:min-h-[80vh] grid place-items-center'
     >
       <div
         data-scroll

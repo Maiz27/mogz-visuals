@@ -4,7 +4,7 @@ import CTAButton from '@/components/ui/CTA/CTAButton';
 const CollectionIdForm = () => {
   return (
     <>
-      <form className='pt-4 flex justify-center items-center gap-4'>
+      <form className='pt-4 flex flex-col md:flex-row justify-center items-center gap-4'>
         <Input
           name='collection'
           placeholder='Enter collection id'

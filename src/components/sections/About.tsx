@@ -143,7 +143,7 @@ const FounderMediumScreen = () => {
 
 const FounderLargeScreen = () => {
   return (
-    <div className='hidden lg:flex lg:flex-row justify-center items-center max-w-6xl mx-auto lg:gap-16'>
+    <div className='hidden lg:flex lg:flex-row justify-center items-center max-w-6xl mx-auto lg:gap-8 xl:gap-12'>
       <ImageCard
         src='/imgs/founder/mogga.jpg'
         alt='Jacob Mogga Kei'

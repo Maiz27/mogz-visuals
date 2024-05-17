@@ -13,7 +13,7 @@ const ScrollHero = () => {
       id='heroGrid'
     >
       <div className='w-[150%] pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[22.5deg] flex justify-center items-center'>
-        {arrays.map((array, index) => (
+        {arrays.map((list, index) => (
           <div
             key={index}
             className='w-96 block flex-none lg:w-[33vmax] p-6'
@@ -21,14 +21,14 @@ const ScrollHero = () => {
             data-scroll-speed={index % 2 ? 2 : -2}
             data-scroll-target='#heroGrid'
           >
-            {array.map((image, imageIdx) => (
+            {list.map((image, imageIdx) => (
               <Image
                 key={image}
                 src={image}
                 width={500}
                 height={500}
                 loading='eager'
-                alt={`[MOGZ]-Tile(${index})-Image(${imageIdx})`}
+                alt={`[MOGZ]-Tile(${++index})-Image(${++imageIdx})`}
                 className='w-full h-[400px] lg:h-[40vmax] bg-cover bg-center opacity-70 m-10'
               />
             ))}

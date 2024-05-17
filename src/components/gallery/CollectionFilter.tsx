@@ -7,7 +7,7 @@ const CollectionFilter = () => {
   const sortOptions = ['Newest', 'Oldest', 'Most Popular'];
 
   return (
-    <div className='w-full px-8 flex flex-col md:flex-row md:items-center md:justify-between'>
+    <div className='w-full flex flex-col md:flex-row md:items-center md:justify-between'>
       <h2 className='text-2xl font-bold text-primary'>10 Collections</h2>
 
       <div className='flex items-center gap-2'>

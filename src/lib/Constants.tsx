@@ -1,4 +1,3 @@
-import { BiParagraph } from 'react-icons/bi';
 import {
   HiOutlineMapPin,
   HiOutlineEnvelope,
@@ -8,7 +7,6 @@ import {
 export const ROUTES = [
   { name: 'Home', path: '/' },
   { name: 'Gallery', path: '/gallery' },
-  { name: 'Contact', path: '/contact' },
 ];
 
 export const HERO_IMAGES = [
@@ -188,6 +186,129 @@ export const PAGE_HEADERS = [
     title: 'Lost in the Frames?',
     paragraph:
       "It looks like the page you were searching for isn't in our gallery.  Don't worry, we can help guide you back to the main exhibit.  Click below to return to our homepage, or if you prefer a more  personal touch, reach out to us directly for assistance.",
+  },
+];
+
+export const COLLECTIONS = [
+  {
+    title: 'Collection one',
+    year: '2018',
+    img: '/imgs/hero/1.jpg',
+    slug: 'collection-one',
+  },
+  {
+    title: 'Collection two',
+    year: '2019',
+    img: '/imgs/hero/2.jpg',
+    slug: 'collection-two',
+  },
+  {
+    title: 'Collection three',
+    year: '2020',
+    img: '/imgs/hero/3.jpg',
+    slug: 'collection-three',
+  },
+  {
+    title: 'Collection four',
+    year: '2021',
+    img: '/imgs/hero/4.jpg',
+    slug: 'collection-four',
+  },
+  {
+    title: 'Collection five',
+    year: '2022',
+    img: '/imgs/hero/5.jpg',
+    slug: 'collection-five',
+  },
+  {
+    title: 'Collection six',
+    year: '2023',
+    img: '/imgs/hero/6.jpg',
+    slug: 'collection-six',
+  },
+  {
+    title: 'Collection seven',
+    year: '2024',
+    img: '/imgs/hero/7.jpg',
+    slug: 'collection-seven',
+  },
+  {
+    title: 'Collection eight',
+    year: '2025',
+    img: '/imgs/hero/8.jpg',
+    slug: 'collection-eight',
+  },
+  {
+    title: 'Collection nine',
+    year: '2026',
+    img: '/imgs/hero/9.jpg',
+    slug: 'collection-nine',
+  },
+  {
+    title: 'Collection ten',
+    year: '2027',
+    img: '/imgs/hero/10.jpg',
+    slug: 'collection-ten',
+  },
+  {
+    title: 'Collection eleven',
+    year: '2028',
+    img: '/imgs/hero/11.jpg',
+    slug: 'collection-eleven',
+  },
+  {
+    title: 'Collection twelve',
+    year: '2029',
+    img: '/imgs/hero/12.jpg',
+    slug: 'collection-twelve',
+  },
+  {
+    title: 'Collection thirteen',
+    year: '2030',
+    img: '/imgs/hero/13.jpg',
+    slug: 'collection-thirteen',
+  },
+  {
+    title: 'Collection fourteen',
+    year: '2031',
+    img: '/imgs/hero/14.jpg',
+    slug: 'collection-fourteen',
+  },
+  {
+    title: 'Collection fifteen',
+    year: '2032',
+    img: '/imgs/hero/15.jpg',
+    slug: 'collection-fifteen',
+  },
+  {
+    title: 'Collection sixteen',
+    year: '2033',
+    img: '/imgs/hero/16.jpg',
+    slug: 'collection-sixteen',
+  },
+  {
+    title: 'Collection seventeen',
+    year: '2034',
+    img: '/imgs/hero/17.jpg',
+    slug: 'collection-seventeen',
+  },
+  {
+    title: 'Collection eighteen',
+    year: '2035',
+    img: '/imgs/hero/18.jpg',
+    slug: 'collection-eighteen',
+  },
+  {
+    title: 'Collection nineteen',
+    year: '2036',
+    img: '/imgs/hero/19.jpg',
+    slug: 'collection-nineteen',
+  },
+  {
+    title: 'Collection twenty',
+    year: '2037',
+    img: '/imgs/hero/20.jpg',
+    slug: 'collection-twenty',
   },
 ];
 

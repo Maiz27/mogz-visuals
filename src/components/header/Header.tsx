@@ -1,9 +1,15 @@
+'use client';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ROUTES } from '@/lib/Constants';
+import { usePathname } from 'next/navigation';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
+import { CTALink } from '../ui/CTA/CTALink';
+import { ROUTES } from '@/lib/Constants';
 
 const Header = () => {
+  const pathname = usePathname();
+  const route = pathname === '/' ? ROUTES[1] : ROUTES[0];
+
   return (
     <>
       <header className='fixed z-30 top-0 w-full p-2 px-4 lg:p-4'>
@@ -20,14 +26,8 @@ const Header = () => {
             />
           </Link>
 
-          <nav>
-            <ul className='flex font-bold tracking-wider space-x-4 lg:text-lg'>
-              {ROUTES.map((route) => (
-                <li key={route.path}>
-                  <NavLink route={route} />
-                </li>
-              ))}
-            </ul>
+          <nav className='mr-4'>
+            <CTALink href={route.path}>{route.name}</CTALink>
           </nav>
         </div>
       </header>
@@ -39,14 +39,3 @@ const Header = () => {
 };
 
 export default Header;
-
-const NavLink = ({
-  route: { name, path },
-}: {
-  route: { name: string; path: string };
-}) => (
-  <Link href={path} className='relative group'>
-    {name}
-    <span className='absolute -bottom-1 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
-  </Link>
-);

@@ -78,7 +78,7 @@ const ImageCard = memo(
     return (
       <div
         ref={imageRef}
-        className={`image h-96 w-72 grid lg:max-w-[30vw] overflow-hidden relative ${className}`}
+        className={`image h-96 w-72 xl:h-[450px] xl:w-80 grid xl:max-w-[30vw] overflow-hidden relative ${className}`}
         style={{ backgroundImage: 'none' }}
         onMouseEnter={() => hoverTimeline.current?.play()}
         onMouseLeave={() => hoverTimeline.current?.reverse()}
