@@ -9,28 +9,7 @@ export const ROUTES = [
   { name: 'Gallery', path: '/gallery' },
 ];
 
-export const HERO_IMAGES = [
-  '/imgs/hero/1.jpg',
-  '/imgs/hero/2.jpg',
-  '/imgs/hero/3.jpg',
-  '/imgs/hero/4.jpg',
-  '/imgs/hero/5.jpg',
-  '/imgs/hero/6.jpg',
-  '/imgs/hero/7.jpg',
-  '/imgs/hero/8.jpg',
-  '/imgs/hero/9.jpg',
-  '/imgs/hero/10.jpg',
-  '/imgs/hero/11.jpg',
-  '/imgs/hero/12.jpg',
-  '/imgs/hero/13.jpg',
-  '/imgs/hero/14.jpg',
-  '/imgs/hero/15.jpg',
-  '/imgs/hero/16.jpg',
-  '/imgs/hero/17.jpg',
-  '/imgs/hero/18.jpg',
-  '/imgs/hero/19.jpg',
-  '/imgs/hero/20.jpg',
-];
+export const COLLECTION_SORT_OPTIONS = ['Newest', 'Oldest', 'Most Popular'];
 
 export const MOGZ = {
   about:
@@ -77,78 +56,6 @@ export const MOGZ = {
     //   text: '+211-922-222-385',
     // },
   ],
-  services: [
-    {
-      title: 'Wedding Photography',
-      images: [
-        '/imgs/hero/1.jpg',
-        '/imgs/hero/2.jpg',
-        '/imgs/hero/3.jpg',
-        '/imgs/hero/4.jpg',
-        '/imgs/hero/5.jpg',
-      ],
-    },
-    {
-      title: 'Commercial Visuals',
-      images: [
-        '/imgs/hero/6.jpg',
-        '/imgs/hero/7.jpg',
-        '/imgs/hero/8.jpg',
-        '/imgs/hero/9.jpg',
-        '/imgs/hero/10.jpg',
-      ],
-    },
-    {
-      title: 'Portrait Sessions',
-      images: [
-        '/imgs/hero/11.jpg',
-        '/imgs/hero/12.jpg',
-        '/imgs/hero/13.jpg',
-        '/imgs/hero/14.jpg',
-        '/imgs/hero/15.jpg',
-      ],
-    },
-    {
-      title: 'Aerial Perspectives',
-      images: [
-        '/imgs/hero/16.jpg',
-        '/imgs/hero/17.jpg',
-        '/imgs/hero/18.jpg',
-        '/imgs/hero/19.jpg',
-        '/imgs/hero/20.jpg',
-      ],
-    },
-    {
-      title: 'Architectural Imagery',
-      images: [
-        '/imgs/hero/1.jpg',
-        '/imgs/hero/2.jpg',
-        '/imgs/hero/3.jpg',
-        '/imgs/hero/4.jpg',
-        '/imgs/hero/5.jpg',
-      ],
-    },
-    {
-      title: 'Product Imagery',
-      images: [
-        '/imgs/hero/6.jpg',
-        '/imgs/hero/7.jpg',
-        '/imgs/hero/8.jpg',
-        '/imgs/hero/9.jpg',
-        '/imgs/hero/10.jpg',
-      ],
-    },
-    {
-      title: 'Social Media Content',
-      images: [
-        '/imgs/hero/11.jpg',
-        '/imgs/hero/12.jpg',
-        '/imgs/hero/13.jpg',
-        '/imgs/hero/14.jpg',
-        '/imgs/hero/15.jpg',
-      ],
-    },
-  ],
 };
 
 export const CONTACT_FIELDS = [
@@ -189,128 +96,18 @@ export const PAGE_HEADERS = [
   },
 ];
 
-export const COLLECTIONS = [
-  {
-    title: 'Collection one',
-    year: '2018',
-    img: '/imgs/hero/1.jpg',
-    slug: 'collection-one',
+export const EMPTY_STATE = {
+  collection: {
+    heading: 'No Visual Stories Yet',
+    paragraph:
+      'Our gallery is currently empty, but new visual stories are on the way. Please check back soon to explore our captivating collections. In the meantime, feel free to contact us to discuss how we can bring your vision to life through our photography and videography services.',
   },
-  {
-    title: 'Collection two',
-    year: '2019',
-    img: '/imgs/hero/2.jpg',
-    slug: 'collection-two',
+  filterCollections: {
+    heading: 'No Visual Stories Found',
+    paragraph:
+      "It looks like there are no collections matching your current filter criteria. Please try adjusting the filters to explore our captivating visual stories. If you still can't find what you're looking for, feel free to contact us to discuss how we can bring your vision to life through our photography and videography services.",
   },
-  {
-    title: 'Collection three',
-    year: '2020',
-    img: '/imgs/hero/3.jpg',
-    slug: 'collection-three',
-  },
-  {
-    title: 'Collection four',
-    year: '2021',
-    img: '/imgs/hero/4.jpg',
-    slug: 'collection-four',
-  },
-  {
-    title: 'Collection five',
-    year: '2022',
-    img: '/imgs/hero/5.jpg',
-    slug: 'collection-five',
-  },
-  {
-    title: 'Collection six',
-    year: '2023',
-    img: '/imgs/hero/6.jpg',
-    slug: 'collection-six',
-  },
-  {
-    title: 'Collection seven',
-    year: '2024',
-    img: '/imgs/hero/7.jpg',
-    slug: 'collection-seven',
-  },
-  {
-    title: 'Collection eight',
-    year: '2025',
-    img: '/imgs/hero/8.jpg',
-    slug: 'collection-eight',
-  },
-  {
-    title: 'Collection nine',
-    year: '2026',
-    img: '/imgs/hero/9.jpg',
-    slug: 'collection-nine',
-  },
-  {
-    title: 'Collection ten',
-    year: '2027',
-    img: '/imgs/hero/10.jpg',
-    slug: 'collection-ten',
-  },
-  {
-    title: 'Collection eleven',
-    year: '2028',
-    img: '/imgs/hero/11.jpg',
-    slug: 'collection-eleven',
-  },
-  {
-    title: 'Collection twelve',
-    year: '2029',
-    img: '/imgs/hero/12.jpg',
-    slug: 'collection-twelve',
-  },
-  {
-    title: 'Collection thirteen',
-    year: '2030',
-    img: '/imgs/hero/13.jpg',
-    slug: 'collection-thirteen',
-  },
-  {
-    title: 'Collection fourteen',
-    year: '2031',
-    img: '/imgs/hero/14.jpg',
-    slug: 'collection-fourteen',
-  },
-  {
-    title: 'Collection fifteen',
-    year: '2032',
-    img: '/imgs/hero/15.jpg',
-    slug: 'collection-fifteen',
-  },
-  {
-    title: 'Collection sixteen',
-    year: '2033',
-    img: '/imgs/hero/16.jpg',
-    slug: 'collection-sixteen',
-  },
-  {
-    title: 'Collection seventeen',
-    year: '2034',
-    img: '/imgs/hero/17.jpg',
-    slug: 'collection-seventeen',
-  },
-  {
-    title: 'Collection eighteen',
-    year: '2035',
-    img: '/imgs/hero/18.jpg',
-    slug: 'collection-eighteen',
-  },
-  {
-    title: 'Collection nineteen',
-    year: '2036',
-    img: '/imgs/hero/19.jpg',
-    slug: 'collection-nineteen',
-  },
-  {
-    title: 'Collection twenty',
-    year: '2037',
-    img: '/imgs/hero/20.jpg',
-    slug: 'collection-twenty',
-  },
-];
+};
 
 export const IMAGE_CARD_ANIMATE_OPTIONS = {
   slideLeft: {

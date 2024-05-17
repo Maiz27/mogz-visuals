@@ -4,7 +4,9 @@ import Services from '@/components/sections/Services';
 import ScrollHero from '@/components/sections/ScrollHero';
 import { Grid } from '@/components/footer/Footer';
 
-export default function Home() {
+export const revalidate = 60;
+
+const Home = () => {
   return (
     <main>
       <ScrollHero />
@@ -18,4 +20,6 @@ export default function Home() {
       <Grid />
     </main>
   );
-}
+};
+
+export default Home;

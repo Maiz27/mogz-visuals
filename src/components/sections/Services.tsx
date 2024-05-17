@@ -1,10 +1,13 @@
 import Image from 'next/image';
 import Heading from '../heading/Heading';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
-import { MOGZ } from '@/lib/Constants';
+import { fetchSanityData } from '@/lib/sanity/client';
+import { getServices } from '@/lib/sanity/queries';
+import { SERVICE } from '@/lib/types';
 
-const Services = () => {
-  const { services } = MOGZ;
+const Services = async () => {
+  const services: SERVICE[] = await fetchSanityData(getServices);
+
   return (
     <LocomotiveScrollSection
       id='services'

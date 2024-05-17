@@ -1,11 +1,14 @@
 import Image from 'next/image';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import LocomotiveScrollSection from '@/components/locomotiveScrollSection/LocomotiveScrollSection';
-import { HERO_IMAGES } from '@/lib/Constants';
+import { fetchSanityData } from '@/lib/sanity/client';
+import { getHeroImages } from '@/lib/sanity/queries';
 import { divideImagesArray } from '@/lib/utils';
+import { HERO_IMAGES } from '@/lib/types';
 
-const ScrollHero = () => {
-  const arrays: string[][] = divideImagesArray(HERO_IMAGES, 5);
+const ScrollHero = async () => {
+  const data: HERO_IMAGES = await fetchSanityData(getHeroImages);
+  const arrays: string[][] = divideImagesArray(data.images, 5);
 
   return (
     <LocomotiveScrollSection

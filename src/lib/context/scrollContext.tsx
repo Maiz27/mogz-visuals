@@ -8,6 +8,7 @@ import {
   useRef,
   useState,
 } from 'react';
+import useHasSearchParams from '../hooks/useHasSearchParams';
 
 type ScrollContextValue = {
   scroll: number;
@@ -30,6 +31,7 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   const [scrollPosition, setScrollPosition] = useState(0);
   const [windowHeight, setWindowHeight] = useState(0);
   const pathname = usePathname();
+  const hasSearchParams = useHasSearchParams(['service', 'sortBy']);
 
   useEffect(() => {
     if (!scrollRef.current) {
@@ -62,7 +64,7 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [pathname]);
+  }, [pathname, hasSearchParams]);
 
   const scrollToSection = (id: string) => {
     if (scrollRef.current) {
