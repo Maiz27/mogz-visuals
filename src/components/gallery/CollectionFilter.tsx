@@ -22,8 +22,7 @@ export const Filter = ({ services, total }: Props) => {
   const { state, handleChange, resetFilters } = useCollectionFilter();
   const serviceOptions = services.map((service) => service.title);
 
-  const selectedOptions =
-    (state.service && state.service !== 'All') || state.sortBy;
+  const hasService = state.service && state.service !== 'All';
 
   return (
     <div className='w-full flex flex-col md:flex-row md:items-center md:justify-between'>
@@ -46,7 +45,7 @@ export const Filter = ({ services, total }: Props) => {
           selected='Sort'
           className='md:w-min'
         />
-        {selectedOptions && (
+        {hasService && (
           <>
             <button
               onClick={resetFilters}

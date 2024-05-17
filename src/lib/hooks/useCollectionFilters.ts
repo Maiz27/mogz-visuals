@@ -14,7 +14,7 @@ const useCollectionFilter = () => {
   const initialState = useMemo(
     () => ({
       service: (searchParams.get('service') as string) || '',
-      sortBy: (searchParams.get('sortBy') as string) || '',
+      sortBy: (searchParams.get('sortBy') as string) || 'Newest',
     }),
     [searchParams]
   );

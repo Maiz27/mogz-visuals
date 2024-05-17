@@ -26,18 +26,20 @@ const fetchCollections = async (
   if (sortBy) {
     switch (sortBy) {
       case 'Newest':
-        query += ' | order(date asc)';
-        params.sortBy = sortBy;
-        break;
-      case 'Oldest':
         query += ' | order(date desc)';
         params.sortBy = sortBy;
         break;
+      case 'Oldest':
+        query += ' | order(date asc)';
+        params.sortBy = sortBy;
+        break;
       default:
-        query += ' | order(title desc)';
+        query += ' | order(title asc)';
         params.sortBy = sortBy;
         break;
     }
+  } else {
+    query += ' | order(title asc)';
   }
 
   const collections: COLLECTION[] = await fetchSanityData(query, params);

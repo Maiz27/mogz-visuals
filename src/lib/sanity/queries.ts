@@ -14,8 +14,8 @@ export const getServiceNames = `*[_type == "services"]{
 export const getCollectionBySlug = `*[_type == "collection" && slug.current == $slug]{
   title,
   slug,
-  mainImage,
+  "mainImage": mainImage.asset->url,
   service,
   date,
-  gallery,
+  "gallery": gallery[].asset->url,
 }[0]`;

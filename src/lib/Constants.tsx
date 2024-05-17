@@ -9,7 +9,11 @@ export const ROUTES = [
   { name: 'Gallery', path: '/gallery' },
 ];
 
-export const COLLECTION_SORT_OPTIONS = ['Newest', 'Oldest', 'Most Popular'];
+export const COLLECTION_SORT_OPTIONS = [
+  'Newest',
+  'Oldest',
+  // 'Most Popular',
+];
 
 export const MOGZ = {
   about:
