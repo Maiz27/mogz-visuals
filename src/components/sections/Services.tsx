@@ -5,6 +5,8 @@ import { fetchSanityData } from '@/lib/sanity/client';
 import { getServices } from '@/lib/sanity/queries';
 import { SERVICE } from '@/lib/types';
 
+export const revalidate = 60;
+
 const Services = async () => {
   const services: SERVICE[] = await fetchSanityData(getServices);
 

@@ -6,6 +6,8 @@ import { getHeroImages } from '@/lib/sanity/queries';
 import { divideImagesArray } from '@/lib/utils';
 import { HERO_IMAGES } from '@/lib/types';
 
+export const revalidate = 60;
+
 const ScrollHero = async () => {
   const data: HERO_IMAGES = await fetchSanityData(getHeroImages);
   const arrays: string[][] = divideImagesArray(data.images, 5);

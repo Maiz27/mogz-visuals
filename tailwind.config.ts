@@ -37,9 +37,6 @@ const config: Config = {
       pattern: /bg-\w+/,
     },
     {
-      pattern: /btn-\w+/,
-    },
-    {
       pattern: /text-\w+/,
     },
   ],
