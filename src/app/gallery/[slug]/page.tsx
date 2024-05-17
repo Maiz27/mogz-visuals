@@ -1,7 +1,14 @@
-import React from 'react';
+import CollectionHeader from '@/components/gallery/CollectionHeader';
+import Gallery from '@/components/gallery/Gallery';
 
 const page = () => {
-  return <div>page</div>;
+  return (
+    <main className='min-h-screen'>
+      <CollectionHeader />
+
+      <Gallery />
+    </main>
+  );
 };
 
 export default page;

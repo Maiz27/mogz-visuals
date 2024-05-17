@@ -22,3 +22,7 @@ export const divideImagesArray = (images: string[], chunkSize: number) => {
 
   return result;
 };
+
+export const getRandomInt = (min: number, max: number) => {
+  return Math.floor(Math.random() * (max - min + 1) + min);
+};
