@@ -108,7 +108,10 @@ export const Grid = () => {
   };
 
   return (
-    <LocomotiveScrollSection className='w-full h-[100vw] md:h-[65vw] mb-2 '>
+    <LocomotiveScrollSection
+      id='photoGrid'
+      className='w-full h-[100vw] md:h-[65vw] mb-2 relative'
+    >
       <div className='w-[200%] md:w-full h-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
         {images.map((list, i) => (
           <div key={i} className='flex'>
@@ -120,6 +123,7 @@ export const Grid = () => {
                   data-scroll
                   data-scroll-speed={speed}
                   data-scroll-direction='horizontal'
+                  data-scroll-target='#photoGrid'
                   className='m-4 h-[calc((100vw/3)-(3*1rem/2))] md:h-[calc((65vw/3)-(3*1rem/2))] w-[calc(16.666%-2rem)] flex-none opacity-90'
                 >
                   <Image

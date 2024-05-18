@@ -7,6 +7,7 @@ type ButtonProps = {
   onClick?: MouseEventHandler<HTMLButtonElement>;
   type?: 'button' | 'reset' | 'submit';
   style?: 'outline' | 'ghost';
+  title?: string;
   loading?: boolean;
   navigationId?: string;
   className?: string;
@@ -15,8 +16,9 @@ type ButtonProps = {
 const CTAButton = (props: ButtonProps) => {
   const {
     children,
-    className = '',
     navigationId,
+    className = '',
+    title,
     type = 'button',
     loading = false,
     style = 'outline',
@@ -34,14 +36,25 @@ const CTAButton = (props: ButtonProps) => {
     };
 
     return (
-      <button type={type} onClick={() => handleScroll()} {...commonProps}>
+      <button
+        title={title}
+        type={type}
+        onClick={() => handleScroll()}
+        {...commonProps}
+      >
         {children}
       </button>
     );
   }
 
   return (
-    <button type={type} disabled={loading} onClick={onClick} {...commonProps}>
+    <button
+      title={title}
+      type={type}
+      disabled={loading}
+      onClick={onClick}
+      {...commonProps}
+    >
       {children}
     </button>
   );

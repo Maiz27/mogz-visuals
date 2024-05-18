@@ -50,7 +50,7 @@ const ScrollHero = async () => {
           visuals that speak volumes.
         </p>
         <div className='flex justify-center items-center gap-4 lg:gap-8 pointer-events-auto pt-4'>
-          <CTAButton navigationId='contact'>Book a session</CTAButton>
+          <CTAButton navigationId='contact'>Book A Session</CTAButton>
           <CTAButton navigationId='services' style='ghost'>
             Discover Our Work
           </CTAButton>

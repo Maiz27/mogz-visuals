@@ -10,9 +10,10 @@ import {
 } from 'react';
 
 type ScrollContextValue = {
+  scrollInstance: LocomotiveScroll | null;
   scroll: number;
-  scrollToSection: (id: string) => void;
   windowHeight: number;
+  scrollToSection: (id: string) => void;
 };
 
 const ScrollContext = createContext<ScrollContextValue | null>(null);
@@ -72,7 +73,12 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
 
   return (
     <ScrollContext.Provider
-      value={{ scroll: scrollPosition, scrollToSection, windowHeight }}
+      value={{
+        scroll: scrollPosition,
+        scrollToSection,
+        windowHeight,
+        scrollInstance: scrollRef.current,
+      }}
     >
       {children}
     </ScrollContext.Provider>

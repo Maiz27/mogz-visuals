@@ -4,7 +4,6 @@ import LightGallery from 'lightgallery/react';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { getRandomInt } from '@/lib/utils';
 import { COLLECTION } from '@/lib/types';
-import { HiOutlineShare, HiArrowDownTray } from 'react-icons/hi2';
 
 // import styles
 import 'lightgallery/css/lightgallery.css';
@@ -25,25 +24,11 @@ const Gallery = ({ collection }: Props) => {
   return (
     <LocomotiveScrollSection
       id='gallery'
-      className='min-h-screen mx-4 md:mx-8 mb-12'
+      className='min-h-screen mb-12 mx-4 md:mx-8'
     >
-      <div className='flex flex-col md:flex-row justify-between md:items-center my-4 gap-4'>
-        <div className='flex flex-col'>
-          <span className='text-lg'>{title}</span>
-          <span className='text-sm -mt-1 ml-1 text-primary'>
-            {gallery.length} Items
-          </span>
-        </div>
-        <div className='ml-1 md:ml-0 flex items-center gap-4'>
-          <button className='flex items-center gap-1'>
-            <HiArrowDownTray className='text-lg text-primary' />
-            Download
-          </button>
-          <button className='flex items-center gap-1'>
-            <HiOutlineShare className='text-lg text-primary' />
-            Share
-          </button>
-        </div>
+      <div className='flex justify-between items-center m-2 text-lg lg:text-xl'>
+        <span>{title}</span>
+        <span className='text-primary'>{gallery.length} Items</span>
       </div>
       <LightGallery
         speed={500}
