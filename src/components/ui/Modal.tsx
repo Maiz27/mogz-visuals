@@ -7,8 +7,8 @@ import { HiOutlineXMark } from 'react-icons/hi2';
 
 type Props = {
   CTA: string;
-  closeBtn: React.RefObject<HTMLButtonElement>;
   btnStyle?: 'outline' | 'ghost';
+  closeBtn: React.RefObject<HTMLButtonElement>;
   children: ReactNode;
   icon?: ReactNode;
   classNames?: string;
@@ -80,7 +80,7 @@ const Modal = ({
               ref={closeBtn}
               onClick={closeModal}
               title='Close Modal'
-              className='absolute right-2 top-2 p-1 text-lg text-primary hover:text-copy transition-colors'
+              className='absolute right-4 top-2 p-1 text-lg text-primary hover:text-copy transition-all scale-90 hover:scale-100 active:scale-90'
             >
               <HiOutlineXMark />
             </button>

@@ -4,11 +4,22 @@ import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/form/Input';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import { HiArrowDownTray } from 'react-icons/hi2';
+import { COLLECTION } from '@/lib/types';
+import useDownloadCollection from '@/lib/hooks/useDownloadCollection';
 
-const DownloadModal = () => {
+type Props = {
+  collection: COLLECTION;
+};
+
+const DownloadModal = ({ collection }: Props) => {
   const closeBtn = useRef<HTMLButtonElement>(null);
+  const { title, gallery } = collection;
+  const { loading, downloadImages } = useDownloadCollection(gallery, title);
 
-  const handleDownload = () => {};
+  const handleDownload = () => {
+    downloadImages();
+    closeBtn.current?.click();
+  };
 
   return (
     <Modal
@@ -35,8 +46,15 @@ const DownloadModal = () => {
         />
 
         <div className='pt-8 flex justify-end gap-2 md:gap-4'>
-          <CTAButton onClick={handleDownload}>Download</CTAButton>
-          <CTAButton style='ghost' onClick={() => closeBtn.current?.click()}>
+          <p>{loading}</p>
+          <CTAButton loading={loading} onClick={() => handleDownload()}>
+            Download
+          </CTAButton>
+          <CTAButton
+            loading={loading}
+            style='ghost'
+            onClick={() => closeBtn.current?.click()}
+          >
             Cancel
           </CTAButton>
         </div>

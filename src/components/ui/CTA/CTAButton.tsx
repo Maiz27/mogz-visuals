@@ -27,7 +27,10 @@ const CTAButton = (props: ButtonProps) => {
   const { scrollToSection } = useScroll();
 
   const commonProps = {
-    className: `${styles[style]} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 ${className}`,
+    className: `${getStyles(
+      style,
+      loading
+    )} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 ${className}`,
   };
 
   if (navigationId) {
@@ -62,9 +65,17 @@ const CTAButton = (props: ButtonProps) => {
 
 export default CTAButton;
 
+const getStyles = (key: keyof typeof styles, loading: boolean) => {
+  if (loading) {
+    return styles.loading;
+  }
+  return styles[key];
+};
+
 const styles = {
   outline:
     'bg-transparent hover:bg-primary text-primary hover:text-background border-2 border-primary hover:border-copy scale-95 hover:scale-100 active:scale-95',
   ghost:
     'bg-transparent hover:bg-primary text-copy hover:text-background scale-95 hover:scale-100 active:scale-95',
+  loading: 'bg-secondary/20 animate-pulse',
 };

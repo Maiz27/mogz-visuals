@@ -41,7 +41,7 @@ const CollectionHeader = ({ collection }: Props) => {
             </time>
           </div>
 
-          <GalleryOptions />
+          <GalleryOptions collection={collection} />
         </div>
       </div>
       <div className='absolute left-1/2 -translate-x-1/2 bottom-8'>
