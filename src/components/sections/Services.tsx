@@ -62,7 +62,8 @@ const Service = ({ index, title, images }: Props) => {
               width={500}
               height={500}
               loading='lazy'
-              alt={`[MOGZ]-${title}-${i}`}
+              alt={`${title}-${++i}`}
+              title={`[MOGZ]-${title}-${++i}`}
               className='h-full w-1/5 flex-none object-cover object-center mx-1 md:mx-2 xl:mx-4 opacity-70'
             />
           ))}

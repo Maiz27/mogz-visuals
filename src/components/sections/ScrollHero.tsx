@@ -49,9 +49,11 @@ const ScrollHero = async () => {
           of your special moments, turning fleeting memories into timeless
           visuals that speak volumes.
         </p>
-        <div className='flex justify-center items-center gap-8 pointer-events-auto pt-4'>
+        <div className='flex justify-center items-center gap-4 lg:gap-8 pointer-events-auto pt-4'>
           <CTAButton navigationId='contact'>Book a session</CTAButton>
-          <CTAButton navigationId='services'>Discover Our Work</CTAButton>
+          <CTAButton navigationId='services' style='ghost'>
+            Discover Our Work
+          </CTAButton>
         </div>
       </div>
     </LocomotiveScrollSection>

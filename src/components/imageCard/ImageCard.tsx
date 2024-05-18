@@ -65,7 +65,8 @@ const ImageCard = memo(
             width={500}
             height={500}
             loading='lazy'
-            alt={`[MOGZ-${alt}]`}
+            alt={alt}
+            title={`[MOGZ]-${alt}`}
             className='image__element object-center object-cover h-full w-full relative will-change-transform row-start-1 row-end-2 col-start-1 col-end-2 overflow-hidden'
             style={{
               transformOrigin: repetitionOrigin,

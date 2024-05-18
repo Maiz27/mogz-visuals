@@ -1,5 +1,3 @@
-import React from 'react';
-
 type Props = {
   name: string;
   type?: string;
@@ -22,7 +20,7 @@ const Input = ({
         type={type}
         required={required}
         placeholder={placeholder}
-        className={`w-full bg-background border border-copy p-4 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
+        className={`w-full bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
       />
     </>
   );

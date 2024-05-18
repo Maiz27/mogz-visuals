@@ -23,7 +23,7 @@ const CollectionCard = ({ index, collection }: Props) => {
       className='h-full w-min space-y-2'
     >
       <Link href={`/gallery/${slug.current}`}>
-        <ImageCard src={mainImage} alt={title} />
+        <ImageCard src={mainImage} alt={title} title={`[MOGZ]-${title}`} />
       </Link>
       <div className='flex flex-wrap justify-between items-center'>
         <Link href={`/gallery/${slug.current}`}>

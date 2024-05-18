@@ -4,6 +4,7 @@ import { ReactNode } from 'react';
 type LinkProps = {
   children: ReactNode;
   href: string;
+  style?: 'outline' | 'ghost';
   className?: string;
   external?: boolean;
 };
@@ -12,11 +13,13 @@ export const CTALink = ({
   href,
   children,
   className,
+  style = 'outline',
   external = false,
 }: LinkProps) => {
   const commonProps = {
-    className: `border-2 border-copy tracking-widest bg-transparent px-6 py-3 font-black transition-all duration-300 hover:translate-x-[-4px] hover:translate-y-[-4px] shadow-button hover:shadow-buttonHover active:translate-x-[0px] active:translate-y-[0px] active:shadow-none ${className}`,
+    className: `${styles[style]} grid place-items-center tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 ${className}`,
   };
+
   if (external) {
     return (
       <a href={href} target='_blank' rel='noopener noreferrer' {...commonProps}>
@@ -24,9 +27,17 @@ export const CTALink = ({
       </a>
     );
   }
+
   return (
     <Link href={href} {...commonProps}>
       {children}
     </Link>
   );
+};
+
+const styles = {
+  outline:
+    'bg-transparent hover:bg-primary text-primary hover:text-background border-2 border-primary hover:border-copy scale-95 hover:scale-100 active:scale-95',
+  ghost:
+    'bg-transparent hover:bg-primary text-copy hover:text-background scale-95 hover:scale-100 active:scale-95',
 };

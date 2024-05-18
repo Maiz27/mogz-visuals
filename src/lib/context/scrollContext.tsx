@@ -8,7 +8,6 @@ import {
   useRef,
   useState,
 } from 'react';
-import useHasSearchParams from '../hooks/useHasSearchParams';
 
 type ScrollContextValue = {
   scroll: number;

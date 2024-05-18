@@ -6,10 +6,10 @@ type ButtonProps = {
   children: ReactNode;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   type?: 'button' | 'reset' | 'submit';
+  style?: 'outline' | 'ghost';
   loading?: boolean;
   navigationId?: string;
   className?: string;
-  isVariant?: boolean;
 };
 
 const CTAButton = (props: ButtonProps) => {
@@ -19,14 +19,15 @@ const CTAButton = (props: ButtonProps) => {
     navigationId,
     type = 'button',
     loading = false,
+    style = 'outline',
     onClick,
-    isVariant = false,
   } = props;
   const { scrollToSection } = useScroll();
 
   const commonProps = {
-    className: `bg-transparent border-copy border-2 tracking-widest px-6 py-3 font-black transition-all duration-300 shadow-primary hover:translate-x-[-4px] hover:translate-y-[-4px] shadow-button hover:shadow-buttonHover active:translate-x-[0px] active:translate-y-[0px] active:shadow-none ${className}`,
+    className: `${styles[style]} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 ${className}`,
   };
+
   if (navigationId) {
     const handleScroll = () => {
       scrollToSection(`#${navigationId}`);
@@ -48,8 +49,9 @@ const CTAButton = (props: ButtonProps) => {
 
 export default CTAButton;
 
-// ${
-//     isVariant
-//       ? 'bg-transparent text-copy border-copy shadow-copy hover:shadow-copy'
-//       : 'bg-transparent border-copy '
-//   }
+const styles = {
+  outline:
+    'bg-transparent hover:bg-primary text-primary hover:text-background border-2 border-primary hover:border-copy scale-95 hover:scale-100 active:scale-95',
+  ghost:
+    'bg-transparent hover:bg-primary text-copy hover:text-background scale-95 hover:scale-100 active:scale-95',
+};

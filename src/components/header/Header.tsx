@@ -12,7 +12,7 @@ const Header = () => {
 
   return (
     <>
-      <header className='fixed z-30 top-0 w-full p-2 px-4 lg:p-4'>
+      <header className='fixed z-30 top-0 w-full p-2 lg:p-4'>
         <div className='flex justify-between items-center'>
           <Link href='/' className='text-xl font-bold h-full'>
             <Image
@@ -27,7 +27,9 @@ const Header = () => {
           </Link>
 
           <nav className='mr-4'>
-            <CTALink href={route.path}>{route.name}</CTALink>
+            <CTALink href={route.path} className='h-10'>
+              {route.name}
+            </CTALink>
           </nav>
         </div>
       </header>

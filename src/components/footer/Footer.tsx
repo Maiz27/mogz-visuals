@@ -7,7 +7,7 @@ const Footer = () => {
 
   return (
     <LocomotiveScrollSection className='w-full'>
-      <footer className='p-4'>
+      <footer className='p-4 py-2 lg:py-4'>
         <div className='flex justify-between items-center'>
           <span>
             &copy; {new Date().getFullYear().toString()} Mogz Visuals.
@@ -127,7 +127,8 @@ export const Grid = () => {
                     width={500}
                     height={500}
                     loading='lazy'
-                    alt={`[MOGZ]-Footer-${idx}`}
+                    alt={`grid-${++idx}`}
+                    title={`[MOGZ]-Grid-${++idx}`}
                     className='w-full h-full object-center object-cover'
                   />
                 </div>

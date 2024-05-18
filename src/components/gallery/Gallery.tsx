@@ -70,7 +70,9 @@ const Gallery = ({ collection }: Props) => {
                 width={500}
                 height={500}
                 src={image}
+                loading='lazy'
                 alt={`${title} (${++idx} of ${gallery.length})`}
+                title={`[MOGZ]-${title}-(${++idx}/${gallery.length})`}
                 className='h-full w-full object-cover'
               />
             </a>

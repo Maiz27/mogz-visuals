@@ -19,6 +19,7 @@ const CollectionHeader = ({ collection }: Props) => {
           width={1080}
           height={720}
           alt={title}
+          title={`[MOGZ]-${title}`}
           loading='eager'
           className='w-full h-full object-cover object-center'
           priority={true}
