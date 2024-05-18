@@ -12,7 +12,7 @@ const ScrollToTop = () => {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (scroll > (isHome ? 1000 : 200)) {
+      if (scroll > (isHome ? 1000 : 400)) {
         setIsVisible(true);
       } else {
         setIsVisible(false);

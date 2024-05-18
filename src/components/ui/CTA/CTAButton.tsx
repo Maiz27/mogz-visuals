@@ -9,14 +9,14 @@ type ButtonProps = {
   style?: 'outline' | 'ghost';
   title?: string;
   loading?: boolean;
-  navigationId?: string;
+  scrollId?: string;
   className?: string;
 };
 
 const CTAButton = (props: ButtonProps) => {
   const {
     children,
-    navigationId,
+    scrollId,
     className = '',
     title,
     type = 'button',
@@ -33,9 +33,9 @@ const CTAButton = (props: ButtonProps) => {
     )} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 ${className}`,
   };
 
-  if (navigationId) {
+  if (scrollId) {
     const handleScroll = () => {
-      scrollToSection(`#${navigationId}`);
+      scrollToSection(`#${scrollId}`);
     };
 
     return (

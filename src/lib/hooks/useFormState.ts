@@ -14,7 +14,7 @@ const useFormState = <T extends object>(
   const [errors, setErrors] = useState<{ [K in keyof T]?: string }>({});
 
   const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLSelectElement>
+    e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
     const { name, value } = e.target;
     setState({

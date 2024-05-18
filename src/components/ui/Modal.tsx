@@ -4,9 +4,11 @@ import { useGSAP } from '@gsap/react';
 import CTAButton from './CTA/CTAButton';
 import useLockLocomotiveScroll from '@/lib/hooks/useLockLocomotiveScroll';
 import { HiOutlineXMark } from 'react-icons/hi2';
+import { useScroll } from '@/lib/context/scrollContext';
 
 type Props = {
   CTA: string;
+  scrollId?: string;
   btnStyle?: 'outline' | 'ghost';
   closeBtn: React.RefObject<HTMLButtonElement>;
   children: ReactNode;
@@ -15,6 +17,7 @@ type Props = {
 };
 
 const Modal = ({
+  scrollId,
   icon,
   CTA,
   btnStyle = 'outline',
@@ -23,6 +26,7 @@ const Modal = ({
   children,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { scrollToSection } = useScroll();
   const modalRef = useRef(null);
   const backdropRef = useRef(null);
 
@@ -43,6 +47,11 @@ const Modal = ({
     }
   }, [isOpen]);
 
+  const openModal = () => {
+    scrollToSection(`#${scrollId}`);
+    setIsOpen(true);
+  };
+
   const closeModal = () => {
     gsap.to(backdropRef.current, { opacity: 0, duration: 0.3 });
     gsap.to(modalRef.current, {
@@ -57,7 +66,7 @@ const Modal = ({
   return (
     <>
       <CTAButton
-        onClick={() => setIsOpen(true)}
+        onClick={openModal}
         style={btnStyle}
         className='flex items-center gap-1'
       >

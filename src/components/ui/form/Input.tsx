@@ -21,12 +21,15 @@ const Input = ({
   placeholder = 'Type here...',
   className,
 }: Props) => {
+  const value = state
+    ? (state[name as keyof typeof state] as unknown as string)
+    : ('' as string);
   return (
-    <>
+    <div className='w-full flex flex-col space-y-1'>
       <input
         name={name}
         type={type}
-        value={state![name as keyof typeof state]}
+        value={value}
         onChange={onChange}
         required={required}
         placeholder={placeholder}
@@ -37,7 +40,7 @@ const Input = ({
           {errors[name as keyof typeof state]}
         </span>
       )}
-    </>
+    </div>
   );
 };
 

@@ -14,7 +14,10 @@ type Props = {
 const CollectionHeader = ({ collection }: Props) => {
   const { title, mainImage, date } = collection;
   return (
-    <LocomotiveScrollSection className='relative h-full w-full'>
+    <LocomotiveScrollSection
+      id='collection-header'
+      className='relative h-full w-full'
+    >
       <div className='w-full h-screen relative after:content-[""] after:absolute after:inset-0 after:bg-gradient-to-b after:from-transparent after:via-background/50 after:to-background overflow-hidden'>
         <Image
           src={mainImage}
@@ -47,7 +50,7 @@ const CollectionHeader = ({ collection }: Props) => {
       <div className='absolute left-1/2 -translate-x-1/2 bottom-8'>
         <CTAButton
           title='View Collection'
-          navigationId='gallery'
+          scrollId='gallery'
           style='ghost'
           className='text-3xl'
         >

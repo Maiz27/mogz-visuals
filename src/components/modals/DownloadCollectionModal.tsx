@@ -13,7 +13,7 @@ type Props = {
   collection: COLLECTION;
 };
 
-const DownloadModal = ({ collection }: Props) => {
+const DownloadCollectionModal = ({ collection }: Props) => {
   const closeBtn = useRef<HTMLButtonElement>(null);
 
   const { title, gallery } = collection;
@@ -43,6 +43,7 @@ const DownloadModal = ({ collection }: Props) => {
 
   return (
     <Modal
+      scrollId='collection-header'
       closeBtn={closeBtn}
       icon={<HiArrowDownTray className='text-lg text-inherit' />}
       CTA='Download'
@@ -91,4 +92,4 @@ const DownloadModal = ({ collection }: Props) => {
   );
 };
 
-export default DownloadModal;
+export default DownloadCollectionModal;

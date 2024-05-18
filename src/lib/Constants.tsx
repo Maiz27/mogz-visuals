@@ -4,6 +4,8 @@ import {
   HiOutlinePhone,
 } from 'react-icons/hi2';
 
+export const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+
 export const ROUTES = [
   { name: 'Home', path: '/' },
   { name: 'Gallery', path: '/gallery' },
@@ -63,12 +65,36 @@ export const MOGZ = {
 };
 
 export const FORMS = {
+  contact: {
+    fields: { name: '', email: '', message: '' },
+    rules: {
+      name: (value: string) =>
+        value.length > 2 ? '' : 'Name must be longer than 2 characters!',
+      email: (value: string) => {
+        return value.match(EMAIL_PATTERN)
+          ? ''
+          : 'Please enter a valid email address';
+      },
+      message: (value: string) =>
+        value.length > 10 ? '' : 'Message must be longer than 10 characters!',
+    },
+  },
+  browse: {
+    fields: { id: '', password: '' },
+    rules: {
+      id: (value: string) =>
+        value.length >= 6 ? '' : 'ID must be longer than 6 characters!',
+      password: (value: string) =>
+        value.length >= 6 ? '' : 'Password must be longer than 6 characters!',
+    },
+  },
   download: {
     fields: { email: '' },
     rules: {
       email: (value: string) => {
-        const pattern = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
-        return value.match(pattern) ? '' : 'Please enter a valid email address';
+        return value.match(EMAIL_PATTERN)
+          ? ''
+          : 'Please enter a valid email address!';
       },
     },
   },

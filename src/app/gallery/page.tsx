@@ -1,9 +1,11 @@
 import PageHeader from '@/components/header/PageHeader';
+import CTAButton from '@/components/ui/CTA/CTAButton';
 import CollectionGrid from '@/components/gallery/CollectionGrid';
-import CollectionIdForm from '@/components/forms/CollectionIdForm';
-import { PAGE_HEADERS } from '@/lib/Constants';
+import OpenPrivateCollectionModal from '@/components/modals/OpenPrivateCollectionModal';
 import { fetchSanityData } from '@/lib/sanity/client';
+import { PAGE_HEADERS } from '@/lib/Constants';
 import { COLLECTION } from '@/lib/types';
+import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
 
 export const revalidate = 60;
 
@@ -58,7 +60,19 @@ const page = async ({
   return (
     <main>
       <PageHeader id='gallery' title={title} paragraph={paragraph}>
-        <CollectionIdForm />
+        <div className='pt-8'>
+          <OpenPrivateCollectionModal />
+          <div className='absolute left-1/2 -translate-x-1/2 bottom-8'>
+            <CTAButton
+              title='View Collections'
+              scrollId='collections'
+              style='ghost'
+              className='text-3xl'
+            >
+              <HiOutlineChevronDoubleDown />
+            </CTAButton>
+          </div>
+        </div>
       </PageHeader>
 
       <CollectionGrid collections={collections} searchParams={searchParams} />
