@@ -1,11 +1,13 @@
 'use client';
-import { useRef } from 'react';
+import { FormEvent, useRef } from 'react';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/form/Input';
 import CTAButton from '@/components/ui/CTA/CTAButton';
+import useFormState from '@/lib/hooks/useFormState';
+import useDownloadCollection from '@/lib/hooks/useDownloadCollection';
 import { HiArrowDownTray } from 'react-icons/hi2';
 import { COLLECTION } from '@/lib/types';
-import useDownloadCollection from '@/lib/hooks/useDownloadCollection';
+import { FORMS } from '@/lib/Constants';
 
 type Props = {
   collection: COLLECTION;
@@ -13,11 +15,29 @@ type Props = {
 
 const DownloadModal = ({ collection }: Props) => {
   const closeBtn = useRef<HTMLButtonElement>(null);
-  const { title, gallery } = collection;
-  const { loading, downloadImages } = useDownloadCollection(gallery, title);
 
-  const handleDownload = () => {
+  const { title, gallery } = collection;
+  const { error, loading, downloadImages } = useDownloadCollection(
+    gallery,
+    title
+  );
+
+  const { fields, rules } = FORMS.download;
+  const { state, errors, handleChange, reset } = useFormState(fields, rules);
+
+  const handleDownload = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     downloadImages();
+    if (error) {
+      console.log('Message: ', error);
+      return;
+    }
+    reset();
+    closeBtn.current?.click();
+  };
+
+  const handleCancel = () => {
+    reset();
     closeBtn.current?.click();
   };
 
@@ -37,23 +57,31 @@ const DownloadModal = ({ collection }: Props) => {
         you with high-quality visual content.
       </span>
 
-      <form>
+      <form onSubmit={handleDownload}>
         <Input
           required={true}
+          state={state}
+          errors={errors}
+          onChange={handleChange}
           name='email'
           type='email'
           placeholder='Email Address'
         />
 
+        {error && (
+          <span className='text-red-500 pt-4'>
+            An error occurred while download the images, please try again later.
+          </span>
+        )}
+
         <div className='pt-8 flex justify-end gap-2 md:gap-4'>
-          <p>{loading}</p>
-          <CTAButton loading={loading} onClick={() => handleDownload()}>
+          <CTAButton type='submit' loading={loading}>
             Download
           </CTAButton>
           <CTAButton
             loading={loading}
             style='ghost'
-            onClick={() => closeBtn.current?.click()}
+            onClick={() => handleCancel()}
           >
             Cancel
           </CTAButton>

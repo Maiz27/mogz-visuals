@@ -62,6 +62,18 @@ export const MOGZ = {
   ],
 };
 
+export const FORMS = {
+  download: {
+    fields: { email: '' },
+    rules: {
+      email: (value: string) => {
+        const pattern = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+        return value.match(pattern) ? '' : 'Please enter a valid email address';
+      },
+    },
+  },
+};
+
 export const CONTACT_FIELDS = [
   {
     name: 'name',

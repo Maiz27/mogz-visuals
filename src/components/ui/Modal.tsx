@@ -37,7 +37,7 @@ const Modal = ({
       );
       gsap.fromTo(
         modalRef.current,
-        { scale: 0, rotate: '12.5deg' },
+        { scale: 0, rotate: '45deg' },
         { scale: 1, rotate: '0deg', duration: 0.3, ease: 'back.out(1.7)' }
       );
     }
@@ -47,7 +47,7 @@ const Modal = ({
     gsap.to(backdropRef.current, { opacity: 0, duration: 0.3 });
     gsap.to(modalRef.current, {
       scale: 0,
-      rotate: '0deg',
+      rotate: '-45deg',
       duration: 0.3,
       ease: 'back.in(1.7)',
       onComplete: () => setIsOpen(false),
