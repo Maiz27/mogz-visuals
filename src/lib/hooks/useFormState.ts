@@ -24,7 +24,6 @@ const useFormState = <T extends object>(
 
     if (rules[name]) {
       const errorMessage = rules[name](value);
-      console.log(errorMessage);
       setErrors({
         ...errors,
         [name]: errorMessage,

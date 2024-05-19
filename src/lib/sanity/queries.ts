@@ -11,7 +11,14 @@ export const getServiceNames = `*[_type == "services"]{
   title,
 }| order(title asc)`;
 
+export const getCollectionCredentials = `*[_type == "collection" && slug.current == $id && isPrivate == true]{
+  slug,
+  isPrivate,
+  password,
+}[0]`;
+
 export const getCollectionBySlug = `*[_type == "collection" && slug.current == $slug]{
+  isPrivate,
   title,
   slug,
   "mainImage": mainImage.asset->url,

@@ -5,14 +5,18 @@ import GalleryOptions from './GalleryOptions';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { COLLECTION } from '@/lib/types';
 import { getStringDate } from '@/lib/utils';
-import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
+import {
+  HiOutlineChevronDoubleDown,
+  HiOutlineLockClosed,
+  HiOutlineCalendarDays,
+} from 'react-icons/hi2';
 
 type Props = {
   collection: COLLECTION;
 };
 
 const CollectionHeader = ({ collection }: Props) => {
-  const { title, mainImage, date } = collection;
+  const { title, mainImage, date, isPrivate } = collection;
   return (
     <LocomotiveScrollSection
       id='collection-header'
@@ -32,16 +36,26 @@ const CollectionHeader = ({ collection }: Props) => {
       </div>
       <div className='absolute inset-0 grid place-items-center'>
         <div className='flex flex-col items-center space-y-4'>
-          <div className='flex flex-col items-center'>
+          <div className='flex flex-col items-center lg:space-y-4'>
             <Heading
               Tag='h1'
               text={title}
               color='copy'
               className='2xl:text-6xl mb-0'
             />
-            <time className='md:text-lg -mt-2 xl:-mt-0'>
-              {getStringDate(date)}
-            </time>
+
+            <div className='md:text-lg gap-4 flex items-center'>
+              {isPrivate && (
+                <div className='flex items-center gap-1'>
+                  <HiOutlineLockClosed />
+                  <span>Private</span>
+                </div>
+              )}
+              <time className='flex items-center gap-1'>
+                <HiOutlineCalendarDays />
+                {getStringDate(date)}
+              </time>
+            </div>
           </div>
 
           <GalleryOptions collection={collection} />

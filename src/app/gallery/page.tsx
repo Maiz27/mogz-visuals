@@ -14,7 +14,8 @@ const fetchCollections = async (
 ) => {
   const { service, sortBy } = searchParams;
 
-  let query = '*[_type == "collection"';
+  let query =
+    '*[_type == "collection" && (isPrivate == false || isPrivate == null)';
   let params: { [key: string]: string | string[] } = {};
 
   if (service) {
@@ -23,7 +24,7 @@ const fetchCollections = async (
   }
 
   query +=
-    ']{ title, slug, "mainImage": mainImage.asset->url , date, service }';
+    ']{ isPrivate, title, slug, "mainImage": mainImage.asset->url , date, service }';
 
   if (sortBy) {
     switch (sortBy) {

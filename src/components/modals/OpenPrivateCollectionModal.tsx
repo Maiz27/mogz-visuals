@@ -1,22 +1,33 @@
 'use client';
+import { useRouter } from 'next/navigation';
 import { FormEvent, useRef } from 'react';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/form/Input';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import useFormState from '@/lib/hooks/useFormState';
+import useVerifyAccess from '@/lib/hooks/useVerifyAccess';
 import { FORMS } from '@/lib/Constants';
 import { HiOutlineLockClosed } from 'react-icons/hi2';
+import { setCollectionAccessCookie } from '@/lib/utils';
 
 const OpenPrivateCollectionModal = () => {
   const closeBtn = useRef<HTMLButtonElement>(null);
+  const router = useRouter();
 
   const { fields, rules } = FORMS.browse;
   const { state, errors, handleChange, reset } = useFormState(fields, rules);
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const { response, loading, handleVerifyAccess } = useVerifyAccess();
+
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // reset();
-    closeBtn.current?.click();
+    const response = await handleVerifyAccess(state);
+
+    if (response.status === 200) {
+      setCollectionAccessCookie(response.slug!, response.expires!);
+      router.push(`/gallery/${response.slug!}`);
+      reset();
+    }
   };
 
   const handleCancel = () => {
@@ -65,12 +76,22 @@ const OpenPrivateCollectionModal = () => {
           />
         </div>
 
+        {response && (
+          <span
+            className={`pt-4 ${
+              response.status === 200 ? 'text-green-500' : 'text-red-500'
+            }`}
+          >
+            {response.message}
+          </span>
+        )}
+
         <div className='pt-4 flex justify-end gap-2 md:gap-4'>
-          <CTAButton type='submit' loading={false}>
+          <CTAButton type='submit' loading={loading}>
             Browse Collection
           </CTAButton>
           <CTAButton
-            loading={false}
+            loading={loading}
             style='ghost'
             onClick={() => handleCancel()}
           >

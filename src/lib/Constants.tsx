@@ -128,13 +128,14 @@ export const PAGE_HEADERS = [
       'Dive into our curated gallery of collections, where each card opens a window into a unique story captured through our lens. Every project reflects our dedication to visual excellence from weddings and corporate events to personal portraits and artistic endeavors. Click on any card to delve deeper into our creative world or enter a specific collection ID to access exclusive content.',
   },
   {
-    title: 'Contact Title',
-    paragraph: 'Contact paragraph',
-  },
-  {
     title: 'Lost in the Frames?',
     paragraph:
-      "It looks like the page you were searching for isn't in our gallery.  Don't worry, we can help guide you back to the main exhibit.  Click below to return to our homepage, or if you prefer a more  personal touch, reach out to us directly for assistance.",
+      "It looks like the page you were searching for isn't in our gallery. Don't worry, we can help guide you back to the main exhibit. Click below to return to our homepage, or if you prefer a more personal touch, reach out to us directly for assistance.",
+  },
+  {
+    title: 'Collection Not Found or Inaccessible',
+    paragraph:
+      "The collection you're trying to access is either not available or is private. If you believe this is an error, please try again. Access to private collections is limited to 4 hours, after which you will need to re-enter the collection ID and password. Click below to return to our homepage or browse our gallery for other captivating visual stories.",
   },
 ];
 

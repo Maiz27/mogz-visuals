@@ -12,8 +12,8 @@ const Header = () => {
 
   return (
     <>
-      <header className='fixed z-30 top-0 w-full p-2 lg:p-4'>
-        <div className='flex justify-between items-center'>
+      <header className='fixed z-30 top-0 w-full'>
+        <div className='absolute top-4  left-2 md:left-4'>
           <Link href='/' className='text-xl font-bold h-full'>
             <Image
               width={50}
@@ -25,13 +25,12 @@ const Header = () => {
               className='h-full w-ful object-contain invert'
             />
           </Link>
-
-          <nav className='mr-4'>
-            <CTALink href={route.path} className='h-10'>
-              {route.name}
-            </CTALink>
-          </nav>
         </div>
+        <nav className='absolute top-4 right-2 md:right-4 '>
+          <CTALink href={route.path} className='block'>
+            {route.name}
+          </CTALink>
+        </nav>
       </header>
       <LocomotiveScrollSection id='top'>
         <></>

@@ -17,7 +17,7 @@ export const CTALink = ({
   external = false,
 }: LinkProps) => {
   const commonProps = {
-    className: `${styles[style]} grid place-items-center tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 ${className}`,
+    className: `${styles[style]} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 ${className}`,
   };
 
   if (external) {
@@ -37,7 +37,7 @@ export const CTALink = ({
 
 const styles = {
   outline:
-    'bg-transparent hover:bg-primary text-primary hover:text-background border-2 border-primary hover:border-copy scale-95 hover:scale-100 active:scale-95',
+    'flex items-center bg-transparent hover:bg-primary text-primary hover:text-background border-2 border-primary hover:border-copy scale-95 hover:scale-100 active:scale-95',
   ghost:
-    'bg-transparent hover:bg-primary text-copy hover:text-background scale-95 hover:scale-100 active:scale-95',
+    'flex items-center bg-transparent hover:bg-primary text-copy hover:text-background scale-95 hover:scale-100 active:scale-95',
 };
