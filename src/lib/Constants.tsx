@@ -8,6 +8,8 @@ import {
   HiOutlineXMark,
 } from 'react-icons/hi2';
 
+export const BASEURL = 'https://www.mogz.studio';
+
 export const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
 export const ROUTES = [
@@ -15,15 +17,11 @@ export const ROUTES = [
   { name: 'Gallery', path: '/gallery' },
 ];
 
-export const COLLECTION_SORT_OPTIONS = [
-  'Newest',
-  'Oldest',
-  // 'Most Popular',
-];
+export const COLLECTION_SORT_OPTIONS = ['Newest', 'Oldest'];
 
 export const MOGZ = {
   about:
-    "Welcome to Mogz Visual, where each click of our camera captures more than a moment—it tells your unique story. Our founder, Jacob Mogga Kei, leads our team with a vision for authentic expression and heartfelt connections, making every frame a canvas and every photograph a chapter in your life's narrative. With over a decade of experience, Jacob's philosophy of focusing on the genuine moments drives our commitment to visual storytelling. We are more than creators; we are custodians of your memories, dedicated to preserving the love, joy, laughter, and tears that make each photograph a testament to the human experience.",
+    "Welcome to Mogz Visuals, where each click of our camera captures more than a moment—it tells your unique story. Our founder, Jacob Mogga Kei, leads our team with a vision for authentic expression and heartfelt connections, making every frame a canvas and every photograph a chapter in your life's narrative. With over a decade of experience, Jacob's philosophy of focusing on the genuine moments drives our commitment to visual storytelling. We are more than creators; we are custodians of your memories, dedicated to preserving the love, joy, laughter, and tears that make each photograph a testament to the human experience.",
   inspiration:
     'Our inspiration comes from the vivid tapestry of life that surrounds us—from the rich colors and diverse cultures of South Sudan to the personal stories of our clients. Each project is a new adventure, a new story to tell. We celebrate the beauty and uniqueness of each individual, community, and landscape we capture, always striving to convey the depth and emotion of the moment.',
   social: [
@@ -154,6 +152,27 @@ export const PAGE_HEADERS = [
     title: 'Collection Not Found or Inaccessible',
     paragraph:
       "The collection you're trying to access is either not available or is private. If you believe this is an error, please try again. Access to private collections is limited to 1 hours, after which you will need to re-enter the collection ID and password. Click below to return to our homepage or browse our gallery for other captivating visual stories.",
+  },
+];
+
+export const pagesMetaData = [
+  {
+    title: 'Mogz Visuals - Professional Photography in South Sudan',
+    description:
+      "Discover Mogz Visuals, the leading photography and videography studio in South Sudan. Capturing your life's moments with creativity and precision. Book your session today.",
+    type: 'website',
+    url: `${BASEURL}`,
+    image: `${BASEURL}/imgs/logo/logo.jpg`,
+    icon: '/imgs/logo/favicon.ico',
+  },
+  {
+    title: 'Gallery - Mogz Visuals Collections',
+    description:
+      'Explore the gallery of Mogz Visuals, showcasing our diverse collections of professional photography and videography. Discover visual stories that capture the essence of every moment.',
+    type: 'website',
+    url: `${BASEURL}/gallery`,
+    image: `${BASEURL}/imgs/gallery/gallery-cover.jpg`,
+    icon: '/imgs/logo/favicon.ico',
   },
 ];
 

@@ -21,7 +21,7 @@ const Header = () => {
               loading='eager'
               priority={true}
               src='/imgs/logo/logo.png'
-              alt='Mogz Visual'
+              alt='Mogz Visuals'
               className='h-full w-ful object-contain invert'
             />
           </Link>

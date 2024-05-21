@@ -34,3 +34,14 @@ export const getCollectionsByName = `*[_type == "collection" && title match $nam
   date,
   "mainImage": mainImage.asset->url,
 }`;
+
+export const getCollectionForSEO = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
+  slug, 
+  title,
+  "mainImage": mainImage.asset->url,
+}[0]`;
+
+export const getAllCollectionsForSitemap = `*[_type == "collection" && (isPrivate == false || isPrivate == null)]{
+  slug, 
+  date
+}`;

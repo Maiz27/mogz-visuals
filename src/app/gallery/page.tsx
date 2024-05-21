@@ -10,6 +10,42 @@ import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
 
 export const revalidate = 60;
 
+const page = async ({
+  searchParams,
+}: {
+  searchParams?: { [key: string]: string | string[] | undefined };
+}) => {
+  const collections = await fetchCollections(searchParams);
+  const { title, paragraph } = PAGE_HEADERS[0];
+
+  return (
+    <main>
+      <PageHeader id='gallery' title={title} paragraph={paragraph}>
+        <div className='pt-8 md:-ml-6'>
+          <div className='flex flex-col md:flex-row justify-center gap-4'>
+            <AccessPrivateCollectionModal />
+            <SearchCollectionModal />
+          </div>
+          <div className='absolute left-1/2 -translate-x-1/2 bottom-8'>
+            <CTAButton
+              title='View Collections'
+              scrollId='collections'
+              style='ghost'
+              className='text-3xl'
+            >
+              <HiOutlineChevronDoubleDown />
+            </CTAButton>
+          </div>
+        </div>
+      </PageHeader>
+
+      <CollectionGrid collections={collections} searchParams={searchParams} />
+    </main>
+  );
+};
+
+export default page;
+
 const fetchCollections = async (
   searchParams: { [key: string]: string | string[] | undefined } = {}
 ) => {
@@ -50,39 +86,3 @@ const fetchCollections = async (
 
   return collections;
 };
-
-const page = async ({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) => {
-  const collections = await fetchCollections(searchParams);
-  const { title, paragraph } = PAGE_HEADERS[0];
-
-  return (
-    <main>
-      <PageHeader id='gallery' title={title} paragraph={paragraph}>
-        <div className='pt-8 md:-ml-6'>
-          <div className='flex flex-col md:flex-row justify-center gap-4'>
-            <AccessPrivateCollectionModal />
-            <SearchCollectionModal />
-          </div>
-          <div className='absolute left-1/2 -translate-x-1/2 bottom-8'>
-            <CTAButton
-              title='View Collections'
-              scrollId='collections'
-              style='ghost'
-              className='text-3xl'
-            >
-              <HiOutlineChevronDoubleDown />
-            </CTAButton>
-          </div>
-        </div>
-      </PageHeader>
-
-      <CollectionGrid collections={collections} searchParams={searchParams} />
-    </main>
-  );
-};
-
-export default page;

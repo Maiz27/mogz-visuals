@@ -40,7 +40,7 @@ const AccessPrivateCollectionModal = () => {
       scrollId='gallery'
       closeBtn={closeBtn}
       icon={<HiOutlineLockClosed className='text-lg text-inherit' />}
-      CTA='Browse Private Collection'
+      CTA='Access Private Collection'
       classNames='flex flex-col space-y-4'
     >
       <h3 className='w-fit text-primary text-lg lg:text-2xl font-bold tracking-wider'>

@@ -5,13 +5,13 @@ import ScrollToTop from '@/components/scrollToTop/ScrollToTop';
 import { ScrollProvider } from '@/lib/context/scrollContext';
 import { IsClientCtxProvider } from '@/lib/context/IsClientContext';
 import { ToastProvider } from '@/lib/context/ToastContext';
-import './globals.css';
 import ToastContainer from '@/components/toastContainer/ToastContainer';
+import './globals.css';
 
 export const metadata: Metadata = {
-  title: 'Mogz Visual - Professional Photography in South Sudan',
+  title: 'Mogz Visuals - Professional Photography in South Sudan',
   description:
-    "Discover Mogz Visual, the leading photography and videography studio in South Sudan. Capturing your life's moments with creativity and precision. Book your session today.",
+    "Discover Mogz Visuals, the leading photography and videography studio in South Sudan. Capturing your life's moments with creativity and precision. Book your session today.",
   icons: {
     icon: '/imgs/logo/favicon.ico',
     shortcut: '/imgs/logo/favicon.ico',
