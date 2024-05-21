@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
     status: 200,
     message: 'Access granted, redirecting...',
     slug: credentials.slug.current,
-    expires: Date.now() + 5 * 60 * 1000, // 1 hour in milliseconds
+    // expires: Date.now() + 1 * 60 * 1000, // 1 hour in milliseconds
   };
 
   return NextResponse.json(responseBody, { status: 200 });

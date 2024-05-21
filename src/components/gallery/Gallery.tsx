@@ -13,13 +13,16 @@ import 'lightgallery/css/lg-thumbnail.css';
 // import plugins
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
 import lgZoom from 'lightgallery/plugins/zoom';
+import { useAutoDeleteCookie } from '@/lib/hooks/useAutoDeleteCookie';
 
 type Props = {
   collection: COLLECTION;
 };
 
 const Gallery = ({ collection }: Props) => {
-  const { title, gallery } = collection;
+  const { title, gallery, slug, isPrivate } = collection;
+
+  useAutoDeleteCookie(slug.current, isPrivate);
 
   return (
     <LocomotiveScrollSection

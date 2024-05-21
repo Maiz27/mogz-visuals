@@ -2,6 +2,10 @@ import {
   HiOutlineMapPin,
   HiOutlineEnvelope,
   HiOutlinePhone,
+  HiOutlineCheckCircle,
+  HiOutlineExclamationCircle,
+  HiOutlineInformationCircle,
+  HiOutlineXMark,
 } from 'react-icons/hi2';
 
 export const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
@@ -82,8 +86,15 @@ export const FORMS = {
   browse: {
     fields: { id: '', password: '' },
     rules: {
-      id: (value: string) =>
-        value.length >= 6 ? '' : 'ID must be longer than 6 characters!',
+      id: (value: string) => {
+        if (value.length < 6) {
+          return 'ID must be longer than 6 characters!';
+        }
+        if (/\s/.test(value)) {
+          return 'ID must not contain spaces!';
+        }
+        return '';
+      },
       password: (value: string) =>
         value.length >= 6 ? '' : 'Password must be longer than 6 characters!',
     },
@@ -135,7 +146,7 @@ export const PAGE_HEADERS = [
   {
     title: 'Collection Not Found or Inaccessible',
     paragraph:
-      "The collection you're trying to access is either not available or is private. If you believe this is an error, please try again. Access to private collections is limited to 4 hours, after which you will need to re-enter the collection ID and password. Click below to return to our homepage or browse our gallery for other captivating visual stories.",
+      "The collection you're trying to access is either not available or is private. If you believe this is an error, please try again. Access to private collections is limited to 1 hours, after which you will need to re-enter the collection ID and password. Click below to return to our homepage or browse our gallery for other captivating visual stories.",
   },
 ];
 
@@ -150,6 +161,13 @@ export const EMPTY_STATE = {
     paragraph:
       "It looks like there are no collections matching your current filter criteria. Please try adjusting the filters to explore our captivating visual stories. If you still can't find what you're looking for, feel free to contact us to discuss how we can bring your vision to life through our photography and videography services.",
   },
+};
+
+export const TOAST_STATUS = {
+  success: <HiOutlineCheckCircle className='text-green-500' />,
+  error: <HiOutlineXMark className='text-red-500' />,
+  info: <HiOutlineInformationCircle className='text-blue-500' />,
+  warning: <HiOutlineExclamationCircle className='text-yellow-500' />,
 };
 
 export const IMAGE_CARD_ANIMATE_OPTIONS = {

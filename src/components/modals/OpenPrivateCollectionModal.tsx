@@ -24,7 +24,7 @@ const OpenPrivateCollectionModal = () => {
     const response = await handleVerifyAccess(state);
 
     if (response.status === 200) {
-      setCollectionAccessCookie(response.slug!, response.expires!);
+      setCollectionAccessCookie(response.slug!);
       router.push(`/gallery/${response.slug!}`);
       reset();
     }

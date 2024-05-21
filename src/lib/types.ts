@@ -32,8 +32,9 @@ export type VERIFY_ACCESS_RESPONSE_BODY = {
   message: string;
   status: number;
   slug?: string;
-  expires?: number;
 };
+
+export type TOAST_STATUS = 'success' | 'error' | 'info' | 'warning';
 
 export type Tag =
   | 'main'

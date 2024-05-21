@@ -25,15 +25,16 @@ const DownloadCollectionModal = ({ collection }: Props) => {
   const { fields, rules } = FORMS.download;
   const { state, errors, handleChange, reset } = useFormState(fields, rules);
 
-  const handleDownload = (e: FormEvent<HTMLFormElement>) => {
+  const handleDownload = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    downloadImages();
+    await downloadImages();
     if (error) {
       console.log('Message: ', error);
       return;
+    } else {
+      reset();
+      closeBtn.current?.click();
     }
-    reset();
-    closeBtn.current?.click();
   };
 
   const handleCancel = () => {
