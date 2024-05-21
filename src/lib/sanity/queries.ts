@@ -26,3 +26,11 @@ export const getCollectionBySlug = `*[_type == "collection" && slug.current == $
   date,
   "gallery": gallery[].asset->url,
 }[0]`;
+
+export const getCollectionsByName = `*[_type == "collection" && title match $name && (isPrivate == false || isPrivate == null)]{
+  isPrivate,
+  title,
+  slug,
+  date,
+  "mainImage": mainImage.asset->url,
+}`;

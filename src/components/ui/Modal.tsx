@@ -14,6 +14,7 @@ type Props = {
   children: ReactNode;
   icon?: ReactNode;
   classNames?: string;
+  onClose?: () => void;
 };
 
 const Modal = ({
@@ -24,6 +25,7 @@ const Modal = ({
   classNames,
   closeBtn,
   children,
+  onClose,
 }: Props) => {
   const [isOpen, setIsOpen] = useState(false);
   const { scrollToSection } = useScroll();
@@ -59,7 +61,10 @@ const Modal = ({
       rotate: '-45deg',
       duration: 0.3,
       ease: 'back.in(1.7)',
-      onComplete: () => setIsOpen(false),
+      onComplete: () => {
+        setIsOpen(false);
+        onClose && onClose();
+      },
     });
   };
 
@@ -68,7 +73,7 @@ const Modal = ({
       <CTAButton
         onClick={openModal}
         style={btnStyle}
-        className='flex items-center gap-1'
+        className='flex items-center gap-2'
       >
         {icon}
         <span>{CTA}</span>
@@ -89,7 +94,7 @@ const Modal = ({
               ref={closeBtn}
               onClick={closeModal}
               title='Close Modal'
-              className='absolute right-4 top-2 p-1 text-lg text-primary hover:text-copy transition-all scale-90 hover:scale-100 active:scale-90'
+              className='absolute right-4 top-2 p-1 text-xl text-primary hover:text-copy transition-all scale-90 hover:scale-100 active:scale-90'
             >
               <HiOutlineXMark />
             </button>

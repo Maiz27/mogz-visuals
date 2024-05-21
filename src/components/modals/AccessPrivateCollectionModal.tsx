@@ -10,7 +10,7 @@ import { FORMS } from '@/lib/Constants';
 import { HiOutlineLockClosed } from 'react-icons/hi2';
 import { setCollectionAccessCookie } from '@/lib/utils';
 
-const OpenPrivateCollectionModal = () => {
+const AccessPrivateCollectionModal = () => {
   const closeBtn = useRef<HTMLButtonElement>(null);
   const router = useRouter();
 
@@ -103,4 +103,4 @@ const OpenPrivateCollectionModal = () => {
   );
 };
 
-export default OpenPrivateCollectionModal;
+export default AccessPrivateCollectionModal;

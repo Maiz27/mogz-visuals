@@ -99,6 +99,13 @@ export const FORMS = {
         value.length >= 6 ? '' : 'Password must be longer than 6 characters!',
     },
   },
+  search: {
+    fields: { name: '' },
+    rules: {
+      name: (value: string) =>
+        value.length > 2 ? '' : 'Name must be longer than 2 characters!',
+    },
+  },
   download: {
     fields: { email: '' },
     rules: {

@@ -124,7 +124,7 @@ export const Grid = () => {
                   data-scroll-speed={speed}
                   data-scroll-direction='horizontal'
                   data-scroll-target='#photoGrid'
-                  className='m-4 h-[calc((100vw/3)-(3*1rem/2))] md:h-[calc((65vw/3)-(3*1rem/2))] w-[calc(16.666%-2rem)] flex-none opacity-90'
+                  className='m-4 h-[calc((100vw/3)-(3*1rem/2))] md:h-[calc((65vw/3)-(3*1rem/2))] w-[calc(16.666%-2rem)] flex-none opacity-80'
                 >
                   <Image
                     src={img}

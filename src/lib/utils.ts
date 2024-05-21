@@ -66,7 +66,7 @@ export const getStringDate = (StringDate: string, isRelative = false) => {
 export const getMonthYear = (StringDate: string) => {
   const date = new Date(StringDate);
   return date
-    .toLocaleString(undefined, { month: 'long', year: 'numeric' })
+    .toLocaleString(undefined, { month: 'short', year: 'numeric' })
     .replace(' ', ', ');
 };
 
