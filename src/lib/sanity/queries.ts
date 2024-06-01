@@ -45,3 +45,5 @@ export const getAllCollectionsForSitemap = `*[_type == "collection" && (isPrivat
   slug, 
   date
 }`;
+
+export const getCollectionsCount = `count(*[_type == "collection" && (isPrivate == false || isPrivate == null)])`;

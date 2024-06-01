@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 type State = {
   service: string;
   sortBy: string;
+  page: number;
 };
 
 const useCollectionFilter = () => {
@@ -15,6 +16,7 @@ const useCollectionFilter = () => {
     () => ({
       service: (searchParams.get('service') as string) || '',
       sortBy: (searchParams.get('sortBy') as string) || 'Newest',
+      page: parseInt(searchParams.get('page') as string) || 1,
     }),
     [searchParams]
   );
@@ -33,6 +35,10 @@ const useCollectionFilter = () => {
         query.set('sortBy', newState.sortBy);
       }
 
+      if (newState.page) {
+        query.set('page', newState.page.toString());
+      }
+
       router.push(`${pathname}?${query.toString()}`);
     },
     [pathname, router]
@@ -42,15 +48,29 @@ const useCollectionFilter = () => {
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const { name, value } = e.target;
       setState((prevState) => {
-        const newState = { ...prevState, [name]: value };
+        const newState = { ...prevState, [name]: value, page: 1 };
         return newState;
       });
     },
     []
   );
 
+  const handleNext = useCallback(() => {
+    setState((prevState) => {
+      const newState = { ...prevState, page: prevState.page + 1 };
+      return newState;
+    });
+  }, []);
+
+  const handlePrev = useCallback(() => {
+    setState((prevState) => {
+      const newState = { ...prevState, page: Math.max(1, prevState.page - 1) };
+      return newState;
+    });
+  }, []);
+
   const resetFilters = useCallback(() => {
-    const newState = { service: '', sortBy: '' };
+    const newState = { service: '', sortBy: '', page: 1 };
     setState(newState);
     updateURL(newState);
   }, [updateURL]);
@@ -63,6 +83,8 @@ const useCollectionFilter = () => {
     state,
     handleChange,
     resetFilters,
+    handleNext,
+    handlePrev,
   };
 };
 

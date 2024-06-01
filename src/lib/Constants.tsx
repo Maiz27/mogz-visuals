@@ -12,6 +12,8 @@ export const BASEURL = 'https://www.mogz.studio';
 
 export const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
+export const PAGE_SIZE = 10;
+
 export const ROUTES = [
   { name: 'Home', path: '/' },
   { name: 'Gallery', path: '/gallery' },

@@ -4,7 +4,7 @@ import CollectionGrid from '@/components/gallery/CollectionGrid';
 import AccessPrivateCollectionModal from '@/components/modals/AccessPrivateCollectionModal';
 import SearchCollectionModal from '@/components/modals/SearchCollectionModal';
 import { fetchSanityData } from '@/lib/sanity/client';
-import { PAGE_HEADERS } from '@/lib/Constants';
+import { PAGE_HEADERS, PAGE_SIZE } from '@/lib/Constants';
 import { COLLECTION } from '@/lib/types';
 import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
 
@@ -49,7 +49,7 @@ export default page;
 const fetchCollections = async (
   searchParams: { [key: string]: string | string[] | undefined } = {}
 ) => {
-  const { service, sortBy } = searchParams;
+  const { service, sortBy, page } = searchParams;
 
   let query =
     '*[_type == "collection" && (isPrivate == false || isPrivate == null)';
@@ -61,7 +61,7 @@ const fetchCollections = async (
   }
 
   query +=
-    ']{ isPrivate, title, slug, "mainImage": mainImage.asset->url , date, service }';
+    ']{ title, slug, "mainImage": mainImage.asset->url , date, service }';
 
   if (sortBy) {
     switch (sortBy) {
@@ -81,6 +81,10 @@ const fetchCollections = async (
   } else {
     query += ' | order(title asc)';
   }
+
+  // Add pagination
+  const start = ((parseInt(page! as string) || 1) - 1) * PAGE_SIZE;
+  query += ` [${start}...${start + PAGE_SIZE}]`;
 
   const collections: COLLECTION[] = await fetchSanityData(query, params);
 
