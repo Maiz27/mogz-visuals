@@ -1,146 +1,103 @@
 import Image from 'next/image';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
+import { fetchSanityData } from '@/lib/sanity/client';
+import { getFooterImages } from '@/lib/sanity/queries';
+import { divideImagesArray } from '@/lib/utils';
+import { HERO_IMAGES } from '@/lib/types';
 import { MOGZ } from '@/lib/Constants';
+import { CTALink } from '../ui/CTA/CTALink';
 
-const Footer = () => {
+export const revalidate = 60;
+
+const Footer = async () => {
+  const data: HERO_IMAGES = await fetchSanityData(getFooterImages);
+
+  const arrays: string[][] = divideImagesArray(data.images, 4);
   const { social } = MOGZ;
 
+  console.log(arrays);
+
   return (
-    <LocomotiveScrollSection className='w-full'>
-      <footer className='p-4 py-2 lg:py-4'>
-        <div className='flex justify-between items-center'>
-          <span>
-            &copy; {new Date().getFullYear().toString()} Mogz Visuals.
-          </span>
-          <span>All Rights Reserved.</span>
+    <LocomotiveScrollSection
+      Tag='footer'
+      id='footer'
+      className='w-full mx-auto mt-20'
+    >
+      <div className='w-full flex justify-between items-center px-4'>
+        <span>&copy; {new Date().getFullYear().toString()} Mogz Visuals.</span>
+        <span>All Rights Reserved.</span>
+      </div>
+
+      <Grid images={arrays} />
+
+      <div className='flex justify-between items-center mb-4 px-4'>
+        <div className='flex items-center space-x-2 md:space-x-4'>
+          {social.map(({ label, url, icon }) => {
+            return (
+              <CTALink
+                key={label}
+                external={true}
+                href={url}
+                sm={true}
+                className='h-8 text-lg text-copy'
+              >
+                {icon}
+              </CTALink>
+            );
+          })}
         </div>
 
-        <div className='w-full flex justify-center items-center border-y my-1 py-28 text-[6vw] lg:text-[5vw] text-center font-heading text-primary'>
-          Capturing Moments, Creating Memories
-        </div>
-
-        <div className='flex justify-between items-center'>
-          <div className='flex items-center space-x-2 md:space-x-4'>
-            {social.map(({ label, url }) => {
-              return (
-                <a
-                  key={label}
-                  href={url}
-                  target='_blank'
-                  rel='noopener noreferrer'
-                  className='relative group'
-                >
-                  {label}
-                  <span className='absolute -bottom-1 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
-                </a>
-              );
-            })}
-          </div>
-
-          <span>
-            Website by
-            <a
-              href='https://www.nilotik.tech'
-              target='_blank'
-              rel='noopener noreferrer'
-              className='ml-2 relative group'
-            >
-              Nilotik
-              <span className='absolute -bottom-1 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
-            </a>
-          </span>
-        </div>
-      </footer>
+        <span>
+          Website by
+          <a
+            href='https://www.nilotik.tech'
+            target='_blank'
+            rel='noopener noreferrer'
+            className='ml-2 relative group'
+          >
+            Nilotik
+            <span className='absolute -bottom-1 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
+          </a>
+        </span>
+      </div>
     </LocomotiveScrollSection>
   );
 };
 
 export default Footer;
 
-export const Grid = () => {
-  const images = [
-    [
-      '/imgs/hero/1.jpg',
-      '/imgs/hero/2.jpg',
-      '/imgs/hero/3.jpg',
-      '/imgs/hero/4.jpg',
-      '/imgs/hero/5.jpg',
-
-      '/imgs/hero/11.jpg',
-    ],
-    [
-      '/imgs/hero/12.jpg',
-      '/imgs/hero/13.jpg',
-      '/imgs/hero/14.jpg',
-      '/imgs/hero/15.jpg',
-
-      '/imgs/hero/6.jpg',
-      '/imgs/hero/7.jpg',
-    ],
-    [
-      '/imgs/hero/8.jpg',
-      '/imgs/hero/9.jpg',
-      '/imgs/hero/10.jpg',
-
-      '/imgs/hero/16.jpg',
-      '/imgs/hero/17.jpg',
-      '/imgs/hero/18.jpg',
-    ],
-  ];
-
-  const getSpeed = (i: number) => {
-    switch (i) {
-      case 0:
-        return 3;
-      case 1:
-        return 2;
-      case 2:
-        return 1;
-      case 3:
-        return -1;
-      case 4:
-        return -2;
-      case 5:
-        return -3;
-      default:
-        return 0;
-    }
-  };
-
-  return (
-    <LocomotiveScrollSection
-      id='photoGrid'
-      className='w-full h-[100vw] md:h-[65vw] mb-2 relative'
-    >
-      <div className='w-[200%] md:w-full h-full absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2'>
-        {images.map((list, i) => (
-          <div key={i} className='flex'>
-            {list.map((img, idx) => {
-              const speed = getSpeed(idx);
-              return (
-                <div
-                  key={`List-${++i}-Img-${++idx}`}
-                  data-scroll
-                  data-scroll-speed={speed}
-                  data-scroll-direction='horizontal'
-                  data-scroll-target='#photoGrid'
-                  className='m-4 h-[calc((100vw/3)-(3*1rem/2))] md:h-[calc((65vw/3)-(3*1rem/2))] w-[calc(16.666%-2rem)] flex-none opacity-80'
-                >
-                  <Image
-                    src={img}
-                    width={500}
-                    height={500}
-                    loading='lazy'
-                    alt={`grid-${++idx}`}
-                    title={`[MOGZ]-Grid-${++idx}`}
-                    className='w-full h-full object-center object-cover'
-                  />
-                </div>
-              );
-            })}
-          </div>
-        ))}
+const Grid = ({ images }: { images: string[][] }) => (
+  <div
+    id='footerGrid'
+    className='min-h-screen h-[70vmax] relative border-y overflow-hidden my-2'
+  >
+    <div className='pointer-events-none inset-8 absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rotate-[22.5deg] flex justify-center items-center'>
+      {images.map((list, index) => (
+        <div
+          key={index}
+          className='w-96 block flex-none lg:w-[33vmax] p-6'
+          data-scroll
+          data-scroll-speed={index % 2 ? 2 : -2}
+          data-scroll-target='#footerGrid'
+        >
+          {list.map((image, imageIdx) => (
+            <Image
+              key={image}
+              src={image}
+              width={500}
+              height={500}
+              loading='lazy'
+              alt={`[MOGZ]-Footer(${++index})-Image(${++imageIdx})`}
+              className='w-full h-[400px] lg:h-[35vmax] bg-cover bg-center opacity-70 m-10'
+            />
+          ))}
+        </div>
+      ))}
+    </div>
+    <div className='w-full px-4 z-20 flex flex-col items-center absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>
+      <div className='w-full flex justify-center items-center text-[12vw] md:text-[10vw] lg:text-[7vw] text-center font-heading text-primary'>
+        Capturing Moments, Creating Memories
       </div>
-    </LocomotiveScrollSection>
-  );
-};
+    </div>
+  </div>
+);

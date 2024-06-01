@@ -53,4 +53,5 @@ export type Tag =
   | 'h4'
   | 'h5'
   | 'h6'
-  | 'button';
+  | 'button'
+  | 'footer';

@@ -7,6 +7,7 @@ type LinkProps = {
   style?: 'outline' | 'ghost';
   className?: string;
   external?: boolean;
+  sm?: boolean;
 };
 
 export const CTALink = ({
@@ -15,9 +16,12 @@ export const CTALink = ({
   className,
   style = 'outline',
   external = false,
+  sm = false,
 }: LinkProps) => {
   const commonProps = {
-    className: `${styles[style]} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 ${className}`,
+    className: `${styles[style]} tracking-wider lg:tracking-widest ${
+      sm ? 'px-2' : 'px-4'
+    } h-12 font-black transition-all duration-300 ${className}`,
   };
 
   if (external) {

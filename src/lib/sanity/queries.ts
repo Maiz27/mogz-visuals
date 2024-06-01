@@ -2,6 +2,10 @@ export const getHeroImages = `*[_type == "heroImages"]{
   "images": images[].asset->url,
 }[0]`;
 
+export const getFooterImages = `*[_type == "heroImages"]{
+  "images": footer[].asset->url,
+}[0]`;
+
 export const getServices = `*[_type == "services"]{
   title,
   "images": images[].asset->url,

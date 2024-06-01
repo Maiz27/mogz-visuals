@@ -7,6 +7,11 @@ import {
   HiOutlineInformationCircle,
   HiOutlineXMark,
 } from 'react-icons/hi2';
+import {
+  RiFacebookBoxLine,
+  RiInstagramLine,
+  RiTwitterXLine,
+} from 'react-icons/ri';
 
 export const BASEURL = 'https://www.mogz.studio';
 
@@ -30,14 +35,17 @@ export const MOGZ = {
     {
       label: 'Facebook',
       url: 'https://www.facebook.com/profile.php?id=100066717096074',
+      icon: <RiFacebookBoxLine />,
     },
     {
       label: 'Instagram',
       url: 'https://www.instagram.com/mogzvisuals/',
+      icon: <RiInstagramLine />,
     },
     {
       label: 'Twitter',
       url: 'https://twitter.com/MogzVisuals',
+      icon: <RiTwitterXLine />,
     },
   ],
   contact: [

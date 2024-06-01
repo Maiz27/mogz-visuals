@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { Tag } from '@/lib/types';
 
-type SectionTags = Extract<Tag, 'section' | 'div'>;
+type SectionTags = Extract<Tag, 'section' | 'div' | 'footer'>;
 
 type LocomotiveScrollWrapperProps = {
   children: ReactNode;
