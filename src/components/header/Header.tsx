@@ -20,9 +20,9 @@ const Header = () => {
               height={50}
               loading='eager'
               priority={true}
-              src='/imgs/logo/logo.png'
+              src='/imgs/logo/logo_w.png'
               alt='Mogz Visuals'
-              className='h-full w-ful object-contain invert'
+              className='h-full w-ful object-contain'
             />
           </Link>
         </div>
