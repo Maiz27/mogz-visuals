@@ -187,15 +187,20 @@ export const pagesMetaData = [
 ];
 
 export const EMPTY_STATE = {
-  collection: {
+  gallery: {
     heading: 'No Visual Stories Yet',
     paragraph:
       'Our gallery is currently empty, but new visual stories are on the way. Please check back soon to explore our captivating collections. In the meantime, feel free to contact us to discuss how we can bring your vision to life through our photography and videography services.',
   },
-  filterCollections: {
+  filteredGallery: {
     heading: 'No Visual Stories Found',
     paragraph:
       "It looks like there are no collections matching your current filter criteria. Please try adjusting the filters to explore our captivating visual stories. If you still can't find what you're looking for, feel free to contact us to discuss how we can bring your vision to life through our photography and videography services.",
+  },
+  collection: {
+    heading: 'Collection Under Construction',
+    paragraph:
+      'This collection is currently being curated and will soon feature stunning visuals. Please check back later to explore the complete collection. In the meantime, feel free to browse our other collections or contact us for more information.',
   },
 };
 

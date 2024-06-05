@@ -33,7 +33,7 @@ const ScrollHero = async () => {
                 width={500}
                 height={500}
                 loading='eager'
-                alt={`[MOGZ]-Hero(${++index})-Image(${++imageIdx})`}
+                alt={`[MOGZ]-Hero(${index + 1})-Image(${imageIdx + 1})`}
                 className='w-full h-[400px] lg:h-[40vmax] bg-cover bg-center opacity-70 m-10'
               />
             ))}

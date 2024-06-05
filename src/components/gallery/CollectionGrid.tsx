@@ -14,7 +14,7 @@ type Props = {
 
 const CollectionGrid = async ({ collections, searchParams }: Props) => {
   const services: SERVICE[] = await fetchSanityData(getServiceNames);
-  const { collection, filterCollections } = EMPTY_STATE;
+  const { gallery, filteredGallery } = EMPTY_STATE;
   const isEmpty = collections.length <= 0;
 
   return (
@@ -26,13 +26,9 @@ const CollectionGrid = async ({ collections, searchParams }: Props) => {
         {isEmpty ? (
           <div className='min-h-[50vh] grid place-items-center'>
             <EmptyState
-              heading={
-                searchParams ? filterCollections.heading : collection.heading
-              }
+              heading={searchParams ? filteredGallery.heading : gallery.heading}
               paragraph={
-                searchParams
-                  ? filterCollections.paragraph
-                  : collection.paragraph
+                searchParams ? filteredGallery.paragraph : gallery.paragraph
               }
             />
           </div>
