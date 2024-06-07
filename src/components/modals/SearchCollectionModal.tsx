@@ -113,7 +113,7 @@ const SearchCollectionModal = () => {
           } flex justify-end gap-2 md:gap-4 z-10`}
         >
           <CTAButton
-            loading={false}
+            loading={loading}
             style='ghost'
             onClick={() => handleCancel()}
           >

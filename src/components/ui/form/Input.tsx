@@ -6,6 +6,7 @@ type Props = {
   state?: Object;
   errors?: Object;
   required?: boolean;
+  disabled?: boolean;
   placeholder?: string;
   onChange?: ChangeEventHandler<HTMLInputElement> | undefined;
   className?: string;
@@ -18,6 +19,7 @@ const Input = ({
   onChange,
   type = 'text',
   required = false,
+  disabled = false,
   placeholder = 'Type here...',
   className,
 }: Props) => {
@@ -30,6 +32,7 @@ const Input = ({
         name={name}
         type={type}
         value={value}
+        disabled={disabled}
         onChange={onChange}
         required={required}
         placeholder={placeholder}

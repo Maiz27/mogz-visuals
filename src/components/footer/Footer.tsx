@@ -15,8 +15,6 @@ const Footer = async () => {
   const arrays: string[][] = divideImagesArray(data.images, 4);
   const { social } = MOGZ;
 
-  console.log(arrays);
-
   return (
     <LocomotiveScrollSection
       Tag='footer'
