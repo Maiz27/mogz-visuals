@@ -8,20 +8,12 @@ import { BASEURL } from '@/lib/Constants';
 
 export const revalidate = 60;
 
-const page = async ({
-  params: { slug },
-  searchParams,
-}: {
-  params: { slug: string };
-  searchParams: { [key: string]: string | string[] | undefined };
-}) => {
+const page = async ({ params: { slug } }: { params: { slug: string } }) => {
   const collection: COLLECTION = await fetchSanityData(getCollectionBySlug, {
     slug,
   });
 
-  const cookie = searchParams[slug];
-
-  if ((collection.isPrivate && !cookie) || !collection) {
+  if (!collection) {
     return notFound();
   }
 

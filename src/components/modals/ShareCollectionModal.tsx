@@ -76,9 +76,7 @@ const ShareCollectionModal = ({ collection }: Props) => {
                 className='tooltip'
                 data-tip={id}
               >
-                <CTAButton className='h-10 text-2xl text-copy'>
-                  {icon}
-                </CTAButton>
+                <CTAButton className='h-10 text-2xl'>{icon}</CTAButton>
               </ShareButton>
             );
           })}

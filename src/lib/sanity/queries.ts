@@ -21,7 +21,17 @@ export const getCollectionCredentials = `*[_type == "collection" && slug.current
   password,
 }[0]`;
 
-export const getCollectionBySlug = `*[_type == "collection" && slug.current == $slug]{
+export const getCollectionBySlug = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
+  isPrivate,
+  title,
+  slug,
+  "mainImage": mainImage.asset->url,
+  service,
+  date,
+  "gallery": gallery[].asset->url,
+}[0]`;
+
+export const getPrivateCollectionBySlug = `*[_type == "collection" && slug.current == $slug && isPrivate == true]{
   isPrivate,
   title,
   slug,

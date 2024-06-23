@@ -13,7 +13,7 @@ const GalleryOptions = ({ collection }: Props) => {
       <div className='ml-1 md:ml-0 flex items-center gap-4'>
         <DownloadCollectionModal collection={collection} />
 
-        <ShareCollectionModal collection={collection} />
+        {!isPrivate && <ShareCollectionModal collection={collection} />}
       </div>
     </div>
   );

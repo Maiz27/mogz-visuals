@@ -25,7 +25,7 @@ const AccessPrivateCollectionModal = () => {
 
     if (response.status === 200) {
       setCollectionAccessCookie(response.slug!);
-      router.push(`/gallery/${response.slug!}`);
+      router.push(`/private?slug=${response.slug!}`);
       reset();
     }
   };

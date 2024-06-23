@@ -1,5 +1,5 @@
 'use client';
-import { ChangeEvent, useEffect } from 'react';
+import { ChangeEvent } from 'react';
 
 type Props = {
   name: string;
@@ -18,7 +18,6 @@ const Select = ({
   onChange,
   className,
 }: Props) => {
-  useEffect(() => {}, []);
   return (
     <>
       <select
