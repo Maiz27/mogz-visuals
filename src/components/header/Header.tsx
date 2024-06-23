@@ -12,24 +12,26 @@ const Header = () => {
 
   return (
     <>
-      <header className='fixed z-30 top-0 w-full p-2 px-4 lg:p-4'>
-        <div className='flex justify-between items-center'>
+      <header className='fixed z-30 top-0 w-full'>
+        <div className='absolute top-4  left-2 md:left-4'>
           <Link href='/' className='text-xl font-bold h-full'>
             <Image
               width={50}
               height={50}
               loading='eager'
               priority={true}
-              src='/imgs/logo/logo.png'
-              alt='Mogz Visual'
-              className='h-full w-ful object-contain invert'
+              src='/imgs/logo/logo_w.png'
+              alt='Mogz Visuals Logo'
+              title='Mogz Visuals Logo'
+              className='h-full w-ful object-contain'
             />
           </Link>
-
-          <nav className='mr-4'>
-            <CTALink href={route.path}>{route.name}</CTALink>
-          </nav>
         </div>
+        <nav className='absolute top-4 right-2 md:right-4 '>
+          <CTALink href={route.path} className='block'>
+            {route.name}
+          </CTALink>
+        </nav>
       </header>
       <LocomotiveScrollSection id='top'>
         <></>

@@ -1,5 +1,5 @@
 'use client';
-import { ChangeEvent, useEffect } from 'react';
+import { ChangeEvent } from 'react';
 
 type Props = {
   name: string;
@@ -18,14 +18,13 @@ const Select = ({
   onChange,
   className,
 }: Props) => {
-  useEffect(() => {}, []);
   return (
     <>
       <select
         name={name}
         value={value}
         onChange={onChange}
-        className={`w-full bg-background border border-copy p-4 tracking-wider focus:outline-primary transition-all ${className}`}
+        className={`w-full bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary transition-all ${className}`}
       >
         <option disabled value=''>
           {selected}

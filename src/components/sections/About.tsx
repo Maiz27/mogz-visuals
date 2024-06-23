@@ -17,7 +17,7 @@ const About = () => {
         className='w-full grid md:grid-cols-3 xl:grid-cols-5'
       >
         <div className='md:col-start-2 xl:col-start-3 col-span-2 xl:col-span-3'>
-          <Heading text='Beyond the Lens at Mogz Visual' className='md:mr-8' />
+          <Heading text='Beyond the Lens at Mogz Visuals' className='md:mr-8' />
 
           <p className='max-w-2xl xl:max-w-5xl text-balance'>{about}</p>
         </div>

@@ -19,7 +19,7 @@ const Services = async () => {
         <Heading text='Tailored Visual Services for Every Occasion' />
 
         <p>
-          {`Explore a range of specialized visual services at Mogz Visual, from
+          {`Explore a range of specialized visual services at Mogz Visuals, from
           breathtaking wedding photography to dynamic commercial visuals and
           more. Each service is crafted with precision and creativity to meet
           your unique needs. Don't see exactly what you're looking for? Contact
@@ -62,7 +62,8 @@ const Service = ({ index, title, images }: Props) => {
               width={500}
               height={500}
               loading='lazy'
-              alt={`[MOGZ]-${title}-${i}`}
+              alt={`${title}-${++i}`}
+              title={`[MOGZ]-${title}-${++i}`}
               className='h-full w-1/5 flex-none object-cover object-center mx-1 md:mx-2 xl:mx-4 opacity-70'
             />
           ))}

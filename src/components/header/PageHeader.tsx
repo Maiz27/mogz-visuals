@@ -12,18 +12,20 @@ const PageHeader = ({ id, title, paragraph, children }: Props) => {
   return (
     <LocomotiveScrollSection
       id={id}
-      className='min-h-[90vh] lg:min-h-[80vh] grid place-items-center'
+      className='h-full grid place-items-center relative'
     >
       <div
         data-scroll
         data-scroll-speed='1'
         data-scroll-target={`#${id}`}
-        className='w-full max-w-7xl px-4 z-20 flex flex-col items-center space-y-8 text-center'
+        className='w-full h-screen flex flex-col justify-center items-center text-center'
       >
-        <h1 className='text-4xl xl:text-5xl 2xl:text-6xl font-black text-primary'>
-          {title}
-        </h1>
-        <p>{paragraph}</p>
+        <div className='px-4 max-w-7xl space-y-8'>
+          <h1 className='text-4xl xl:text-5xl 2xl:text-6xl font-black text-primary'>
+            {title}
+          </h1>
+          <p>{paragraph}</p>
+        </div>
 
         {children}
       </div>

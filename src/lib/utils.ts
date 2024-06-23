@@ -1,3 +1,5 @@
+import Cookies from 'js-cookie';
+
 export const divideImagesArray = (images: string[], chunkSize: number) => {
   const result: string[][] = [];
   const repeatIndices = [4, 8, 12, 16, 0];
@@ -64,6 +66,11 @@ export const getStringDate = (StringDate: string, isRelative = false) => {
 export const getMonthYear = (StringDate: string) => {
   const date = new Date(StringDate);
   return date
-    .toLocaleString(undefined, { month: 'long', year: 'numeric' })
+    .toLocaleString(undefined, { month: 'short', year: 'numeric' })
     .replace(' ', ', ');
+};
+
+export const setCollectionAccessCookie = (slug: string) => {
+  const cookie = { slug };
+  Cookies.set(slug, JSON.stringify(cookie));
 };

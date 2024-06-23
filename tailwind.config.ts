@@ -26,10 +26,6 @@ const config: Config = {
         background: '#0f0f0f',
         copy: '#ffffff',
       },
-      boxShadow: {
-        button: '8px 8px 0px #fbc681',
-        buttonHover: '6px 6px 0px #fbc681',
-      },
     },
   },
   safelist: [

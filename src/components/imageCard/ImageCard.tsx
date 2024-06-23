@@ -65,7 +65,8 @@ const ImageCard = memo(
             width={500}
             height={500}
             loading='lazy'
-            alt={`[MOGZ-${alt}]`}
+            alt={alt}
+            title={`[MOGZ]-${alt}`}
             className='image__element object-center object-cover h-full w-full relative will-change-transform row-start-1 row-end-2 col-start-1 col-end-2 overflow-hidden'
             style={{
               transformOrigin: repetitionOrigin,
@@ -78,7 +79,7 @@ const ImageCard = memo(
     return (
       <div
         ref={imageRef}
-        className={`image h-96 w-72 xl:h-[450px] xl:w-80 grid xl:max-w-[30vw] overflow-hidden relative ${className}`}
+        className={`image h-96 w-72 lg:w-64 xl:h-[450px] xl:w-80 grid xl:max-w-[30vw] overflow-hidden relative ${className}`}
         style={{ backgroundImage: 'none' }}
         onMouseEnter={() => hoverTimeline.current?.play()}
         onMouseLeave={() => hoverTimeline.current?.reverse()}
