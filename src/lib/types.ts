@@ -31,7 +31,8 @@ export type COLLECTION_CREDENTIALS = {
 export type VERIFY_ACCESS_RESPONSE_BODY = {
   message: string;
   status: number;
-  slug?: string;
+  slug: string;
+  encryptedSlug: string;
 };
 
 export type TOAST_STATUS = 'success' | 'error' | 'info' | 'warning';

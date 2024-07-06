@@ -24,8 +24,8 @@ const AccessPrivateCollectionModal = () => {
     const response = await handleVerifyAccess(state);
 
     if (response.status === 200) {
-      setCollectionAccessCookie(response.slug!);
-      router.push(`/private?slug=${response.slug!}`);
+      setCollectionAccessCookie(response.encryptedSlug);
+      router.push(`/private?slug=${response.slug}`);
       reset();
     }
   };

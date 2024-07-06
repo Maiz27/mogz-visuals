@@ -5,7 +5,6 @@ import ScrollToTop from '@/components/scrollToTop/ScrollToTop';
 import { ScrollProvider } from '@/lib/context/scrollContext';
 import { IsClientCtxProvider } from '@/lib/context/IsClientContext';
 import { ToastProvider } from '@/lib/context/ToastContext';
-import ToastContainer from '@/components/toastContainer/ToastContainer';
 import './globals.css';
 
 export const metadata: Metadata = {
@@ -40,7 +39,6 @@ export default function RootLayout({
                 <Footer />
               </div>
               <ScrollToTop />
-              <ToastContainer />
             </ToastProvider>
           </ScrollProvider>
         </IsClientCtxProvider>

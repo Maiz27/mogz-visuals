@@ -15,6 +15,8 @@ import {
 
 export const BASEURL = 'https://www.mogz.studio';
 
+export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
+
 export const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
 export const PAGE_SIZE = 10;

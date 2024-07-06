@@ -70,7 +70,11 @@ export const getMonthYear = (StringDate: string) => {
     .replace(' ', ', ');
 };
 
-export const setCollectionAccessCookie = (slug: string) => {
-  const cookie = { slug };
-  Cookies.set(slug, JSON.stringify(cookie));
+export const setCollectionAccessCookie = (encryptedSlug: string) => {
+  const cookie = { slug: encryptedSlug };
+
+  Cookies.set('collectionAccess', JSON.stringify(cookie), {
+    secure: true,
+    sameSite: 'Strict',
+  });
 };

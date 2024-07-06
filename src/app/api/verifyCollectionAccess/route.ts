@@ -1,3 +1,4 @@
+import CryptoJS from 'crypto-js';
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchSanityData } from '@/lib/sanity/client';
 import { getCollectionCredentials } from '@/lib/sanity/queries';
@@ -5,6 +6,7 @@ import {
   COLLECTION_CREDENTIALS,
   VERIFY_ACCESS_RESPONSE_BODY,
 } from '@/lib/types';
+import { ENCRYPTION_KEY } from '@/lib/Constants';
 
 export async function POST(req: NextRequest) {
   if (req.method !== 'POST') {
@@ -28,11 +30,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const encryptedSlug = CryptoJS.AES.encrypt(
+    credentials.slug.current,
+    ENCRYPTION_KEY
+  ).toString();
+
   const responseBody: VERIFY_ACCESS_RESPONSE_BODY = {
     status: 200,
     message: 'Access granted, redirecting...',
     slug: credentials.slug.current,
-    // expires: Date.now() + 1 * 60 * 1000, // 1 hour in milliseconds
+    encryptedSlug,
   };
 
   return NextResponse.json(responseBody, { status: 200 });

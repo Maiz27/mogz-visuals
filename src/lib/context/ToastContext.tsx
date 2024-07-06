@@ -7,6 +7,7 @@ import {
   ReactNode,
 } from 'react';
 import { TOAST_STATUS } from '../types';
+import ToastContainer from '@/components/toastContainer/ToastContainer';
 
 type IToastContext = {
   showToast: boolean;
@@ -52,6 +53,7 @@ export const ToastProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ToastContext.Provider value={{ showToast, message, show, close, options }}>
       {children}
+      <ToastContainer />
     </ToastContext.Provider>
   );
 };
