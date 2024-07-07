@@ -45,24 +45,28 @@ const Footer = async () => {
           })}
         </div>
 
-        <span>
-          Website by
-          <a
-            href='https://www.nilotik.tech'
-            target='_blank'
-            rel='noopener noreferrer'
-            className='ml-2 relative group text-primary'
-          >
-            Nilotik
-            <span className='absolute -bottom-1 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
-          </a>
-        </span>
+        <ByNilotik />
       </div>
     </LocomotiveScrollSection>
   );
 };
 
 export default Footer;
+
+export const ByNilotik = () => (
+  <span>
+    Website by
+    <a
+      href='https://www.nilotik.tech'
+      target='_blank'
+      rel='noopener noreferrer'
+      className='ml-2 relative group text-primary-dark'
+    >
+      Nilotik
+      <span className='absolute -bottom-1 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
+    </a>
+  </span>
+);
 
 const Grid = ({ images }: { images: string[][] }) => (
   <div

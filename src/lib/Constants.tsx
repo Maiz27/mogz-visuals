@@ -22,8 +22,8 @@ export const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 export const PAGE_SIZE = 10;
 
 export const ROUTES = [
-  { name: 'Home', path: '/' },
-  { name: 'Gallery', path: '/gallery' },
+  { name: 'Home', href: '/' },
+  { name: 'Gallery', href: '/gallery' },
 ];
 
 export const COLLECTION_SORT_OPTIONS = ['Newest', 'Oldest'];

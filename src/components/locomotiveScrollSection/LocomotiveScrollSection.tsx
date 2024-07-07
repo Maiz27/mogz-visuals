@@ -4,7 +4,7 @@ import { Tag } from '@/lib/types';
 type SectionTags = Extract<Tag, 'section' | 'div' | 'footer'>;
 
 type LocomotiveScrollWrapperProps = {
-  children: ReactNode;
+  children?: ReactNode;
   hasDataTags?: boolean;
   Tag?: SectionTags;
   className?: string;
@@ -12,7 +12,7 @@ type LocomotiveScrollWrapperProps = {
 };
 
 const LocomotiveScrollSection = ({
-  children,
+  children = <></>,
   className,
   Tag = 'section',
   hasDataTags = true,
