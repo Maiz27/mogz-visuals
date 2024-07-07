@@ -1,4 +1,3 @@
-'use client';
 import Link from 'next/link';
 import Image from 'next/image';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
@@ -8,7 +7,7 @@ import { ROUTES } from '@/lib/Constants';
 const Header = () => {
   return (
     <>
-      <header className='fixed z-30 top-0 w-full'>
+      <header className='fixed z-40 top-0 w-full'>
         <div className='absolute top-4 left-4 md:left-4'>
           <Logo />
         </div>

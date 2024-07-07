@@ -37,8 +37,8 @@ export default function RootLayout({
                 <Header />
                 {children}
                 <Footer />
+                <ScrollToTop />
               </div>
-              <ScrollToTop />
             </ToastProvider>
           </ScrollProvider>
         </IsClientCtxProvider>

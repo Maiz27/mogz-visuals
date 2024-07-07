@@ -6,7 +6,7 @@ type ButtonProps = {
   children: ReactNode;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   type?: 'button' | 'reset' | 'submit';
-  style?: 'outline' | 'ghost';
+  style?: 'primary' | 'outline' | 'ghost';
   title?: string;
   loading?: boolean;
   scrollId?: string;
@@ -73,6 +73,8 @@ const getStyles = (key: keyof typeof styles, loading: boolean) => {
 };
 
 const styles = {
+  primary:
+    'bg-primary hover:bg-primary-dark text-background border-2 border-primary scale-95 hover:scale-100 active:scale-95',
   outline:
     'bg-transparent hover:bg-primary text-primary hover:text-background border-2 border-primary hover:border-copy scale-95 hover:scale-100 active:scale-95',
   ghost:

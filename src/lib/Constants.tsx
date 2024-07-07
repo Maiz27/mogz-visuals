@@ -208,7 +208,7 @@ export const EMPTY_STATE = {
 
 export const TOAST_STATUS = {
   success: <HiOutlineCheckCircle className='text-green-500' />,
-  error: <HiOutlineXMark className='text-red-500' />,
+  error: <HiOutlineXMark className='text-red-600' />,
   info: <HiOutlineInformationCircle className='text-blue-500' />,
   warning: <HiOutlineExclamationCircle className='text-yellow-500' />,
 };

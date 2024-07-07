@@ -2,13 +2,13 @@
 import { useRouter } from 'next/navigation';
 import { FormEvent, useRef } from 'react';
 import Modal from '@/components/ui/Modal';
-import Input from '@/components/ui/form/Input';
 import CTAButton from '@/components/ui/CTA/CTAButton';
+import AccessCollectionForm from '../forms/AccessCollectionForm';
 import useFormState from '@/lib/hooks/useFormState';
 import useVerifyAccess from '@/lib/hooks/useVerifyAccess';
+import { setCollectionAccessCookie } from '@/lib/utils';
 import { FORMS } from '@/lib/Constants';
 import { HiOutlineLockClosed } from 'react-icons/hi2';
-import { setCollectionAccessCookie } from '@/lib/utils';
 
 const AccessPrivateCollectionModal = () => {
   const closeBtn = useRef<HTMLButtonElement>(null);
@@ -25,8 +25,8 @@ const AccessPrivateCollectionModal = () => {
 
     if (response.status === 200) {
       setCollectionAccessCookie(response.encryptedSlug);
-      router.push(`/private?slug=${response.slug}`);
       reset();
+      router.push(`/private?slug=${response.slug}`);
     }
   };
 
@@ -52,34 +52,17 @@ const AccessPrivateCollectionModal = () => {
         to explore our high-quality visuals with confidence.
       </span>
 
-      <form
+      <AccessCollectionForm
         onSubmit={handleSubmit}
+        state={state}
+        errors={errors}
+        handleChange={handleChange}
         className='flex flex-col justify-center space-y-4'
       >
-        <div className='flex flex-col md:flex-row items-center gap-2'>
-          <Input
-            required={true}
-            name='id'
-            state={state}
-            errors={errors}
-            onChange={handleChange}
-            placeholder='Collection ID'
-          />
-          <Input
-            required={true}
-            name='password'
-            type='password'
-            state={state}
-            errors={errors}
-            onChange={handleChange}
-            placeholder='Collection Password'
-          />
-        </div>
-
         {response && (
           <span
             className={`pt-4 ${
-              response.status === 200 ? 'text-green-500' : 'text-red-500'
+              response.status === 200 ? 'text-green-500' : 'text-red-600'
             }`}
           >
             {response.message}
@@ -88,7 +71,7 @@ const AccessPrivateCollectionModal = () => {
 
         <div className='pt-4 flex justify-end gap-2 md:gap-4'>
           <CTAButton type='submit' loading={loading}>
-            Browse Collection
+            Access Collection
           </CTAButton>
           <CTAButton
             loading={loading}
@@ -98,7 +81,7 @@ const AccessPrivateCollectionModal = () => {
             Cancel
           </CTAButton>
         </div>
-      </form>
+      </AccessCollectionForm>
     </Modal>
   );
 };

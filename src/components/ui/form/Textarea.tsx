@@ -30,7 +30,7 @@ const Textarea = ({
         className={`w-full bg-background border border-copy p-4 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
       />
       {errors && errors[name as keyof typeof state] && (
-        <span className='text-red-500 text-sm'>
+        <span className='text-red-600 text-sm'>
           {errors[name as keyof typeof state]}
         </span>
       )}
