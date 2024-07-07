@@ -17,10 +17,7 @@ const DownloadCollectionModal = ({ collection }: Props) => {
   const closeBtn = useRef<HTMLButtonElement>(null);
 
   const { title, gallery } = collection;
-  const { error, loading, downloadImages } = useDownloadCollection(
-    gallery,
-    title
-  );
+  const { loading, downloadImages } = useDownloadCollection(gallery, title);
 
   const { fields, rules } = FORMS.download;
   const { state, errors, handleChange, reset } = useFormState(fields, rules);
@@ -28,13 +25,9 @@ const DownloadCollectionModal = ({ collection }: Props) => {
   const handleDownload = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     await downloadImages();
-    if (error) {
-      console.log('Message: ', error);
-      return;
-    } else {
-      reset();
-      closeBtn.current?.click();
-    }
+
+    reset();
+    closeBtn.current?.click();
   };
 
   const handleCancel = () => {
@@ -69,12 +62,6 @@ const DownloadCollectionModal = ({ collection }: Props) => {
           type='email'
           placeholder='Email Address'
         />
-
-        {error && (
-          <span className='text-red-500 pt-4'>
-            An error occurred while download the images, please try again later.
-          </span>
-        )}
 
         <div className='pt-8 flex justify-end gap-2 md:gap-4'>
           <CTAButton type='submit' loading={loading}>

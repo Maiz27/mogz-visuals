@@ -15,7 +15,7 @@ const useVerifyAccess = () => {
     const lowercaseId = state.id.toLowerCase();
     state.id = lowercaseId;
 
-    const response = await fetch('/api/verifyCollectionAccess', {
+    const response = await fetch('/api/verifyAccess', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

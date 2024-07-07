@@ -55,7 +55,7 @@ export const useAutoDeleteCookie = (slug: string, isPrivate: boolean) => {
 };
 
 const getDecryptedSlug = async (encryptedCookie: string) => {
-  const response = await fetch('/api/decrypt-cookie', {
+  const response = await fetch('/api/decryptCookie', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
