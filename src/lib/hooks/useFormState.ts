@@ -1,4 +1,4 @@
-import { ChangeEvent, useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 
 type ValidationRule = (value: any) => string | null;
 
@@ -12,6 +12,7 @@ const useFormState = <T extends object>(
 ) => {
   const [state, setState] = useState<T>(initialState);
   const [errors, setErrors] = useState<{ [K in keyof T]?: string }>({});
+  const [loading, setLoading] = useState(false);
 
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
@@ -36,11 +37,29 @@ const useFormState = <T extends object>(
     setErrors({});
   };
 
+  const onSubmit = async (
+    e: FormEvent<HTMLFormElement>,
+    handle: () => Promise<any>
+  ) => {
+    try {
+      e.preventDefault();
+      setLoading(true);
+      await handle();
+    } catch (error) {
+      console.log('error', error);
+    } finally {
+      reset();
+      setLoading(false);
+    }
+  };
+
   return {
     state,
+    errors,
+    loading,
     handleChange,
     reset,
-    errors,
+    onSubmit,
   };
 };
 
