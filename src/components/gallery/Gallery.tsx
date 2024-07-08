@@ -21,6 +21,9 @@ type Props = {
   collection: COLLECTION;
 };
 
+const LICENSE_KEY =
+  process.env.NEXT_PUBLIC_LG_LICENSE_KEY || '0000-0000-000-0000';
+
 const Gallery = ({ collection }: Props) => {
   const { title, gallery, slug, isPrivate } = collection;
 
@@ -48,6 +51,7 @@ const Gallery = ({ collection }: Props) => {
           speed={500}
           download={false}
           elementClassNames='flex flex-wrap relative'
+          licenseKey={LICENSE_KEY}
           plugins={[lgThumbnail, lgZoom]}
         >
           {gallery.map((image, idx) => {

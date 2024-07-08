@@ -1,4 +1,4 @@
-import { BASEURL } from '@/lib/Constants';
+import { BASEURL, ROUTES } from '@/lib/Constants';
 import { fetchSanityData } from '@/lib/sanity/client';
 import { getAllCollectionsForSitemap } from '@/lib/sanity/queries';
 import { COLLECTION } from '@/lib/types';
@@ -13,13 +13,8 @@ export default async function sitemap() {
     lastModified: date,
   }));
 
-  const allRoutes = [
-    { name: 'Home', path: '/' },
-    { name: 'Gallery', path: '/gallery' },
-  ];
-
-  const _routes = allRoutes.map(({ path }) => ({
-    url: `${BASEURL}${path}`,
+  const _routes = ROUTES.map(({ href }) => ({
+    url: `${BASEURL}${href}`,
     lastModified: new Date().toISOString(),
   }));
 
