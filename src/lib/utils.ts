@@ -1,3 +1,8 @@
+import Cookies from 'js-cookie';
+import { Metadata } from 'next';
+import { OpenGraph } from 'next/dist/lib/metadata/types/opengraph-types';
+import { BASEURL, METADATA } from './Constants';
+
 export const divideImagesArray = (images: string[], chunkSize: number) => {
   const result: string[][] = [];
   const repeatIndices = [4, 8, 12, 16, 0];
@@ -64,6 +69,59 @@ export const getStringDate = (StringDate: string, isRelative = false) => {
 export const getMonthYear = (StringDate: string) => {
   const date = new Date(StringDate);
   return date
-    .toLocaleString(undefined, { month: 'long', year: 'numeric' })
+    .toLocaleString(undefined, { month: 'short', year: 'numeric' })
     .replace(' ', ', ');
+};
+
+export const setCollectionAccessCookie = (encryptedSlug: string) => {
+  const cookie = { slug: encryptedSlug };
+
+  Cookies.set('collectionAccess', JSON.stringify(cookie), {
+    secure: true,
+    sameSite: 'Strict',
+  });
+};
+
+export const getPageMetadata = (name: string): Metadata => {
+  const pageMetaData = METADATA.get(name);
+
+  return {
+    metadataBase: new URL(BASEURL),
+    title: pageMetaData.title,
+    description: pageMetaData.description,
+    themeColor: { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' },
+    alternates: {
+      canonical: pageMetaData.url,
+    },
+    icons: {
+      icon: pageMetaData.icon,
+      shortcut: pageMetaData.icon,
+      apple: pageMetaData.icon,
+      other: {
+        rel: 'apple-touch-icon-precomposed',
+        url: pageMetaData.icon,
+      },
+    },
+    openGraph: {
+      type: pageMetaData.type,
+      url: pageMetaData.url,
+      title: pageMetaData.title,
+      description: pageMetaData.description,
+      siteName: pageMetaData.title,
+      images: [
+        {
+          url: pageMetaData.image,
+        },
+      ],
+    } as OpenGraph,
+    twitter: {
+      card: 'summary_large_image',
+      site: pageMetaData.url,
+      images: [
+        {
+          url: pageMetaData.image,
+        },
+      ],
+    },
+  };
 };

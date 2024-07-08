@@ -1,25 +1,14 @@
 import type { Metadata } from 'next';
 import Header from '@/components/header/Header';
 import Footer from '@/components/footer/Footer';
-import { ScrollProvider } from '@/lib/context/scrollContext';
 import ScrollToTop from '@/components/scrollToTop/ScrollToTop';
-import './globals.css';
+import { ScrollProvider } from '@/lib/context/scrollContext';
 import { IsClientCtxProvider } from '@/lib/context/IsClientContext';
+import { ToastProvider } from '@/lib/context/ToastContext';
+import { getPageMetadata } from '@/lib/utils';
+import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Mogz Visual - Professional Photography in South Sudan',
-  description:
-    'Discover Mogz Visual, the leading photography and videography studio in South Sudan. Capturing your life’s moments with creativity and precision. Book your session today.',
-  icons: {
-    icon: '/imgs/logo/favicon.ico',
-    shortcut: '/imgs/logo/favicon.ico',
-    apple: '/imgs/logo/favicon.ico',
-    other: {
-      rel: 'apple-touch-icon-precomposed',
-      url: '/imgs/logo/favicon.ico',
-    },
-  },
-};
+export const metadata = getPageMetadata('home');
 
 export default function RootLayout({
   children,
@@ -31,12 +20,14 @@ export default function RootLayout({
       <body className=''>
         <IsClientCtxProvider>
           <ScrollProvider>
-            <div data-scroll-container>
-              <Header />
-              {children}
-              <Footer />
-            </div>
-            <ScrollToTop />
+            <ToastProvider>
+              <div data-scroll-container>
+                <Header />
+                {children}
+                <Footer />
+                <ScrollToTop />
+              </div>
+            </ToastProvider>
           </ScrollProvider>
         </IsClientCtxProvider>
       </body>

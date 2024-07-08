@@ -6,41 +6,58 @@ type ButtonProps = {
   children: ReactNode;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   type?: 'button' | 'reset' | 'submit';
+  style?: 'primary' | 'outline' | 'ghost';
+  title?: string;
   loading?: boolean;
-  navigationId?: string;
+  scrollId?: string;
   className?: string;
-  isVariant?: boolean;
 };
 
 const CTAButton = (props: ButtonProps) => {
   const {
     children,
+    scrollId,
     className = '',
-    navigationId,
+    title,
     type = 'button',
     loading = false,
+    style = 'outline',
     onClick,
-    isVariant = false,
   } = props;
   const { scrollToSection } = useScroll();
 
   const commonProps = {
-    className: `bg-transparent border-copy border-2 tracking-widest px-6 py-3 font-black transition-all duration-300 shadow-primary hover:translate-x-[-4px] hover:translate-y-[-4px] shadow-button hover:shadow-buttonHover active:translate-x-[0px] active:translate-y-[0px] active:shadow-none ${className}`,
+    className: `${getStyles(
+      style,
+      loading
+    )} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 ${className}`,
   };
-  if (navigationId) {
+
+  if (scrollId) {
     const handleScroll = () => {
-      scrollToSection(`#${navigationId}`);
+      scrollToSection(`#${scrollId}`);
     };
 
     return (
-      <button type={type} onClick={() => handleScroll()} {...commonProps}>
+      <button
+        title={title}
+        type={type}
+        onClick={() => handleScroll()}
+        {...commonProps}
+      >
         {children}
       </button>
     );
   }
 
   return (
-    <button type={type} disabled={loading} onClick={onClick} {...commonProps}>
+    <button
+      title={title}
+      type={type}
+      disabled={loading}
+      onClick={onClick}
+      {...commonProps}
+    >
       {children}
     </button>
   );
@@ -48,8 +65,19 @@ const CTAButton = (props: ButtonProps) => {
 
 export default CTAButton;
 
-// ${
-//     isVariant
-//       ? 'bg-transparent text-copy border-copy shadow-copy hover:shadow-copy'
-//       : 'bg-transparent border-copy '
-//   }
+const getStyles = (key: keyof typeof styles, loading: boolean) => {
+  if (loading) {
+    return styles.loading;
+  }
+  return styles[key];
+};
+
+const styles = {
+  primary:
+    'bg-primary hover:bg-primary-dark text-background border-2 border-primary scale-95 hover:scale-100 active:scale-95',
+  outline:
+    'bg-transparent hover:bg-primary text-primary hover:text-background border-2 border-primary hover:border-copy scale-95 hover:scale-100 active:scale-95',
+  ghost:
+    'bg-transparent hover:bg-primary text-copy hover:text-background scale-95 hover:scale-100 active:scale-95',
+  loading: 'bg-secondary/20 animate-pulse',
+};

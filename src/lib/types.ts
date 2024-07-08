@@ -7,11 +7,52 @@ export type SERVICE = {
   images: string[];
 };
 
+export type SLUG = {
+  current: string;
+};
+
 export type COLLECTION = {
   title: string;
-  slug: { current: string };
+  slug: SLUG;
+  isPrivate: boolean;
+  password?: string;
   date: string;
   service: SERVICE;
   mainImage: string;
   gallery: string[];
 };
+
+export type COLLECTION_CREDENTIALS = {
+  slug: SLUG;
+  isPrivate: boolean;
+  password: string;
+};
+
+export type VERIFY_ACCESS_RESPONSE_BODY = {
+  message: string;
+  status: number;
+  slug: string;
+  encryptedSlug: string;
+};
+
+export type TOAST_STATUS = 'success' | 'error' | 'info' | 'warning';
+
+export type Tag =
+  | 'main'
+  | 'div'
+  | 'section'
+  | 'article'
+  | 'ul'
+  | 'a'
+  | 'form'
+  | 'span'
+  | 'aside'
+  | 'p'
+  | 'h1'
+  | 'h2'
+  | 'h3'
+  | 'h4'
+  | 'h5'
+  | 'h6'
+  | 'button'
+  | 'footer';

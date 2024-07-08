@@ -12,7 +12,7 @@ const ScrollToTop = () => {
 
   useEffect(() => {
     const toggleVisibility = () => {
-      if (scroll > (isHome ? 1000 : 200)) {
+      if (scroll > (isHome ? 1000 : 400)) {
         setIsVisible(true);
       } else {
         setIsVisible(false);
@@ -30,8 +30,8 @@ const ScrollToTop = () => {
     return (
       <button
         onClick={() => scrollToTop()}
-        className={`z-30 fixed transition-[bottom] duration-500 ${
-          windowHeight - scroll < 100 ? 'bottom-14' : 'bottom-4 md:bottom-6'
+        className={`z-30 fixed transition-all duration- scale-95 hover:scale-100 active:scale-95 ${
+          windowHeight - scroll < 100 ? 'bottom-20' : 'bottom-4 md:bottom-6'
         } right-4 lg:right-6 p-2 border-2 border-primary text-2xl`}
       >
         <HiMiniArrowUp />
