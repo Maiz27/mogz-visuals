@@ -24,7 +24,7 @@ const DownloadCollectionModal = ({ collection }: Props) => {
 
   const handleDownload = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    await downloadImages();
+    await downloadImages(state.email.toLowerCase());
 
     reset();
     closeBtn.current?.click();

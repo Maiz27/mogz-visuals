@@ -30,10 +30,27 @@ const useDownloadCollection = (images: string[], title: string) => {
     return true;
   };
 
-  const downloadImages = async () => {
+  const addEmailToAudience = async (email: string) => {
+    try {
+      const response = await fetch('/api/contact/audience', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+      console.log(response);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const downloadImages = async (email: string) => {
     setLoading(true);
     try {
       if (!(await checkRateLimit())) return;
+
+      await addEmailToAudience(email);
 
       const imageFetchPromises = images.map(async (image, index) => {
         const blob = await fetch(image).then((response) => response.blob());
