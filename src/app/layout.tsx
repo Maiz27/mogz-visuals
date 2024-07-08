@@ -5,22 +5,10 @@ import ScrollToTop from '@/components/scrollToTop/ScrollToTop';
 import { ScrollProvider } from '@/lib/context/scrollContext';
 import { IsClientCtxProvider } from '@/lib/context/IsClientContext';
 import { ToastProvider } from '@/lib/context/ToastContext';
+import { getPageMetadata } from '@/lib/utils';
 import './globals.css';
 
-export const metadata: Metadata = {
-  title: 'Mogz Visuals - Professional Photography in South Sudan',
-  description:
-    "Discover Mogz Visuals, the leading photography and videography studio in South Sudan. Capturing your life's moments with creativity and precision. Book your session today.",
-  icons: {
-    icon: '/imgs/logo/favicon.ico',
-    shortcut: '/imgs/logo/favicon.ico',
-    apple: '/imgs/logo/favicon.ico',
-    other: {
-      rel: 'apple-touch-icon-precomposed',
-      url: '/imgs/logo/favicon.ico',
-    },
-  },
-};
+export const metadata = getPageMetadata('home');
 
 export default function RootLayout({
   children,

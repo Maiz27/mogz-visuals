@@ -32,7 +32,7 @@ const Gallery = ({ collection }: Props) => {
   return (
     <LocomotiveScrollSection
       id='gallery'
-      className='min-h-screen mb-12 mx-4 md:mx-8'
+      className='min-h-screen mb-40 lg:mb-64 2xl:mb-80 mx-4 md:mx-8'
     >
       <div className='flex justify-between items-center m-2 text-lg lg:text-xl'>
         <span>{title}</span>

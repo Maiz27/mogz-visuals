@@ -6,9 +6,12 @@ import SearchCollectionModal from '@/components/modals/SearchCollectionModal';
 import { fetchSanityData } from '@/lib/sanity/client';
 import { PAGE_HEADERS, PAGE_SIZE } from '@/lib/Constants';
 import { COLLECTION } from '@/lib/types';
+import { getPageMetadata } from '@/lib/utils';
 import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
 
 export const revalidate = 60;
+
+export const metadata = getPageMetadata('gallery');
 
 const page = async ({
   searchParams,

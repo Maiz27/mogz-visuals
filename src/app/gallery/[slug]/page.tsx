@@ -43,8 +43,10 @@ export async function generateMetadata({
     const desc = `Dive into ${title}, an exclusive collection from Mogz Visuals, where every project is a testament to our dedication to visual excellence.`;
 
     return {
+      metadataBase: new URL(BASEURL),
       title: `${title} - Mogz Visuals`,
       description: desc,
+      themeColor: { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' },
       image: mainImage,
       alternates: {
         canonical: url,

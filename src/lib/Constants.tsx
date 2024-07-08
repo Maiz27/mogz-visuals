@@ -167,26 +167,33 @@ export const PAGE_HEADERS = [
   },
 ];
 
-export const pagesMetaData = [
-  {
-    title: 'Mogz Visuals - Professional Photography in South Sudan',
-    description:
-      "Discover Mogz Visuals, the leading photography and videography studio in South Sudan. Capturing your life's moments with creativity and precision. Book your session today.",
-    type: 'website',
-    url: `${BASEURL}`,
-    image: `${BASEURL}/imgs/logo/logo.jpg`,
-    icon: '/imgs/logo/favicon.ico',
-  },
-  {
-    title: 'Gallery - Mogz Visuals Collections',
-    description:
-      'Explore the gallery of Mogz Visuals, showcasing our diverse collections of professional photography and videography. Discover visual stories that capture the essence of every moment.',
-    type: 'website',
-    url: `${BASEURL}/gallery`,
-    image: `${BASEURL}/imgs/gallery/gallery-cover.jpg`,
-    icon: '/imgs/logo/favicon.ico',
-  },
-];
+export const METADATA: Map<string, any> = new Map([
+  [
+    'home',
+    {
+      title:
+        'Mogz Visuals - Premier Media and Production Studio in South Sudan',
+      description:
+        "The leading media and production studio in South Sudan, specializing in capturing life's moments through stunning visuals and creative storytelling.",
+      type: 'website',
+      url: `${BASEURL}`,
+      image: `${BASEURL}/imgs/logo/logo.jpg`,
+      icon: '/imgs/logo/favicon.ico',
+    },
+  ],
+  [
+    'gallery',
+    {
+      title: 'Gallery - Mogz Visuals Collections',
+      description:
+        'Explore the gallery of Mogz Visuals, showcasing our diverse collections of professional photography and videography that capture the essence of every moment.',
+      type: 'website',
+      url: `${BASEURL}/gallery`,
+      image: `${BASEURL}/imgs/logo/logo.jpg`,
+      icon: '/imgs/logo/favicon.ico',
+    },
+  ],
+]);
 
 export const EMPTY_STATE = {
   gallery: {
