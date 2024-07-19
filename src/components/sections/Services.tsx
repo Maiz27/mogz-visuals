@@ -15,7 +15,7 @@ const Services = async () => {
       id='services'
       className='w-full min-h-screen flex flex-col justify-center items-center py-20'
     >
-      <div className='lg:pt-20 text-center max-w-6xl'>
+      <div className='lg:pt-20 max-w-6xl px-8 md:text-center'>
         <Heading text='Tailored Visual Services for Every Occasion' />
 
         <p>

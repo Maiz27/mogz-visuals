@@ -33,7 +33,7 @@ const CollectionGrid = async ({ collections, searchParams }: Props) => {
             />
           </div>
         ) : (
-          <div className='min-h-[80vh] -mt-10 md:mt-10 w-full grid place-items-center gird-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-y-12 2xl:gap-y-16'>
+          <div className='min-h-[80vh] mt-10 w-full grid place-items-center gird-cols-1 md:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4 gap-y-12 2xl:gap-y-16'>
             {collections.map((item, idx) => {
               return (
                 <CollectionCard

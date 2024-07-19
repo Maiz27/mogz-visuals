@@ -33,28 +33,31 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!scrollRef.current) {
-      const initializeScroll = async () => {
-        const LocomotiveScroll = (await import('locomotive-scroll')).default;
-        scrollRef.current = new LocomotiveScroll({
-          el: document.querySelector('[data-scroll-container]') as HTMLElement,
-          lerp: 0.05,
-          smooth: true,
-          reloadOnContextChange: true,
-          smartphone: { smooth: true },
-          touchMultiplier: 3,
-        });
+    const initializeScroll = async () => {
+      if (scrollRef.current) {
+        scrollRef.current.destroy();
+        scrollRef.current = null;
+      }
 
-        scrollRef.current.on('scroll', (event: any) => {
-          setScrollPosition(event.scroll.y);
-          if (windowHeight !== event.limit.y) {
-            setWindowHeight(event.limit.y);
-          }
-        });
-      };
+      const LocomotiveScroll = (await import('locomotive-scroll')).default;
+      scrollRef.current = new LocomotiveScroll({
+        el: document.querySelector('[data-scroll-container]') as HTMLElement,
+        lerp: 0.05,
+        smooth: true,
+        reloadOnContextChange: true,
+        smartphone: { smooth: true },
+        touchMultiplier: 3,
+      });
 
-      initializeScroll();
-    }
+      scrollRef.current.on('scroll', (event: any) => {
+        setScrollPosition(event.scroll.y);
+        if (windowHeight !== event.limit.y) {
+          setWindowHeight(event.limit.y);
+        }
+      });
+    };
+
+    initializeScroll();
 
     return () => {
       if (scrollRef.current) {

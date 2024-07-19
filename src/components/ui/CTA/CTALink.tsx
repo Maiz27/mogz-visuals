@@ -24,16 +24,13 @@ export const CTALink = ({
     } h-12 font-black transition-all duration-300 ${className}`,
   };
 
-  if (external) {
-    return (
-      <a href={href} target='_blank' rel='noopener noreferrer' {...commonProps}>
-        {children}
-      </a>
-    );
-  }
-
   return (
-    <Link href={href} {...commonProps}>
+    <Link
+      href={href}
+      {...commonProps}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noopener noreferrer' : undefined}
+    >
       {children}
     </Link>
   );

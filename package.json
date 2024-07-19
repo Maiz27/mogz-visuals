@@ -2,6 +2,7 @@
   "name": "mogz-visuals",
   "version": "0.1.0",
   "private": true,
+  "website": "https://www.mogz.studio",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

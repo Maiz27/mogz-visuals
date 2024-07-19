@@ -5,6 +5,7 @@ import { fetchSanityData } from '@/lib/sanity/client';
 import { getHeroImages } from '@/lib/sanity/queries';
 import { divideImagesArray } from '@/lib/utils';
 import { HERO_IMAGES } from '@/lib/types';
+import { CTALink } from '../ui/CTA/CTALink';
 
 export const revalidate = 60;
 
@@ -54,9 +55,9 @@ const ScrollHero = async () => {
         </p>
         <div className='flex justify-center items-center gap-4 lg:gap-8 pointer-events-auto pt-4'>
           <CTAButton scrollId='contact'>Book A Session</CTAButton>
-          <CTAButton scrollId='services' style='ghost'>
+          <CTALink href='/gallery' style='ghost'>
             Discover Our Work
-          </CTAButton>
+          </CTALink>
         </div>
       </div>
     </LocomotiveScrollSection>

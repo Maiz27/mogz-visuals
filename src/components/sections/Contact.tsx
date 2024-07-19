@@ -12,12 +12,12 @@ const Contact = () => {
     >
       <Heading text='Get in Touch with Us' />
 
-      <div className='mt-4 px-12 w-full grid place-items-center grid-cols-1 md:grid-cols-2 gap-8 '>
+      <div className='mt-4 px-12 w-full grid place-items-center grid-cols-1 md:grid-cols-2 gap-12'>
         <div
           data-scroll
           data-scroll-speed='2'
           data-scroll-target='#contact'
-          className='w-full h-full flex flex-col justify-evenly'
+          className='w-full h-full flex flex-col justify-evenly space-y-8'
         >
           <p className=''>
             {`We're here to help you capture your moments perfectly. Whether you're interested in booking 

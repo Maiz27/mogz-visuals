@@ -41,7 +41,7 @@ const MobileMenu = () => {
       {isOpen && (
         <div
           ref={menuRef}
-          className='fixed left-0 top-0 flex justify-between h-screen w-full flex-col bg-copy text-background'
+          className='fixed left-0 top-0 flex justify-between min-h-dvh w-full flex-col bg-copy text-background'
         >
           <div className='py-6 px-4'>
             <div className='flex items-center justify-between pb-6'>
