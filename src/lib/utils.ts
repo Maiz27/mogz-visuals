@@ -89,14 +89,13 @@ export const getPageMetadata = (name: string): Metadata => {
     metadataBase: new URL(BASEURL),
     title: pageMetaData.title,
     description: pageMetaData.description,
-    themeColor: { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' },
     alternates: {
       canonical: pageMetaData.url,
     },
     icons: {
       icon: pageMetaData.icon,
       shortcut: pageMetaData.icon,
-      apple: pageMetaData.icon,
+      apple: '/imgs/logo/apple-touch-icon.png',
       other: {
         rel: 'apple-touch-icon-precomposed',
         url: pageMetaData.icon,
