@@ -106,7 +106,7 @@ export const Filter = ({ services, children }: Props) => {
 
       {children}
 
-      <div className='flex justify-end items-center mt-2 gap-2'>
+      <div className='flex justify-end items-center mt-8 gap-2 py-2'>
         <PaginationButtons
           isPrevDisabled={isPrevDisabled}
           isNextDisabled={isNextDisabled}
@@ -135,10 +135,10 @@ const PaginationButtons = ({
         onClick={handlePrev}
         disabled={isPrevDisabled}
         title='Previous Page'
-        className={`text-3xl border-secondary border ${
+        className={`text-3xl border ${
           isPrevDisabled
-            ? ''
-            : 'hover:scale-110 active:scale-100 transition-all'
+            ? 'border-slate-400 opacity-30'
+            : 'border-secondary hover:scale-110 active:scale-100 transition-all'
         }`}
       >
         <HiMiniChevronLeft />
@@ -147,10 +147,10 @@ const PaginationButtons = ({
         onClick={handleNext}
         disabled={isNextDisabled}
         title='Next Page'
-        className={`text-3xl border-primary border ${
+        className={`text-3xl border ${
           isNextDisabled
-            ? ''
-            : 'hover:scale-110 active:scale-100 transition-all'
+            ? 'border-slate-400 opacity-30'
+            : 'border-primary hover:scale-110 active:scale-100 transition-all'
         }`}
       >
         <HiMiniChevronRight />
