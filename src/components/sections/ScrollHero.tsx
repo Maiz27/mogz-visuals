@@ -6,6 +6,7 @@ import { getHeroImages } from '@/lib/sanity/queries';
 import { divideImagesArray } from '@/lib/utils';
 import { HERO_IMAGES } from '@/lib/types';
 import { CTALink } from '../ui/CTA/CTALink';
+import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
 
 export const revalidate = 60;
 
@@ -59,6 +60,15 @@ const ScrollHero = async () => {
             Discover Our Work
           </CTALink>
         </div>
+
+        <CTAButton
+          title='Scroll Down'
+          scrollId='about'
+          style='ghost'
+          className='text-3xl absolute left-1/2 -translate-x-1/2 -bottom-[40%] md:-bottom-[70%] lg:-bottom-[80%] xl:-bottom-2/3'
+        >
+          <HiOutlineChevronDoubleDown />
+        </CTAButton>
       </div>
     </LocomotiveScrollSection>
   );
