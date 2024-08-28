@@ -2,7 +2,7 @@
 import { usePathname } from 'next/navigation';
 import { useState, useEffect } from 'react';
 import { useScroll } from '@/lib/context/scrollContext';
-import { HiMiniArrowUp } from 'react-icons/hi2';
+import { HiOutlineChevronUp } from 'react-icons/hi2';
 
 const ScrollToTop = () => {
   const [isVisible, setIsVisible] = useState(false);
@@ -29,12 +29,13 @@ const ScrollToTop = () => {
   if (isVisible)
     return (
       <button
+        title='Scroll To Top'
         onClick={() => scrollToTop()}
         className={`z-30 fixed transition-all duration- scale-95 hover:scale-100 active:scale-95 ${
           windowHeight - scroll < 100 ? 'bottom-20' : 'bottom-4 md:bottom-6'
         } right-4 lg:right-6 p-2 border-2 border-primary text-2xl`}
       >
-        <HiMiniArrowUp />
+        <HiOutlineChevronUp />
       </button>
     );
 };

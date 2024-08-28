@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Viewport } from 'next';
 import Header from '@/components/header/Header';
 import Footer from '@/components/footer/Footer';
 import ScrollToTop from '@/components/scrollToTop/ScrollToTop';
@@ -9,6 +9,10 @@ import { getPageMetadata } from '@/lib/utils';
 import './globals.css';
 
 export const metadata = getPageMetadata('home');
+
+export const viewport: Viewport = {
+  themeColor: { media: '(prefers-color-scheme: dark)', color: '#fbc681' },
+};
 
 export default function RootLayout({
   children,
