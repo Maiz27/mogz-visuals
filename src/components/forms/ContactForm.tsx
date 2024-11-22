@@ -15,29 +15,39 @@ const ContactForm = () => {
     rules
   );
 
+  const checkRateLimit = async (id: string): Promise<boolean> => {
+    const response = await fetch(`/api/rateLimit?id=${id}`, {
+      method: 'GET',
+    });
+    if (!response.ok) {
+      const { message } = await response.json();
+      console.log('Rate limit status:', response.status, message);
+      show(message, { status: 'error', autoClose: false });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async () => {
-    console.log('state', state);
-    const date = new Date(state.date);
-    console.log('date', date);
+    if (!(await checkRateLimit('contact'))) return;
 
-    // const response = await fetch('/api/contact', {
-    //   method: 'POST',
-    //   headers: {
-    //     'Content-Type': 'application/json',
-    //   },
-    //   body: JSON.stringify(state),
-    // });
-    // console.log('response', response);
+    const response = await fetch('/api/contact', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(state),
+    });
 
-    // if (response.status === 200) {
-    //   show('Your Message was delivered successfully!', {
-    //     status: 'success',
-    //   });
-    // } else {
-    //   show('An error occurred while delivering your Message!', {
-    //     status: 'error',
-    //   });
-    // }
+    if (response.status === 200) {
+      show('Your Message was delivered successfully!', {
+        status: 'success',
+      });
+    } else {
+      show('An error occurred while delivering your Message!', {
+        status: 'error',
+      });
+    }
   };
 
   return (

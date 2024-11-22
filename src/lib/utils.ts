@@ -74,8 +74,42 @@ export const getMonthYear = (StringDate: string) => {
 };
 
 export const formatDateTimeForInput = (timestamp: string) => {
-  const date = new Date(timestamp);
-  return date.toLocaleDateString('en-CA');
+  try {
+    if (!timestamp) {
+      const now = new Date();
+      return (
+        now.getFullYear() +
+        '-' +
+        String(now.getMonth() + 1).padStart(2, '0') +
+        '-' +
+        String(now.getDate()).padStart(2, '0') +
+        'T' +
+        String(now.getHours()).padStart(2, '0') +
+        ':' +
+        String(now.getMinutes()).padStart(2, '0')
+      );
+    }
+
+    const date = new Date(timestamp);
+
+    if (isNaN(date.getTime())) {
+      return new Date().toISOString().slice(0, 16);
+    }
+
+    return (
+      date.getFullYear() +
+      '-' +
+      String(date.getMonth() + 1).padStart(2, '0') +
+      '-' +
+      String(date.getDate()).padStart(2, '0') +
+      'T' +
+      String(date.getHours()).padStart(2, '0') +
+      ':' +
+      String(date.getMinutes()).padStart(2, '0')
+    );
+  } catch (error) {
+    return new Date().toISOString().slice(0, 16);
+  }
 };
 
 type SetInputMinDateParams = {
@@ -93,7 +127,17 @@ export const setInputMinDate = (params?: SetInputMinDateParams): string => {
   const resultDate = new Date(baseDate);
   resultDate.setDate(baseDate.getDate() + (params?.addDays ?? 0));
 
-  return resultDate.toISOString().split('T')[0];
+  return (
+    resultDate.getFullYear() +
+    '-' +
+    String(resultDate.getMonth() + 1).padStart(2, '0') +
+    '-' +
+    String(resultDate.getDate()).padStart(2, '0') +
+    'T' +
+    String(resultDate.getHours()).padStart(2, '0') +
+    ':' +
+    String(resultDate.getMinutes()).padStart(2, '0')
+  );
 };
 
 export const setCollectionAccessCookie = (encryptedSlug: string) => {
