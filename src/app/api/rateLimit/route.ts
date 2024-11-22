@@ -15,7 +15,6 @@ export async function GET(req: NextRequest) {
 
   try {
     const id = req.nextUrl.searchParams.get('id');
-    console.log('id', id);
     const { message, status } = await rateLimit(req, id!);
     console.log('rateLimit result', { message, status });
     return NextResponse.json({ message, status }, { status });

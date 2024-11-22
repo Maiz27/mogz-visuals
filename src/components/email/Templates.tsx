@@ -1,7 +1,9 @@
+import { getStringDateTime } from '@/lib/utils';
+
 type ContactProps = {
   name: string;
   email: string;
-  date: string;
+  datetime: string;
   session: string;
   message: string;
 };
@@ -9,19 +11,29 @@ type ContactProps = {
 export const Contact = ({
   name,
   email,
-  date,
+  datetime,
   session,
   message,
 }: ContactProps) => {
   return (
     <div>
       <h1>Website Message from {name}</h1>
-      <div>Email: {email}</div>
+      <div>
+        <b>Email:</b> {email}
+      </div>
 
-      <div>Date: {date}</div>
-      <div>Session: {session}</div>
+      <br />
 
-      <p>{message}</p>
+      <div>
+        <b>Date & Time:</b> {getStringDateTime(datetime)}
+      </div>
+      <div>
+        <b>Session:</b> {session}
+      </div>
+
+      <br />
+
+      {message && <p>{message}</p>}
     </div>
   );
 };

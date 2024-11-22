@@ -83,7 +83,7 @@ export const FORMS = {
     initialValue: {
       name: '',
       email: '',
-      date: new Date().toISOString(),
+      datetime: new Date().toISOString(),
       session: 'indoor',
       message: '',
     },

@@ -66,6 +66,43 @@ export const getStringDate = (StringDate: string, isRelative = false) => {
   }
 };
 
+export const getStringDateTime = (StringDate: string, isRelative = false) => {
+  const currentDate = new Date();
+  const inputDate = new Date(StringDate);
+
+  if (isNaN(inputDate.getTime())) {
+    throw new Error(`Invalid date: ${StringDate}`);
+  }
+
+  const timeDifference = Math.abs(currentDate.getTime() - inputDate.getTime());
+  const minutesDifference = Math.floor(timeDifference / (1000 * 60));
+  const hoursDifference = Math.floor(minutesDifference / 60);
+  const daysDifference = Math.floor(hoursDifference / 24);
+
+  if (isRelative) {
+    if (daysDifference >= 1) {
+      return `${daysDifference} day${daysDifference !== 1 ? 's' : ''} ago`;
+    } else if (hoursDifference >= 1) {
+      return `${hoursDifference} hour${hoursDifference !== 1 ? 's' : ''} ago`;
+    } else {
+      return `${minutesDifference} min${
+        minutesDifference !== 1 ? 's' : ''
+      } ago`;
+    }
+  } else {
+    // Display the date and time in the "weekday, month day, year, hour:minute AM/PM" format
+    return inputDate.toLocaleString(undefined, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+      hour12: true,
+    });
+  }
+};
+
 export const getMonthYear = (StringDate: string) => {
   const date = new Date(StringDate);
   return date
