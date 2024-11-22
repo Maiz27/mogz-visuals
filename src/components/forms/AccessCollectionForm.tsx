@@ -1,5 +1,6 @@
 import { FormEvent, ReactNode } from 'react';
 import Input from '../ui/form/Input';
+import { FORMS } from '@/lib/Constants';
 
 type Props = {
   children: ReactNode;
@@ -18,26 +19,19 @@ const AccessCollectionForm = ({
   errors,
   handleChange,
 }: Props) => {
+  const { fields } = FORMS.browse;
   return (
-    <form onSubmit={onSubmit} className={` ${className}`}>
-      <div className='flex flex-col md:flex-row items-center gap-2'>
-        <Input
-          required={true}
-          name='id'
-          state={state}
-          errors={errors}
-          onChange={handleChange}
-          placeholder='Collection ID'
-        />
-        <Input
-          required={true}
-          name='password'
-          type='password'
-          state={state}
-          errors={errors}
-          onChange={handleChange}
-          placeholder='Collection Password'
-        />
+    <form onSubmit={onSubmit} className={`md:px-6 ${className}`}>
+      <div className='flex flex-col items-center space-y-2'>
+        {fields.map((field) => (
+          <Input
+            key={field.id}
+            state={state}
+            errors={errors}
+            onChange={handleChange}
+            {...field}
+          />
+        ))}
       </div>
 
       {children}

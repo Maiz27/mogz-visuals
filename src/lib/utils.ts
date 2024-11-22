@@ -75,7 +75,7 @@ export const getMonthYear = (StringDate: string) => {
 
 export const formatDateTimeForInput = (timestamp: string) => {
   const date = new Date(timestamp);
-  return date.toISOString().slice(0, 16); // Takes YYYY-MM-DDThh:mm
+  return date.toLocaleDateString('en-CA');
 };
 
 type SetInputMinDateParams = {
@@ -86,7 +86,6 @@ type SetInputMinDateParams = {
 export const setInputMinDate = (params?: SetInputMinDateParams): string => {
   const baseDate = new Date(params?.date ?? new Date());
 
-  // Check if date is valid
   if (isNaN(baseDate.getTime())) {
     throw new Error('Invalid date provided');
   }

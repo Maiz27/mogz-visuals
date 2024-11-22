@@ -1,4 +1,3 @@
-import { formatDateTimeForInput } from '@/lib/utils';
 import {
   HiOutlineMapPin,
   HiOutlineEnvelope,
@@ -84,7 +83,7 @@ export const FORMS = {
     initialValue: {
       name: '',
       email: '',
-      date: formatDateTimeForInput(new Date().toISOString()),
+      date: new Date().toISOString(),
       session: 'indoor',
       message: '',
     },
@@ -167,7 +166,25 @@ export const FORMS = {
     },
   },
   browse: {
-    fields: { id: '', password: '' },
+    initialValue: { id: '', password: '' },
+    fields: [
+      {
+        id: 'browse-id',
+        name: 'id',
+        type: 'text',
+        label: 'Collection ID',
+        placeholder: 'collection-000',
+        required: true,
+      },
+      {
+        id: 'browse-password',
+        name: 'password',
+        type: 'password',
+        label: 'Collection Password',
+        placeholder: '####',
+        required: true,
+      },
+    ],
     rules: {
       id: (value: string) => {
         if (value.length < 6) {
@@ -183,14 +200,34 @@ export const FORMS = {
     },
   },
   search: {
-    fields: { name: '' },
+    initialValue: { name: '' },
+    fields: [
+      {
+        id: 'search-name',
+        name: 'name',
+        type: 'text',
+        label: 'Collection Name',
+        placeholder: 'Party XYZ',
+        required: true,
+      },
+    ],
     rules: {
       name: (value: string) =>
         value.length > 2 ? '' : 'Name must be longer than 2 characters!',
     },
   },
   download: {
-    fields: { email: '' },
+    initialValue: { email: '' },
+    fields: [
+      {
+        id: 'download-email',
+        name: 'email',
+        type: 'email',
+        label: 'Your Email Address',
+        placeholder: 'john@example.com',
+        required: true,
+      },
+    ],
     rules: {
       email: (value: string) => {
         return value.match(EMAIL_PATTERN)

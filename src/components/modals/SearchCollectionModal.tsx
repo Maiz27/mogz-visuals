@@ -12,8 +12,11 @@ import { MiniCollectionCard } from '../gallery/CollectionCard';
 const SearchCollectionModal = () => {
   const closeBtn = useRef<HTMLButtonElement>(null);
 
-  const { fields, rules } = FORMS.search;
-  const { state, errors, handleChange, reset } = useFormState(fields, rules);
+  const { initialValue, fields, rules } = FORMS.search;
+  const { state, errors, handleChange, reset } = useFormState(
+    initialValue,
+    rules
+  );
 
   const {
     collections,
@@ -96,14 +99,17 @@ const SearchCollectionModal = () => {
 
       <form className='flex flex-col justify-center space-y-4'>
         <div className='relative'>
-          <Input
-            required={true}
-            name='name'
-            state={state}
-            errors={errors}
-            onChange={handleChange}
-            placeholder='Collection Name'
-          />
+          {fields.map((field, i) => {
+            return (
+              <Input
+                key={field.name}
+                state={state}
+                errors={errors}
+                onChange={handleChange}
+                {...field}
+              />
+            );
+          })}
           {render()}
         </div>
 

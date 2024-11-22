@@ -88,7 +88,7 @@ const ContactForm = () => {
 
       <div className='grid place-items-center'>
         <CTAButton loading={loading} type='submit' className='w-fit'>
-          Send Message
+          Book Session
         </CTAButton>
       </div>
     </form>

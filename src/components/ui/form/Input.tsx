@@ -1,7 +1,7 @@
 import { InputHTMLAttributes } from 'react';
 import { Label } from './Label';
 import { BaseFormFieldProps } from '@/lib/types';
-import { setInputMinDate } from '@/lib/utils';
+import { formatDateTimeForInput, setInputMinDate } from '@/lib/utils';
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & BaseFormFieldProps;
 
@@ -22,14 +22,14 @@ const Input = ({ className, ...props }: InputProps) => {
           <Label id={id!} label={label} className='absolute -top-3 ml-2 px-2' />
         )}
         <input
-          value={value}
+          value={isDate ? formatDateTimeForInput(value) : value}
           className={`w-full bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
           min={isDate ? setInputMinDate({ addDays: 1 }) : undefined}
           {...props}
         />
       </div>
       {required && errors && errors[name as keyof typeof state] && (
-        <span className='text-red-600 text-sm'>
+        <span className='text-red-600 text-sm text-left'>
           {errors[name as keyof typeof state]}
         </span>
       )}
