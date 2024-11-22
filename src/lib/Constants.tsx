@@ -80,7 +80,32 @@ export const MOGZ = {
 
 export const FORMS = {
   contact: {
-    fields: { name: '', email: '', message: '' },
+    fields: [
+      {
+        id: 'contact-name',
+        name: 'name',
+        type: 'name',
+        label: 'Your Name',
+        placeholder: 'John Doe',
+        required: true,
+      },
+      {
+        id: 'contact-email',
+        name: 'email',
+        type: 'email',
+        label: 'Your Email Address',
+        placeholder: 'john@example.com',
+        required: true,
+      },
+      {
+        comp: 'textarea',
+        id: 'contact-message',
+        name: 'message',
+        label: 'Message',
+        placeholder: 'Type your message here...',
+        required: true,
+      },
+    ],
     rules: {
       name: (value: string) =>
         value.length > 2 ? '' : 'Name must be longer than 2 characters!',
@@ -127,27 +152,6 @@ export const FORMS = {
     },
   },
 };
-
-export const CONTACT_FIELDS = [
-  {
-    name: 'name',
-    type: 'name',
-    placeholder: 'Your Full Name',
-    required: true,
-  },
-  {
-    name: 'email',
-    type: 'email',
-    placeholder: 'Your Email Address',
-    required: true,
-  },
-  {
-    name: 'message',
-    type: 'textarea',
-    placeholder: 'Write your message here...',
-    required: true,
-  },
-];
 
 export const PAGE_HEADERS = [
   {

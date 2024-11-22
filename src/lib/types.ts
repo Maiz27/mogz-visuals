@@ -56,3 +56,10 @@ export type Tag =
   | 'h6'
   | 'button'
   | 'footer';
+
+export type BaseFormFieldProps = {
+  label?: string;
+  state?: object;
+  errors?: object;
+  [x: string]: any;
+};
