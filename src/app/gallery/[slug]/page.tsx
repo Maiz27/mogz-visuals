@@ -46,7 +46,6 @@ export async function generateMetadata({
       metadataBase: new URL(BASEURL),
       title: `${title} - Mogz Visuals`,
       description: desc,
-      themeColor: { media: '(prefers-color-scheme: dark)', color: '#0f0f0f' },
       image: mainImage,
       alternates: {
         canonical: url,

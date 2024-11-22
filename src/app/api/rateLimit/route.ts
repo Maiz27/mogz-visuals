@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const redisClient = new Redis(process.env.REDIS_URL!);
 const limit = parseInt(process.env.RATE_LIMIT!);
+const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW!) || 60 * 60 * 1000 * 4;
 
 export async function GET(req: NextRequest) {
   if (req.method !== 'GET') {
@@ -13,7 +14,8 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    const { message, status } = await rateLimit(req);
+    const id = req.nextUrl.searchParams.get('id');
+    const { message, status } = await rateLimit(req, id!);
     console.log('rateLimit result', { message, status });
     return NextResponse.json({ message, status }, { status });
   } catch (error) {
@@ -25,14 +27,12 @@ export async function GET(req: NextRequest) {
   }
 }
 
-const rateLimit = async (req: NextRequest) => {
+const rateLimit = async (req: NextRequest, id: string) => {
   const ipAddress = req.headers.get('x-forwarded-for');
-  const key = `rateLimit:${ipAddress!}`;
+  const key = `rateLimit:${id}:${ipAddress!}`;
   const currentCount = await redisClient.get(key);
 
   console.log('currentCount', currentCount);
-
-  const windowMs = 60 * 60 * 1000; // Window size in milliseconds (60 minutes)
 
   if (currentCount && parseInt(currentCount) >= limit) {
     return { message: 'Rate limit exceeded', status: 429 };

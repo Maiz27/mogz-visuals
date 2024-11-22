@@ -19,8 +19,11 @@ const DownloadCollectionModal = ({ collection }: Props) => {
   const { title, gallery } = collection;
   const { loading, downloadImages } = useDownloadCollection(gallery, title);
 
-  const { fields, rules } = FORMS.download;
-  const { state, errors, handleChange, reset } = useFormState(fields, rules);
+  const { initialValue, fields, rules } = FORMS.download;
+  const { state, errors, handleChange, reset } = useFormState(
+    initialValue,
+    rules
+  );
 
   const handleDownload = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -53,15 +56,17 @@ const DownloadCollectionModal = ({ collection }: Props) => {
       </span>
 
       <form onSubmit={handleDownload}>
-        <Input
-          required={true}
-          state={state}
-          errors={errors}
-          onChange={handleChange}
-          name='email'
-          type='email'
-          placeholder='Email Address'
-        />
+        {fields.map((field, i) => {
+          return (
+            <Input
+              key={field.name}
+              state={state}
+              errors={errors}
+              onChange={handleChange}
+              {...field}
+            />
+          );
+        })}
 
         <div className='pt-8 flex justify-end gap-2 md:gap-4'>
           <CTAButton type='submit' loading={loading}>

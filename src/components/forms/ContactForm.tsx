@@ -2,19 +2,35 @@
 import Input from '@/components/ui/form/Input';
 import Textarea from '@/components/ui/form/Textarea';
 import CTAButton from '@/components/ui/CTA/CTAButton';
-import { CONTACT_FIELDS, FORMS } from '@/lib/Constants';
+import RadioGroup from '@/components/ui/form/RadioGroup';
+import { FORMS } from '@/lib/Constants';
 import useFormState from '@/lib/hooks/useFormState';
 import { useToast } from '@/lib/context/ToastContext';
 
 const ContactForm = () => {
   const { show } = useToast();
-  const { fields, rules } = FORMS.contact;
+  const { initialValue, fields, rules } = FORMS.contact;
   const { state, errors, loading, handleChange, onSubmit } = useFormState(
-    fields,
+    initialValue,
     rules
   );
 
+  const checkRateLimit = async (id: string): Promise<boolean> => {
+    const response = await fetch(`/api/rateLimit?id=${id}`, {
+      method: 'GET',
+    });
+    if (!response.ok) {
+      const { message } = await response.json();
+      console.log('Rate limit status:', response.status, message);
+      show(message, { status: 'error', autoClose: false });
+      return false;
+    }
+    return true;
+  };
+
   const handleSubmit = async () => {
+    if (!(await checkRateLimit('contact'))) return;
+
     const response = await fetch('/api/contact', {
       method: 'POST',
       headers: {
@@ -22,7 +38,6 @@ const ContactForm = () => {
       },
       body: JSON.stringify(state),
     });
-    console.log('response', response);
 
     if (response.status === 200) {
       show('Your Message was delivered successfully!', {
@@ -43,37 +58,47 @@ const ContactForm = () => {
       className='w-full max-w-xl flex flex-col space-y-4'
       onSubmit={(e) => onSubmit(e, handleSubmit)}
     >
-      {CONTACT_FIELDS.map(({ type, placeholder, name, required }, i) => {
-        if (type === 'textarea') {
+      {fields.map((field, i) => {
+        if (field.comp === 'textarea') {
           return (
             <Textarea
-              key={name}
-              name={name}
+              key={field.name}
               state={state}
               errors={errors}
               onChange={handleChange}
-              required={required}
-              placeholder={placeholder}
-              className='h-64 resize-y'
+              className='h-28 resize-y'
+              {...field}
             />
           );
         }
+
+        if (field.comp === 'radio') {
+          return (
+            <RadioGroup
+              key={field.name}
+              state={state}
+              errors={errors}
+              options={field.options!}
+              onChange={handleChange}
+              {...field}
+            />
+          );
+        }
+
         return (
           <Input
-            key={name}
-            name={name}
-            type={type}
+            key={field.name}
             state={state}
             errors={errors}
             onChange={handleChange}
-            required={required}
-            placeholder={placeholder}
+            {...field}
           />
         );
       })}
+
       <div className='grid place-items-center'>
         <CTAButton loading={loading} type='submit' className='w-fit'>
-          Send Message
+          Book Session
         </CTAButton>
       </div>
     </form>

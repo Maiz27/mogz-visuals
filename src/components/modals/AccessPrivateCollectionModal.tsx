@@ -14,8 +14,11 @@ const AccessPrivateCollectionModal = () => {
   const closeBtn = useRef<HTMLButtonElement>(null);
   const router = useRouter();
 
-  const { fields, rules } = FORMS.browse;
-  const { state, errors, handleChange, reset } = useFormState(fields, rules);
+  const { initialValue, rules } = FORMS.browse;
+  const { state, errors, handleChange, reset } = useFormState(
+    initialValue,
+    rules
+  );
 
   const { response, loading, handleVerifyAccess } = useVerifyAccess();
 

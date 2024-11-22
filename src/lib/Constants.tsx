@@ -80,7 +80,56 @@ export const MOGZ = {
 
 export const FORMS = {
   contact: {
-    fields: { name: '', email: '', message: '' },
+    initialValue: {
+      name: '',
+      email: '',
+      datetime: new Date().toISOString(),
+      session: 'indoor',
+      message: '',
+    },
+    fields: [
+      {
+        id: 'contact-name',
+        name: 'name',
+        type: 'name',
+        label: 'Your Name',
+        placeholder: 'John Doe',
+        required: true,
+      },
+      {
+        id: 'contact-email',
+        name: 'email',
+        type: 'email',
+        label: 'Your Email Address',
+        placeholder: 'john@example.com',
+        required: true,
+      },
+      {
+        id: 'contact-datetime',
+        name: 'datetime',
+        type: 'datetime-local',
+        label: 'Session Date & Time',
+        placeholder: 'Select a date',
+        required: true,
+      },
+      {
+        comp: 'radio',
+        id: 'contact-session',
+        name: 'session',
+        label: 'Session Type',
+        options: [
+          { label: 'Indoor', value: 'indoor' },
+          { label: 'Outdoor', value: 'outdoor' },
+        ],
+      },
+      {
+        comp: 'textarea',
+        id: 'contact-message',
+        name: 'message',
+        label: 'Message',
+        placeholder: 'Type your message here...',
+      },
+    ],
     rules: {
       name: (value: string) =>
         value.length > 2 ? '' : 'Name must be longer than 2 characters!',
@@ -89,12 +138,53 @@ export const FORMS = {
           ? ''
           : 'Please enter a valid email address';
       },
+      session: (value: string) => {
+        const options = FORMS.contact.fields.find(
+          (field) => field.name === 'session'
+        )!.options!;
+        if (options.find((option) => option.value === value)) {
+          return '';
+        }
+        return 'Please select an option!';
+      },
+      datetime: (value: string) => {
+        const selectedDateTime = new Date(value);
+        const currentDateTime = new Date();
+
+        if (isNaN(selectedDateTime.getTime())) {
+          return 'Please select a valid date and time!';
+        }
+
+        if (selectedDateTime.getTime() < currentDateTime.getTime()) {
+          return 'Date and time must be in the future!';
+        }
+
+        return '';
+      },
       message: (value: string) =>
         value.length > 10 ? '' : 'Message must be longer than 10 characters!',
     },
   },
   browse: {
-    fields: { id: '', password: '' },
+    initialValue: { id: '', password: '' },
+    fields: [
+      {
+        id: 'browse-id',
+        name: 'id',
+        type: 'text',
+        label: 'Collection ID',
+        placeholder: 'collection-000',
+        required: true,
+      },
+      {
+        id: 'browse-password',
+        name: 'password',
+        type: 'password',
+        label: 'Collection Password',
+        placeholder: '####',
+        required: true,
+      },
+    ],
     rules: {
       id: (value: string) => {
         if (value.length < 6) {
@@ -110,14 +200,34 @@ export const FORMS = {
     },
   },
   search: {
-    fields: { name: '' },
+    initialValue: { name: '' },
+    fields: [
+      {
+        id: 'search-name',
+        name: 'name',
+        type: 'text',
+        label: 'Collection Name',
+        placeholder: 'Party XYZ',
+        required: true,
+      },
+    ],
     rules: {
       name: (value: string) =>
         value.length > 2 ? '' : 'Name must be longer than 2 characters!',
     },
   },
   download: {
-    fields: { email: '' },
+    initialValue: { email: '' },
+    fields: [
+      {
+        id: 'download-email',
+        name: 'email',
+        type: 'email',
+        label: 'Your Email Address',
+        placeholder: 'john@example.com',
+        required: true,
+      },
+    ],
     rules: {
       email: (value: string) => {
         return value.match(EMAIL_PATTERN)
@@ -127,27 +237,6 @@ export const FORMS = {
     },
   },
 };
-
-export const CONTACT_FIELDS = [
-  {
-    name: 'name',
-    type: 'name',
-    placeholder: 'Your Full Name',
-    required: true,
-  },
-  {
-    name: 'email',
-    type: 'email',
-    placeholder: 'Your Email Address',
-    required: true,
-  },
-  {
-    name: 'message',
-    type: 'textarea',
-    placeholder: 'Write your message here...',
-    required: true,
-  },
-];
 
 export const PAGE_HEADERS = [
   {

@@ -19,8 +19,10 @@ const useDownloadCollection = (images: string[], title: string) => {
     show(message, { status, autoClose });
   };
 
-  const checkRateLimit = async (): Promise<boolean> => {
-    const response = await fetch('/api/rateLimit', { method: 'GET' });
+  const checkRateLimit = async (id: string): Promise<boolean> => {
+    const response = await fetch(`/api/rateLimit?id=${id}`, {
+      method: 'GET',
+    });
     if (!response.ok) {
       const { message } = await response.json();
       console.log('Rate limit status:', response.status, message);
@@ -48,7 +50,7 @@ const useDownloadCollection = (images: string[], title: string) => {
   const downloadImages = async (email: string) => {
     setLoading(true);
     try {
-      if (!(await checkRateLimit())) return;
+      if (!(await checkRateLimit('download'))) return;
 
       await addEmailToAudience(email);
 
