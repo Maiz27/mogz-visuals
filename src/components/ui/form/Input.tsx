@@ -5,7 +5,7 @@ import { BaseFormFieldProps } from '@/lib/types';
 type InputProps = InputHTMLAttributes<HTMLInputElement> & BaseFormFieldProps;
 
 const Input = ({ className, ...props }: InputProps) => {
-  const { id, label, name, state, errors } = props;
+  const { id, label, name, state, errors, required } = props;
   const value = state
     ? (state[name as keyof typeof state] as unknown as string)
     : ('' as string);
@@ -13,14 +13,16 @@ const Input = ({ className, ...props }: InputProps) => {
   return (
     <div className='w-full flex flex-col space-y-0.5'>
       <div className='relative my-2 focus-within:text-primary transition-colors'>
-        {label && <Label id={id!} label={label} />}
+        {label && (
+          <Label id={id!} label={label} className='absolute -top-3 ml-2 px-2' />
+        )}
         <input
           value={value}
           className={`w-full bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
           {...props}
         />
       </div>
-      {errors && errors[name as keyof typeof state] && (
+      {required && errors && errors[name as keyof typeof state] && (
         <span className='text-red-600 text-sm'>
           {errors[name as keyof typeof state]}
         </span>

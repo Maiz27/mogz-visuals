@@ -80,6 +80,7 @@ export const MOGZ = {
 
 export const FORMS = {
   contact: {
+    initialValue: { name: '', email: '', message: '', session: 'indoor' },
     fields: [
       {
         id: 'contact-name',
@@ -98,12 +99,21 @@ export const FORMS = {
         required: true,
       },
       {
+        comp: 'radio',
+        id: 'contact-session',
+        name: 'session',
+        label: 'Session Type',
+        options: [
+          { label: 'Indoor', value: 'indoor' },
+          { label: 'Outdoor', value: 'outdoor' },
+        ],
+      },
+      {
         comp: 'textarea',
         id: 'contact-message',
         name: 'message',
         label: 'Message',
         placeholder: 'Type your message here...',
-        required: true,
       },
     ],
     rules: {
@@ -113,6 +123,15 @@ export const FORMS = {
         return value.match(EMAIL_PATTERN)
           ? ''
           : 'Please enter a valid email address';
+      },
+      session: (value: string) => {
+        const options = FORMS.contact.fields.find(
+          (field) => field.name === 'session'
+        )!.options!;
+        if (options.find((option) => option.value === value)) {
+          return '';
+        }
+        return 'Please select an option!';
       },
       message: (value: string) =>
         value.length > 10 ? '' : 'Message must be longer than 10 characters!',

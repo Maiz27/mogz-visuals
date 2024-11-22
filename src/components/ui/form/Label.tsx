@@ -3,13 +3,14 @@ import React from 'react';
 type LabelProps = {
   id: string;
   label: string;
+  className?: string;
 };
 
-export const Label = ({ id, label }: LabelProps) => {
+export const Label = ({ id, label, className }: LabelProps) => {
   return (
     <label
       htmlFor={id}
-      className='text- absolute -top-3 ml-2 bg-background font-medium px-2 tracking-widest rounded-md'
+      className={`bg-background font-medium  tracking-widest rounded-md ${className}`}
     >
       {label}
     </label>

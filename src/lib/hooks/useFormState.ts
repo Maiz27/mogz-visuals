@@ -17,18 +17,51 @@ const useFormState = <T extends object>(
   const handleChange = (
     e: ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
   ) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
+
+    // radio inputs
+    if (type === 'radio') {
+      setState({
+        ...state,
+        [name]: value,
+      });
+
+      if (rules[name]) {
+        const errorMessage = rules[name](value);
+        setErrors({
+          ...errors,
+          [name]: errorMessage,
+        });
+      }
+      return;
+    }
+
+    // file inputs
+    let files;
+    if (e.target instanceof HTMLInputElement && 'files' in e.target) {
+      files = e.target.files;
+    }
+
     setState({
       ...state,
       [name]: value,
     });
 
+    // validate
     if (rules[name]) {
-      const errorMessage = rules[name](value);
-      setErrors({
-        ...errors,
-        [name]: errorMessage,
-      });
+      if (files) {
+        const errorMessage = rules[name](files);
+        setErrors({
+          ...errors,
+          [name]: errorMessage,
+        });
+      } else {
+        const errorMessage = rules[name](value);
+        setErrors({
+          ...errors,
+          [name]: errorMessage,
+        });
+      }
     }
   };
 
@@ -39,7 +72,7 @@ const useFormState = <T extends object>(
 
   const onSubmit = async (
     e: FormEvent<HTMLFormElement>,
-    handle: () => Promise<any>
+    handle: () => Promise<void>
   ) => {
     try {
       e.preventDefault();
