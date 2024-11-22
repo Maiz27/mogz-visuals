@@ -4,8 +4,8 @@ import { BaseFormFieldProps } from '@/lib/types';
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & BaseFormFieldProps;
 
-const Input = (props: InputProps) => {
-  const { id, label, name, state, errors, className } = props;
+const Input = ({ className, ...props }: InputProps) => {
+  const { id, label, name, state, errors } = props;
   const value = state
     ? (state[name as keyof typeof state] as unknown as string)
     : ('' as string);
@@ -16,8 +16,8 @@ const Input = (props: InputProps) => {
         {label && <Label id={id!} label={label} />}
         <input
           value={value}
-          {...props}
           className={`w-full bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
+          {...props}
         />
       </div>
       {errors && errors[name as keyof typeof state] && (
