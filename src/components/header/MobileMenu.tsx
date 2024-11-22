@@ -102,8 +102,11 @@ const MobileMenuLink = ({
 };
 
 const AccessForm = ({ handleReroute }: { handleReroute: (r: any) => void }) => {
-  const { fields, rules } = FORMS.browse;
-  const { state, errors, handleChange, reset } = useFormState(fields, rules);
+  const { initialValue, rules } = FORMS.browse;
+  const { state, errors, handleChange, reset } = useFormState(
+    initialValue,
+    rules
+  );
 
   const { response, loading, handleVerifyAccess } = useVerifyAccess();
 
