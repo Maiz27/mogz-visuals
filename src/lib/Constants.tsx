@@ -1,3 +1,4 @@
+import { formatDateTimeForInput } from '@/lib/utils';
 import {
   HiOutlineMapPin,
   HiOutlineEnvelope,
@@ -80,7 +81,13 @@ export const MOGZ = {
 
 export const FORMS = {
   contact: {
-    initialValue: { name: '', email: '', message: '', session: 'indoor' },
+    initialValue: {
+      name: '',
+      email: '',
+      date: formatDateTimeForInput(new Date().toISOString()),
+      session: 'indoor',
+      message: '',
+    },
     fields: [
       {
         id: 'contact-name',
@@ -96,6 +103,14 @@ export const FORMS = {
         type: 'email',
         label: 'Your Email Address',
         placeholder: 'john@example.com',
+        required: true,
+      },
+      {
+        id: 'contact-datetime',
+        name: 'datetime',
+        type: 'datetime-local',
+        label: 'Session Date & Time',
+        placeholder: 'Select a date',
         required: true,
       },
       {
@@ -132,6 +147,20 @@ export const FORMS = {
           return '';
         }
         return 'Please select an option!';
+      },
+      datetime: (value: string) => {
+        const selectedDateTime = new Date(value);
+        const currentDateTime = new Date();
+
+        if (isNaN(selectedDateTime.getTime())) {
+          return 'Please select a valid date and time!';
+        }
+
+        if (selectedDateTime.getTime() < currentDateTime.getTime()) {
+          return 'Date and time must be in the future!';
+        }
+
+        return '';
       },
       message: (value: string) =>
         value.length > 10 ? '' : 'Message must be longer than 10 characters!',

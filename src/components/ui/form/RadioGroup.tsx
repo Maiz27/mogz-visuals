@@ -27,7 +27,7 @@ const RadioGroup = ({ className, options, ...props }: RadioGroupProps) => {
               {...props}
               value={option.value}
               defaultChecked={i === 0}
-              className='appearance-none aspect-square h-5 rounded-full border-[1.5px] border-copy checked:bg-primary checked:shadow-inner checked:shadow-background'
+              className='appearance-none aspect-square h-5 rounded-full border-[1.5px] border-copy transition-colors hover:cursor-pointer hover:border-primary checked:bg-primary checked:shadow-inner checked:shadow-background'
             />
             <label>{option.label}</label>
           </div>

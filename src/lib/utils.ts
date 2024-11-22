@@ -73,6 +73,30 @@ export const getMonthYear = (StringDate: string) => {
     .replace(' ', ', ');
 };
 
+export const formatDateTimeForInput = (timestamp: string) => {
+  const date = new Date(timestamp);
+  return date.toISOString().slice(0, 16); // Takes YYYY-MM-DDThh:mm
+};
+
+type SetInputMinDateParams = {
+  date?: string | number | Date;
+  addDays?: number;
+};
+
+export const setInputMinDate = (params?: SetInputMinDateParams): string => {
+  const baseDate = new Date(params?.date ?? new Date());
+
+  // Check if date is valid
+  if (isNaN(baseDate.getTime())) {
+    throw new Error('Invalid date provided');
+  }
+
+  const resultDate = new Date(baseDate);
+  resultDate.setDate(baseDate.getDate() + (params?.addDays ?? 0));
+
+  return resultDate.toISOString().split('T')[0];
+};
+
 export const setCollectionAccessCookie = (encryptedSlug: string) => {
   const cookie = { slug: encryptedSlug };
 

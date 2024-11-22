@@ -40,6 +40,17 @@ p {
   @apply tracking-wider text-lg xl:text-xl 2xl:text-2xl;
 }
 
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='datetime-local']::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+  margin: 0px;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator:hover,
+input[type='datetime-local']::-webkit-calendar-picker-indicator:hover {
+  cursor: pointer;
+}
+
 /*! locomotive-scroll v4.1.3 | MIT License | https://github.com/locomotivemtl/locomotive-scroll */
 html.has-scroll-smooth {
   overflow: hidden;

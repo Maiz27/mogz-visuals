@@ -17,6 +17,8 @@ const ContactForm = () => {
 
   const handleSubmit = async () => {
     console.log('state', state);
+    const date = new Date(state.date);
+    console.log('date', date);
 
     // const response = await fetch('/api/contact', {
     //   method: 'POST',

@@ -1,14 +1,19 @@
 import { InputHTMLAttributes } from 'react';
 import { Label } from './Label';
 import { BaseFormFieldProps } from '@/lib/types';
+import { setInputMinDate } from '@/lib/utils';
 
 type InputProps = InputHTMLAttributes<HTMLInputElement> & BaseFormFieldProps;
 
+const dateTypes = ['date', 'datetime-local'];
+
 const Input = ({ className, ...props }: InputProps) => {
-  const { id, label, name, state, errors, required } = props;
+  const { id, type, label, name, state, errors, required } = props;
   const value = state
     ? (state[name as keyof typeof state] as unknown as string)
     : ('' as string);
+
+  const isDate = dateTypes.includes(type!);
 
   return (
     <div className='w-full flex flex-col space-y-0.5'>
@@ -19,6 +24,7 @@ const Input = ({ className, ...props }: InputProps) => {
         <input
           value={value}
           className={`w-full bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
+          min={isDate ? setInputMinDate({ addDays: 1 }) : undefined}
           {...props}
         />
       </div>
