@@ -22,8 +22,8 @@ const MobileMenu = () => {
   const router = useRouter();
 
   const handleReroute = (response: any) => {
-    setCollectionAccessCookie(response.encryptedSlug);
-    router.push(`/private?slug=${response.slug}`);
+    setCollectionAccessCookie(response.secret);
+    router.push(`/private?id=${response.id}`);
     handleClose();
   };
 
