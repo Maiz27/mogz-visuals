@@ -16,6 +16,7 @@ export type COLLECTION = {
   slug: SLUG;
   isPrivate: boolean;
   password?: string;
+  uniqueId?: string;
   date: string;
   service: SERVICE;
   mainImage: string;
@@ -23,7 +24,7 @@ export type COLLECTION = {
 };
 
 export type COLLECTION_CREDENTIALS = {
-  slug: SLUG;
+  uniqueId: string;
   isPrivate: boolean;
   password: string;
 };
@@ -31,8 +32,8 @@ export type COLLECTION_CREDENTIALS = {
 export type VERIFY_ACCESS_RESPONSE_BODY = {
   message: string;
   status: number;
-  slug: string;
-  encryptedSlug: string;
+  id: string;
+  secret: string;
 };
 
 export type TOAST_STATUS = 'success' | 'error' | 'info' | 'warning';

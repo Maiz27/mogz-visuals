@@ -1,22 +1,46 @@
+'use client';
+import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 import Heading from '../heading/Heading';
+import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import CTAButton from '../ui/CTA/CTAButton';
 import GalleryOptions from './GalleryOptions';
-import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { COLLECTION } from '@/lib/types';
 import { getStringDate } from '@/lib/utils';
 import {
-  HiOutlineChevronDoubleDown,
   HiOutlineLockClosed,
   HiOutlineCalendarDays,
+  HiOutlineChevronDoubleDown,
 } from 'react-icons/hi2';
+import AccessPrivateCollectionModal from '../modals/AccessPrivateCollectionModal';
+import { decryptCookie } from '@/lib/hooks/useAutoDeleteCookie';
 
 type Props = {
   collection: COLLECTION;
+  cookie: RequestCookie | undefined;
 };
 
-const CollectionHeader = ({ collection }: Props) => {
+const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
   const { title, mainImage, date } = collection;
+  const [decrypted, setDecrypted] = useState<any | null>(null);
+
+  useEffect(() => {
+    if (cookie) {
+      const func = async () => {
+        const _decrypted = await decryptCookie(cookie.value);
+        setDecrypted(_decrypted);
+      };
+
+      func();
+    }
+  }, [cookie]);
+
+  const isValidCookie =
+    decrypted &&
+    decrypted.uniqueId === collection.uniqueId &&
+    decrypted.password === collection.password;
+
   return (
     <LocomotiveScrollSection
       id='collection-header'
@@ -35,16 +59,21 @@ const CollectionHeader = ({ collection }: Props) => {
         />
       </div>
       <div className='absolute inset-0 grid place-items-center'>
-        <div className='flex flex-col items-center space-y-4'>
-          <div className='flex flex-col items-center lg:space-y-4'>
+        <div className='flex flex-col items-center'>
+          <div className='flex flex-col items-center gap-1 mb-4'>
             <Heading
               Tag='h1'
               text={title}
               color='copy'
-              className='2xl:text-6xl mb-0'
+              className='2xl:text-6xl mb-0 text-center'
             />
 
             <div className='md:text-lg gap-4 flex items-center'>
+              <div className='flex items-center gap-1'>
+                <HiOutlineLockClosed />
+                <span>Private</span>
+              </div>
+
               <time className='flex items-center gap-1'>
                 <HiOutlineCalendarDays />
                 {getStringDate(date)}
@@ -52,10 +81,15 @@ const CollectionHeader = ({ collection }: Props) => {
             </div>
           </div>
 
-          <GalleryOptions collection={collection} />
+          {isValidCookie ? (
+            <GalleryOptions collection={collection} />
+          ) : (
+            <AccessPrivateCollectionModal />
+          )}
         </div>
       </div>
-      <div className='absolute left-1/2 -translate-x-1/2 bottom-8'>
+
+      {/* <div className='absolute left-1/2 -translate-x-1/2 bottom-8'>
         <CTAButton
           title='View Collection'
           scrollId='gallery'
@@ -64,9 +98,9 @@ const CollectionHeader = ({ collection }: Props) => {
         >
           <HiOutlineChevronDoubleDown />
         </CTAButton>
-      </div>
+      </div> */}
     </LocomotiveScrollSection>
   );
 };
 
-export default CollectionHeader;
+export default PrivateCollectionHeader;

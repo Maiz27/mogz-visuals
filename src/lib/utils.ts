@@ -177,10 +177,8 @@ export const setInputMinDate = (params?: SetInputMinDateParams): string => {
   );
 };
 
-export const setCollectionAccessCookie = (encryptedSlug: string) => {
-  const cookie = { slug: encryptedSlug };
-
-  Cookies.set('collectionAccess', JSON.stringify(cookie), {
+export const setCollectionAccessCookie = (secret: string) => {
+  Cookies.set('collectionAccess', secret, {
     secure: true,
     sameSite: 'Strict',
   });

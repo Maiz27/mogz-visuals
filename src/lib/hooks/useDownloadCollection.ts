@@ -2,8 +2,11 @@ import JSZip from 'jszip';
 import { useState } from 'react';
 import { saveAs } from 'file-saver';
 import { useToast } from '../context/ToastContext';
+import { fetchSanityData } from '../sanity/client';
+import { getPrivateCollectionGallery } from '../sanity/queries';
+import { COLLECTION } from '../types';
 
-const useDownloadCollection = (images: string[], title: string) => {
+const useDownloadCollection = ({ title, uniqueId, gallery }: COLLECTION) => {
   const [loading, setLoading] = useState(false);
   const { show } = useToast();
 
@@ -47,21 +50,50 @@ const useDownloadCollection = (images: string[], title: string) => {
     }
   };
 
+  const fetchImages = async () => {
+    const gallery: string[] = await fetchSanityData(
+      getPrivateCollectionGallery,
+      { id: uniqueId }
+    );
+    return gallery;
+  };
+
   const downloadImages = async (email: string) => {
     setLoading(true);
+    let images = gallery;
     try {
       if (!(await checkRateLimit('download'))) return;
 
       await addEmailToAudience(email);
 
+      if (!images) {
+        images = await fetchImages();
+      }
+
       const imageFetchPromises = images.map(async (image, index) => {
-        const blob = await fetch(image).then((response) => response.blob());
-        folder?.file(generateImageName(title, index), blob, { binary: true });
+        try {
+          const response = await fetch(image);
+          if (!response.ok) {
+            throw new Error(
+              `Failed to fetch image at index ${index}, status: ${response.status}`
+            );
+          }
+          const blob = await response.blob();
+          if (!folder) {
+            throw new Error('folder is undefined');
+          }
+          folder.file(generateImageName(title, index), blob, { binary: true });
+        } catch (err) {
+          console.error(`Error fetching image at index ${index}:`, err);
+          throw err;
+        }
       });
 
       await Promise.all(imageFetchPromises);
 
+      console.log('Adding images done, proceeding to ZIP...');
       const content = await zip.generateAsync({ type: 'blob' });
+
       saveAs(content, `${folderName}.zip`);
       showToast('Collection downloaded successfully!', 'success');
     } catch (err: any) {

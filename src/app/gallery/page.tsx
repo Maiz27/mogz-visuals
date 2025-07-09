@@ -8,16 +8,14 @@ import { PAGE_HEADERS, PAGE_SIZE } from '@/lib/Constants';
 import { COLLECTION } from '@/lib/types';
 import { getPageMetadata } from '@/lib/utils';
 import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
+import { SearchParams } from 'next/dist/server/request/search-params';
 
 export const revalidate = 60;
 
 export const metadata = getPageMetadata('gallery');
 
-const page = async ({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) => {
+const page = async (props: { searchParams?: Promise<SearchParams> }) => {
+  const searchParams = await props.searchParams;
   const collections = await fetchCollections(searchParams);
   const { title, paragraph } = PAGE_HEADERS[0];
 

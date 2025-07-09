@@ -30,16 +30,16 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  const encryptedSlug = CryptoJS.AES.encrypt(
-    credentials.slug.current,
+  const encryptedData = CryptoJS.AES.encrypt(
+    JSON.stringify(credentials),
     ENCRYPTION_KEY
   ).toString();
 
   const responseBody: VERIFY_ACCESS_RESPONSE_BODY = {
     status: 200,
     message: 'Access granted, redirecting...',
-    slug: credentials.slug.current,
-    encryptedSlug,
+    id: credentials.uniqueId,
+    secret: encryptedData,
   };
 
   return NextResponse.json(responseBody, { status: 200 });

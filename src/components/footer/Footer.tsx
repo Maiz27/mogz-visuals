@@ -29,7 +29,7 @@ const Footer = async () => {
       <Grid images={arrays} />
 
       <div className='flex justify-between items-center mb-4 px-4'>
-        <div className='flex items-center space-x-2 md:space-x-4'>
+        <div className='grid place-items-center gap-2 grid-cols-3'>
           {social.map(({ label, url, icon }) => {
             return (
               <CTALink
@@ -37,7 +37,7 @@ const Footer = async () => {
                 external={true}
                 href={url}
                 sm={true}
-                className='h-8 text-lg'
+                className='text-xl xl:text-2xl'
               >
                 {icon}
               </CTALink>

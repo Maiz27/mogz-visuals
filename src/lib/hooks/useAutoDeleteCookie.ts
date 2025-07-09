@@ -3,21 +3,21 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '../context/ToastContext';
 
-export const useAutoDeleteCookie = (slug: string, isPrivate: boolean) => {
-  const [decryptedSlug, setDecryptedSlug] = useState<string | null>(null);
+export const useAutoDeleteCookie = (id: string, isPrivate: boolean) => {
+  const [decrypted, setDecrypted] = useState<any | null>(null);
   const { show } = useToast();
   const router = useRouter();
 
   useEffect(() => {
     if (isPrivate) {
       const func = async () => {
-        const encryptedCookie = Cookies.get('collectionAccess');
-        if (encryptedCookie) {
-          const parsedCookie = JSON.parse(encryptedCookie);
-          console.log('encrypted slug', parsedCookie.slug);
-          const decryptedSlug = await getDecryptedSlug(parsedCookie.slug);
+        const cookie = Cookies.get('collectionAccess');
 
-          setDecryptedSlug(decryptedSlug);
+        if (cookie) {
+          const _decrypted = await decryptCookie(cookie);
+          console.log('decrypted', _decrypted);
+
+          setDecrypted(_decrypted);
         }
       };
       // Decrypt the cookie and set the state
@@ -26,9 +26,9 @@ export const useAutoDeleteCookie = (slug: string, isPrivate: boolean) => {
   }, [isPrivate]);
 
   useEffect(() => {
-    if (isPrivate && decryptedSlug) {
+    if (isPrivate && decrypted) {
       const timer = setTimeout(() => {
-        if (slug === decryptedSlug) {
+        if (id === decrypted.uniqueId) {
           Cookies.remove('collectionAccess');
           router.push('/gallery');
           show('Your access to private collection expired!', {
@@ -40,7 +40,7 @@ export const useAutoDeleteCookie = (slug: string, isPrivate: boolean) => {
 
       // Listen to the 'beforeunload' event to delete the cookie when the tab is closed
       const handleBeforeUnload = async () => {
-        if (slug === decryptedSlug) {
+        if (id === decrypted.uniqueId) {
           Cookies.remove('collectionAccess');
         }
       };
@@ -51,10 +51,10 @@ export const useAutoDeleteCookie = (slug: string, isPrivate: boolean) => {
         window.removeEventListener('beforeunload', handleBeforeUnload);
       };
     }
-  }, [decryptedSlug, isPrivate, router, show, slug]);
+  }, [decrypted, isPrivate, router, show, id]);
 };
 
-const getDecryptedSlug = async (encryptedCookie: string) => {
+export const decryptCookie = async (encryptedCookie: string) => {
   const response = await fetch('/api/decryptCookie', {
     method: 'POST',
     headers: {
@@ -62,7 +62,7 @@ const getDecryptedSlug = async (encryptedCookie: string) => {
     },
     body: JSON.stringify({ encryptedCookie }),
   });
-  const { decryptedSlug } = await response.json();
+  const { decryptedCookie } = await response.json();
 
-  return decryptedSlug;
+  return JSON.parse(decryptedCookie);
 };

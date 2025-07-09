@@ -25,9 +25,9 @@ const LICENSE_KEY =
   process.env.NEXT_PUBLIC_LG_LICENSE_KEY || '0000-0000-000-0000';
 
 const Gallery = ({ collection }: Props) => {
-  const { title, gallery, slug, isPrivate } = collection;
+  const { title, gallery, uniqueId, isPrivate } = collection;
 
-  useAutoDeleteCookie(slug.current, isPrivate);
+  useAutoDeleteCookie(uniqueId ?? '', isPrivate);
 
   const isEmpty = !collection.gallery || collection.gallery?.length <= 0;
   const { collection: empty } = EMPTY_STATE;
@@ -63,7 +63,7 @@ const Gallery = ({ collection }: Props) => {
                 key={image}
                 href={image}
                 data-lg-size={'1400-800'}
-                className='h-96 lg:h-[30rem] relative block m-2'
+                className='h-96 lg:h-120 relative block m-2'
                 style={{
                   width: `${aspectRatio * 20}rem`,
                   flexGrow: aspectRatio * 200,

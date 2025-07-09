@@ -1,3 +1,4 @@
+import { JSX } from 'react';
 import { HiOutlineExclamationCircle } from 'react-icons/hi2';
 
 type Props = {

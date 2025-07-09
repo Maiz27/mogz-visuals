@@ -8,7 +8,13 @@ import { BASEURL } from '@/lib/Constants';
 
 export const revalidate = 60;
 
-const page = async ({ params: { slug } }: { params: { slug: string } }) => {
+const page = async (props: { params: Promise<{ slug: string }> }) => {
+  const params = await props.params;
+
+  const {
+    slug
+  } = params;
+
   const collection: COLLECTION = await fetchSanityData(getCollectionBySlug, {
     slug,
   });
@@ -28,11 +34,17 @@ const page = async ({ params: { slug } }: { params: { slug: string } }) => {
 
 export default page;
 
-export async function generateMetadata({
-  params: { slug },
-}: {
-  params: { slug: string };
-}) {
+export async function generateMetadata(
+  props: {
+    params: Promise<{ slug: string }>;
+  }
+) {
+  const params = await props.params;
+
+  const {
+    slug
+  } = params;
+
   const collection: COLLECTION = await fetchSanityData(getCollectionForSEO, {
     slug,
   });
