@@ -25,9 +25,9 @@ const LICENSE_KEY =
   process.env.NEXT_PUBLIC_LG_LICENSE_KEY || '0000-0000-000-0000';
 
 const Gallery = ({ collection }: Props) => {
-  const { title, gallery, slug, isPrivate } = collection;
+  const { title, gallery, uniqueId, isPrivate } = collection;
 
-  useAutoDeleteCookie(slug.current, isPrivate);
+  useAutoDeleteCookie(uniqueId ?? '', isPrivate);
 
   const isEmpty = !collection.gallery || collection.gallery?.length <= 0;
   const { collection: empty } = EMPTY_STATE;

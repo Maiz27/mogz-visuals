@@ -13,13 +13,13 @@ export async function POST(req: NextRequest) {
   try {
     const { encryptedCookie } = await req.json();
 
-    const decryptedSlug = CryptoJS.AES.decrypt(
+    const decryptedCookie = CryptoJS.AES.decrypt(
       encryptedCookie,
       ENCRYPTION_KEY
     ).toString(CryptoJS.enc.Utf8);
 
     const responseBody = {
-      decryptedSlug,
+      decryptedCookie,
     };
 
     return NextResponse.json(responseBody, { status: 200 });

@@ -15,14 +15,15 @@ export const getServiceNames = `*[_type == "services"]{
   title,
 }| order(title asc)`;
 
-export const getCollectionCredentials = `*[_type == "collection" && slug.current == $id && isPrivate == true]{
-  slug,
+export const getCollectionCredentials = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
+  uniqueId,
   isPrivate,
   password,
 }[0]`;
 
 export const getCollectionBySlug = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
   isPrivate,
+  uniqueId,
   title,
   slug,
   "mainImage": mainImage.asset->url,
@@ -31,15 +32,19 @@ export const getCollectionBySlug = `*[_type == "collection" && slug.current == $
   "gallery": gallery[].asset->url,
 }[0]`;
 
-export const getPrivateCollectionBySlug = `*[_type == "collection" && slug.current == $slug && isPrivate == true]{
+export const getPrivateCollectionByID = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
   isPrivate,
   title,
-  slug,
+  uniqueId,
   "mainImage": mainImage.asset->url,
   service,
   date,
-  "gallery": gallery[].asset->url,
+  password,
 }[0]`;
+
+export const getPrivateCollectionGallery = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
+  "gallery": gallery[].asset->url,
+}[0].gallery[]`;
 
 export const getCollectionsByName = `*[_type == "collection" && title match $name && (isPrivate == false || isPrivate == null)]{
   isPrivate,

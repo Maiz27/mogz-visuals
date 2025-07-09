@@ -12,8 +12,6 @@ const useVerifyAccess = () => {
     password: string;
   }) => {
     setLoading(true);
-    const lowercaseId = state.id.toLowerCase();
-    state.id = lowercaseId;
 
     const response = await fetch('/api/verifyAccess', {
       method: 'POST',

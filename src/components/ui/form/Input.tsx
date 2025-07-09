@@ -23,7 +23,7 @@ const Input = ({ className, ...props }: InputProps) => {
         )}
         <input
           value={isDate ? formatDateTimeForInput(value) : value}
-          className={`w-full bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
+          className={`w-full text-primary bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
           min={isDate ? setInputMinDate({ addDays: 1 }) : undefined}
           {...props}
         />
