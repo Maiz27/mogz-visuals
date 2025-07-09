@@ -7,11 +7,17 @@ import { COLLECTION } from '@/lib/types';
 
 export const revalidate = 60;
 
-const page = async ({
-  searchParams: { slug },
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
-}) => {
+const page = async (
+  props: {
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+  }
+) => {
+  const searchParams = await props.searchParams;
+
+  const {
+    slug
+  } = searchParams;
+
   const collection: COLLECTION = await fetchSanityData(
     getPrivateCollectionBySlug,
     {

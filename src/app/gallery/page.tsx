@@ -13,11 +13,12 @@ export const revalidate = 60;
 
 export const metadata = getPageMetadata('gallery');
 
-const page = async ({
-  searchParams,
-}: {
-  searchParams?: { [key: string]: string | string[] | undefined };
-}) => {
+const page = async (
+  props: {
+    searchParams?: Promise<{ [key: string]: string | string[] | undefined }>;
+  }
+) => {
+  const searchParams = await props.searchParams;
   const collections = await fetchCollections(searchParams);
   const { title, paragraph } = PAGE_HEADERS[0];
 
