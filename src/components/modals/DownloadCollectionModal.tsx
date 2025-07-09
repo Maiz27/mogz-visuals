@@ -17,7 +17,7 @@ const DownloadCollectionModal = ({ collection }: Props) => {
   const closeBtn = useRef<HTMLButtonElement>(null);
 
   const { title, gallery } = collection;
-  const { loading, downloadImages } = useDownloadCollection(gallery, title);
+  const { loading, downloadImages } = useDownloadCollection(collection);
 
   const { initialValue, fields, rules } = FORMS.download;
   const { state, errors, handleChange, reset } = useFormState(
