@@ -9,8 +9,8 @@ import { useScroll } from '@/lib/context/scrollContext';
 type Props = {
   CTA: string;
   scrollId?: string;
-  btnStyle?: 'outline-solid' | 'ghost';
-  closeBtn: React.RefObject<HTMLButtonElement>;
+  btnStyle?: 'outline' | 'ghost';
+  closeBtn: React.RefObject<HTMLButtonElement | null>;
   children: ReactNode;
   icon?: ReactNode;
   classNames?: string;
@@ -21,7 +21,7 @@ const Modal = ({
   scrollId,
   icon,
   CTA,
-  btnStyle = 'outline-solid',
+  btnStyle = 'outline',
   classNames,
   closeBtn,
   children,

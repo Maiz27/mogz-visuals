@@ -4,7 +4,7 @@ import { ReactNode } from 'react';
 type LinkProps = {
   children: ReactNode;
   href: string;
-  style?: 'outline-solid' | 'ghost';
+  style?: 'outline' | 'ghost';
   className?: string;
   external?: boolean;
   sm?: boolean;
@@ -14,7 +14,7 @@ export const CTALink = ({
   href,
   children,
   className,
-  style = 'outline-solid',
+  style = 'outline',
   external = false,
   sm = false,
 }: LinkProps) => {

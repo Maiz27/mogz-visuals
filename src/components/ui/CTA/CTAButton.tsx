@@ -6,7 +6,7 @@ type ButtonProps = {
   children: ReactNode;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   type?: 'button' | 'reset' | 'submit';
-  style?: 'primary' | 'outline-solid' | 'ghost';
+  style?: 'primary' | 'outline' | 'ghost';
   title?: string;
   loading?: boolean;
   scrollId?: string;
@@ -21,7 +21,7 @@ const CTAButton = (props: ButtonProps) => {
     title,
     type = 'button',
     loading = false,
-    style = 'outline-solid',
+    style = 'outline',
     onClick,
   } = props;
   const { scrollToSection } = useScroll();
@@ -30,7 +30,7 @@ const CTAButton = (props: ButtonProps) => {
     className: `${getStyles(
       style,
       loading
-    )} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 ${className}`,
+    )} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 hover:cursor-pointer ${className}`,
   };
 
   if (scrollId) {
@@ -65,7 +65,7 @@ const CTAButton = (props: ButtonProps) => {
 
 export default CTAButton;
 
-const getStyles = (key: keyof typeof styles, loading: boolean) => {
+const getStyles = (key: keyof typeof styles = 'outline', loading: boolean) => {
   if (loading) {
     return styles.loading;
   }
