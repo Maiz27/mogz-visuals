@@ -44,7 +44,7 @@ const Service = ({ index, title, images }: Props) => {
   const id = `service-${index}`;
   return (
     <div
-      className='w-full relative overflow-hidden h-[65vh] min-h-[25rem] my-[10vh]'
+      className='w-full relative overflow-hidden h-[65vh] min-h-100 my-[10vh]'
       id={id}
     >
       <div className='w-[150%] h-full absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2'>

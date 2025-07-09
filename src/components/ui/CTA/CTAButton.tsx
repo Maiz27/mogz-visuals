@@ -6,7 +6,7 @@ type ButtonProps = {
   children: ReactNode;
   onClick?: MouseEventHandler<HTMLButtonElement>;
   type?: 'button' | 'reset' | 'submit';
-  style?: 'primary' | 'outline' | 'ghost';
+  style?: 'primary' | 'outline-solid' | 'ghost';
   title?: string;
   loading?: boolean;
   scrollId?: string;
@@ -21,7 +21,7 @@ const CTAButton = (props: ButtonProps) => {
     title,
     type = 'button',
     loading = false,
-    style = 'outline',
+    style = 'outline-solid',
     onClick,
   } = props;
   const { scrollToSection } = useScroll();

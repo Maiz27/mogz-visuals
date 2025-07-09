@@ -22,7 +22,7 @@ const CollectionHeader = ({ collection }: Props) => {
       id='collection-header'
       className='relative h-full w-full'
     >
-      <div className='w-full h-screen relative after:content-[""] after:absolute after:inset-0 after:bg-gradient-to-b after:from-transparent after:via-background/50 after:to-background overflow-hidden'>
+      <div className='w-full h-screen relative after:content-[""] after:absolute after:inset-0 after:bg-linear-to-b after:from-transparent after:via-background/50 after:to-background overflow-hidden'>
         <Image
           src={mainImage}
           width={1080}

@@ -1,6 +1,22 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import 'tailwindcss';
+
+/*
+  The default border color has changed to `currentcolor` in Tailwind CSS v4,
+  so we've added these compatibility styles to make sure everything still
+  looks the same as it did with Tailwind CSS v3.
+
+  If we ever want to remove these styles, we need to add an explicit border
+  color utility to any element that depends on these defaults.
+*/
+@layer base {
+  *,
+  ::after,
+  ::before,
+  ::backdrop,
+  ::file-selector-button {
+    border-color: var(--color-gray-200, currentcolor);
+  }
+}
 
 @font-face {
   font-family: 'Raleway';
@@ -16,6 +32,24 @@
     url('/fonts/lora/Lora-Italic-VF-W.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
+}
+
+@theme {
+  --font-heading: 'Lora', serif;
+  --font-body: 'Raleway', sans-serif;
+
+  --color-background: #0f0f0f;
+  --color-copy: #ffffff;
+
+  --color-primary: #fbc681;
+  --color-primary-content: #794604;
+  --color-primary-dark: #f9b050;
+  --color-primary-light: #fddcb2;
+
+  --color-secondary: #858898;
+  --color-secondary-content: #0e0e10;
+  --color-secondary-dark: #6b6e7f;
+  --color-secondary-light: #a1a3af;
 }
 
 html {

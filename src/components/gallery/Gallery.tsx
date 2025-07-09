@@ -63,7 +63,7 @@ const Gallery = ({ collection }: Props) => {
                 key={image}
                 href={image}
                 data-lg-size={'1400-800'}
-                className='h-96 lg:h-[30rem] relative block m-2'
+                className='h-96 lg:h-120 relative block m-2'
                 style={{
                   width: `${aspectRatio * 20}rem`,
                   flexGrow: aspectRatio * 200,

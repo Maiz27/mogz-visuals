@@ -9,7 +9,7 @@ import { useScroll } from '@/lib/context/scrollContext';
 type Props = {
   CTA: string;
   scrollId?: string;
-  btnStyle?: 'outline' | 'ghost';
+  btnStyle?: 'outline-solid' | 'ghost';
   closeBtn: React.RefObject<HTMLButtonElement>;
   children: ReactNode;
   icon?: ReactNode;
@@ -21,7 +21,7 @@ const Modal = ({
   scrollId,
   icon,
   CTA,
-  btnStyle = 'outline',
+  btnStyle = 'outline-solid',
   classNames,
   closeBtn,
   children,
@@ -99,7 +99,7 @@ const Modal = ({
         <div
           ref={backdropRef}
           onClick={closeModal}
-          className='w-full h-full bg-slate-900/20 backdrop-blur p-8 absolute inset-0 z-50 grid place-items-center cursor-pointer'
+          className='w-full h-full bg-slate-900/20 backdrop-blur-sm p-8 absolute inset-0 z-50 grid place-items-center cursor-pointer'
         >
           <div
             ref={modalRef}
