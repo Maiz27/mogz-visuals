@@ -55,7 +55,7 @@ export default Footer;
 
 export const ByNilotik = () => (
   <span>
-    Website by
+    Powered by
     <a
       href='https://www.nilotik.tech'
       target='_blank'
