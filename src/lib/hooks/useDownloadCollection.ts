@@ -3,7 +3,12 @@ import { saveAs } from 'file-saver';
 import * as Comlink from 'comlink';
 import { useToast } from '../context/ToastContext';
 import { fetchSanityData } from '../sanity/client';
-import { getCollectionImageCount, getCollectionGallerySegment } from '../sanity/queries';
+import {
+  getPublicCollectionImageCount,
+  getPublicCollectionGallerySegment,
+  getPrivateCollectionImageCount,
+  getPrivateCollectionGallerySegment,
+} from '../sanity/queries';
 import { COLLECTION } from '../types';
 
 const CHUNK_SIZE = 100;
@@ -11,9 +16,14 @@ const CHUNK_SIZE = 100;
 type Segment = {
   start: number;
   end: number;
-}
+};
 
-const useDownloadCollection = ({ title, uniqueId, slug, isPrivate }: COLLECTION) => {
+const useDownloadCollection = ({
+  title,
+  uniqueId,
+  slug,
+  isPrivate,
+}: COLLECTION) => {
   const [loading, setLoading] = useState(false);
   const [segments, setSegments] = useState<Segment[]>([]);
   const { show } = useToast();
@@ -22,23 +32,22 @@ const useDownloadCollection = ({ title, uniqueId, slug, isPrivate }: COLLECTION)
 
   useEffect(() => {
     const getSegments = async () => {
-      // Ensure uniqueId or slug is present for the query
       if ((isPrivate && !uniqueId) || (!isPrivate && !slug?.current)) {
-        console.error("Missing uniqueId for private collection or slug for public collection.");
         setSegments([]);
         return;
       }
 
-      const imageCount: number = await fetchSanityData(
-        getCollectionImageCount,
-        { id: isPrivate ? uniqueId : null, slug: !isPrivate ? slug.current : null }
-      );
+      const countQuery = isPrivate
+        ? getPrivateCollectionImageCount
+        : getPublicCollectionImageCount;
+      const params = isPrivate ? { id: uniqueId } : { slug: slug?.current };
 
-      const numChunks = Math.ceil(imageCount / CHUNK_SIZE);
+      const imageCount: number = await fetchSanityData(countQuery, params);
+
+      const numChunks = imageCount ? Math.ceil(imageCount / CHUNK_SIZE) : 0;
       const newSegments = Array.from({ length: numChunks }, (_, i) => {
         const start = i * CHUNK_SIZE;
         let end = start + CHUNK_SIZE;
-        // Ensure the last segment's end doesn't exceed the total image count
         if (end > imageCount) {
           end = imageCount;
         }
@@ -85,22 +94,22 @@ const useDownloadCollection = ({ title, uniqueId, slug, isPrivate }: COLLECTION)
   };
 
   const downloadChunk = async (segmentIndex: number) => {
-    // Note: Removed checkRateLimit here to allow downloadAllChunks to manage global rate limit
-    
     setLoading(true);
     try {
       const segment = segments[segmentIndex];
-      const images: string[] = await fetchSanityData(
-        getCollectionGallerySegment,
-        { 
-          id: isPrivate ? uniqueId : null, 
-          slug: !isPrivate ? slug.current : null,
-          start: segment.start,
-          end: segment.end
-        }
-      );
 
-      const worker = new Worker(new URL('../workers/zip.worker.ts', import.meta.url));
+      const segmentQuery = isPrivate
+        ? getPrivateCollectionGallerySegment
+        : getPublicCollectionGallerySegment;
+      const params = isPrivate
+        ? { id: uniqueId, start: segment.start, end: segment.end }
+        : { slug: slug.current, start: segment.start, end: segment.end };
+
+      const images: string[] = await fetchSanityData(segmentQuery, params);
+
+      const worker = new Worker(
+        new URL('../workers/zip.worker.ts', import.meta.url)
+      );
       const workerApi = Comlink.wrap<any>(worker);
 
       const content = await workerApi.zipImages(
@@ -109,10 +118,7 @@ const useDownloadCollection = ({ title, uniqueId, slug, isPrivate }: COLLECTION)
       );
 
       saveAs(content, `${folderName}-part-${segmentIndex + 1}.zip`);
-      showToast(
-        `Part ${segmentIndex + 1} downloaded successfully!`,
-        'success'
-      );
+      showToast(`Part ${segmentIndex + 1} downloaded successfully!`, 'success');
     } catch (err: any) {
       console.error(err);
       showToast(
@@ -127,27 +133,28 @@ const useDownloadCollection = ({ title, uniqueId, slug, isPrivate }: COLLECTION)
   };
 
   const downloadAllChunks = async (email: string) => {
-    if (!(await checkRateLimit('download-all'))) return; // Apply rate limit to the overall download
+    if (!(await checkRateLimit('download-all'))) return;
     await addEmailToAudience(email);
 
-    setLoading(true); // Set loading for the entire process
+    setLoading(true);
     try {
       for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
-        const images: string[] = await fetchSanityData(
-          getCollectionGallerySegment,
-          { 
-            id: isPrivate ? uniqueId : null, 
-            slug: !isPrivate ? slug.current : null,
-            start: segment.start,
-            end: segment.end
-          }
-        );
 
-        const worker = new Worker(new URL('../workers/zip.worker.ts', import.meta.url));
+        const segmentQuery = isPrivate
+          ? getPrivateCollectionGallerySegment
+          : getPublicCollectionGallerySegment;
+        const params = isPrivate
+          ? { id: uniqueId, start: segment.start, end: segment.end }
+          : { slug: slug.current, start: segment.start, end: segment.end };
+
+        const images: string[] = await fetchSanityData(segmentQuery, params);
+
+        const worker = new Worker(
+          new URL('../workers/zip.worker.ts', import.meta.url)
+        );
         const workerApi = Comlink.wrap<any>(worker);
 
-        // This will create a zip for each chunk
         const content = await workerApi.zipImages(
           images,
           `${folderName}-part-${i + 1}`

@@ -1,8 +1,11 @@
-// src/lib/workers/zip.worker.ts
 import * as Comlink from 'comlink';
 import JSZip from 'jszip';
 
-const zipImages = async (imageUrls: string[], collectionTitle: string, onProgress: (progress: number) => void) => {
+const zipImages = async (
+  imageUrls: string[],
+  collectionTitle: string,
+  onProgress: (progress: number) => void
+) => {
   const zip = new JSZip();
   const folder = zip.folder(collectionTitle);
 

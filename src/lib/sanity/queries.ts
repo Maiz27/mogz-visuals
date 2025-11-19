@@ -50,11 +50,15 @@ export const getCollectionsByName = `*[_type == "collection" && title match $nam
   "mainImage": mainImage.asset->url,
 }`;
 
-export const getCollectionImageCount = `*[_type == "collection" && (uniqueId == $id || slug.current == $slug)]{
-  "count": count(gallery)
-}[0].count`;
+export const getPublicCollectionImageCount = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{"count": count(gallery)}[0].count`;
 
-export const getCollectionGallerySegment = `*[_type == "collection" && (uniqueId == $id || slug.current == $slug)]{
+export const getPublicCollectionGallerySegment = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
+  "gallery": gallery[$start...$end].asset->url
+}[0].gallery`;
+
+export const getPrivateCollectionImageCount = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{"count": count(gallery)}[0].count`;
+
+export const getPrivateCollectionGallerySegment = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
   "gallery": gallery[$start...$end].asset->url
 }[0].gallery`;
 

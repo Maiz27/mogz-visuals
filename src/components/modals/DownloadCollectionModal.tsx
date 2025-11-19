@@ -8,6 +8,7 @@ import useDownloadCollection from '@/lib/hooks/useDownloadCollection';
 import { HiArrowDownTray } from 'react-icons/hi2';
 import { COLLECTION } from '@/lib/types';
 import { FORMS } from '@/lib/Constants';
+import RadioGroup from '../ui/form/RadioGroup';
 
 type Props = {
   collection: COLLECTION;
@@ -16,8 +17,13 @@ type Props = {
 const DownloadCollectionModal = ({ collection }: Props) => {
   const closeBtn = useRef<HTMLButtonElement>(null);
 
-  const { title, gallery } = collection;
-  const { loading, downloadImages } = useDownloadCollection(collection);
+  const { loading, segments, downloadChunk, downloadAllChunks } =
+    useDownloadCollection(collection);
+
+  const segmentOptions = segments.map((_segment, i) => ({
+    label: `Part ${i + 1}`,
+    value: i.toString(),
+  }));
 
   const { initialValue, fields, rules } = FORMS.download;
   const { state, errors, handleChange, reset } = useFormState(
@@ -25,10 +31,22 @@ const DownloadCollectionModal = ({ collection }: Props) => {
     rules
   );
 
-  const handleDownload = async (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    await downloadImages(state.email.toLowerCase());
+  const _fields = fields.map((field: any) =>
+    field.name === 'segment' ? { ...field, options: segmentOptions } : field
+  );
 
+  const handleDownloadSegment = async (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const segmentIndex = parseInt(state.segment, 10);
+    if (!isNaN(segmentIndex)) {
+      await downloadChunk(segmentIndex);
+    }
+    reset();
+    closeBtn.current?.click();
+  };
+
+  const handleDownloadAll = async () => {
+    await downloadAllChunks(state.email.toLowerCase());
     reset();
     closeBtn.current?.click();
   };
@@ -55,8 +73,20 @@ const DownloadCollectionModal = ({ collection }: Props) => {
         you with high-quality visual content.
       </span>
 
-      <form onSubmit={handleDownload}>
-        {fields.map((field, i) => {
+      <form onSubmit={handleDownloadSegment}>
+        {_fields.map((field) => {
+          if (field.comp === 'radio') {
+            if (segments.length <= 1) return null; // Only show radio if more than one chunk
+            return (
+              <RadioGroup
+                key={field.name}
+                state={state}
+                errors={errors}
+                onChange={handleChange}
+                {...field}
+              />
+            );
+          }
           return (
             <Input
               key={field.name}
@@ -69,15 +99,17 @@ const DownloadCollectionModal = ({ collection }: Props) => {
         })}
 
         <div className='pt-8 flex justify-end gap-2 md:gap-4'>
-          <CTAButton type='submit' loading={loading}>
-            Download
-          </CTAButton>
-          <CTAButton
-            loading={loading}
-            style='ghost'
-            onClick={() => handleCancel()}
-          >
-            Cancel
+          {segments.length > 1 && (
+            <CTAButton
+              type='button'
+              loading={loading}
+              onClick={handleDownloadAll}
+            >
+              Download All
+            </CTAButton>
+          )}
+          <CTAButton type='submit' loading={loading} style='ghost'>
+            {segments.length > 1 ? 'Download Segment' : 'Download'}
           </CTAButton>
         </div>
       </form>

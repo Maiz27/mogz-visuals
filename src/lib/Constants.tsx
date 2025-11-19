@@ -217,7 +217,7 @@ export const FORMS = {
     },
   },
   download: {
-    initialValue: { email: '' },
+    initialValue: { email: '', segment: '0' },
     fields: [
       {
         id: 'download-email',
@@ -226,6 +226,13 @@ export const FORMS = {
         label: 'Your Email Address',
         placeholder: 'john@example.com',
         required: true,
+      },
+      {
+        comp: 'radio',
+        id: 'download-segment',
+        name: 'segment',
+        label: 'Select a segment to download',
+        options: [],
       },
     ],
     rules: {
