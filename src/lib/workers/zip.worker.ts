@@ -4,7 +4,7 @@ import JSZip from 'jszip';
 const zipImages = async (
   imageUrls: string[],
   collectionTitle: string,
-  onProgress: (progress: number) => void
+  onProgress?: (progress: number) => void
 ) => {
   const zip = new JSZip();
   const folder = zip.folder(collectionTitle);
@@ -26,7 +26,9 @@ const zipImages = async (
       folder.file(filename, blob);
 
       imagesProcessed++;
-      onProgress((imagesProcessed / imageUrls.length) * 100);
+      if (onProgress) {
+        onProgress((imagesProcessed / imageUrls.length) * 100);
+      }
     } catch (error) {
       console.error(`Error processing image ${imageUrl}:`, error);
       // Continue with other images even if one fails
