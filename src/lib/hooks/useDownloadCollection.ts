@@ -9,6 +9,7 @@ import {
   getPrivateCollectionImageCount,
   getPrivateCollectionGallerySegment,
 } from '../sanity/queries';
+import useProgress from './useProgress';
 import { COLLECTION } from '../types';
 
 const CHUNK_SIZE = 100;
@@ -27,6 +28,8 @@ const useDownloadCollection = ({
   const [loading, setLoading] = useState(false);
   const [segments, setSegments] = useState<Segment[]>([]);
   const { show } = useToast();
+  const { progress, current, total, start, advance, update, reset } =
+    useProgress();
 
   const folderName = `[MOGZ] ${title}`;
 
@@ -93,31 +96,39 @@ const useDownloadCollection = ({
     }
   };
 
+  const _zipAndSave = async (images: string[], segmentIndex: number) => {
+    const worker = new Worker(
+      new URL('../workers/zip.worker.ts', import.meta.url)
+    );
+    const workerApi = Comlink.wrap<any>(worker);
+
+    const onProgress = (p: number) => {
+      update(p);
+    };
+
+    const content = await workerApi.zipImages(
+      images,
+      `${folderName}-part-${segmentIndex + 1}`,
+      Comlink.proxy(onProgress)
+    );
+
+    saveAs(content, `${folderName}-part-${segmentIndex + 1}.zip`);
+  };
+
   const downloadChunk = async (segmentIndex: number) => {
     setLoading(true);
+    start(1);
     try {
       const segment = segments[segmentIndex];
-
       const segmentQuery = isPrivate
         ? getPrivateCollectionGallerySegment
         : getPublicCollectionGallerySegment;
       const params = isPrivate
         ? { id: uniqueId, start: segment.start, end: segment.end }
         : { slug: slug.current, start: segment.start, end: segment.end };
-
       const images: string[] = await fetchSanityData(segmentQuery, params);
 
-      const worker = new Worker(
-        new URL('../workers/zip.worker.ts', import.meta.url)
-      );
-      const workerApi = Comlink.wrap<any>(worker);
-
-      const content = await workerApi.zipImages(
-        images,
-        `${folderName}-part-${segmentIndex + 1}`
-      );
-
-      saveAs(content, `${folderName}-part-${segmentIndex + 1}.zip`);
+      await _zipAndSave(images, segmentIndex);
       showToast(`Part ${segmentIndex + 1} downloaded successfully!`, 'success');
     } catch (err: any) {
       console.error(err);
@@ -129,6 +140,7 @@ const useDownloadCollection = ({
       );
     } finally {
       setLoading(false);
+      reset();
     }
   };
 
@@ -137,30 +149,21 @@ const useDownloadCollection = ({
     await addEmailToAudience(email);
 
     setLoading(true);
+    start(segments.length);
     try {
       for (let i = 0; i < segments.length; i++) {
+        if (i > 0) {
+          advance();
+        }
         const segment = segments[i];
-
         const segmentQuery = isPrivate
           ? getPrivateCollectionGallerySegment
           : getPublicCollectionGallerySegment;
         const params = isPrivate
           ? { id: uniqueId, start: segment.start, end: segment.end }
           : { slug: slug.current, start: segment.start, end: segment.end };
-
         const images: string[] = await fetchSanityData(segmentQuery, params);
-
-        const worker = new Worker(
-          new URL('../workers/zip.worker.ts', import.meta.url)
-        );
-        const workerApi = Comlink.wrap<any>(worker);
-
-        const content = await workerApi.zipImages(
-          images,
-          `${folderName}-part-${i + 1}`
-        );
-        saveAs(content, `${folderName}-part-${i + 1}.zip`);
-        showToast(`Part ${i + 1} downloaded successfully!`, 'success');
+        await _zipAndSave(images, i);
       }
       showToast('All parts downloaded successfully!', 'success');
     } catch (err: any) {
@@ -171,12 +174,16 @@ const useDownloadCollection = ({
       );
     } finally {
       setLoading(false);
+      reset();
     }
   };
 
   return {
     loading,
     segments,
+    progress,
+    current,
+    total,
     downloadChunk,
     downloadAllChunks,
   };
