@@ -5,9 +5,11 @@ import LightGallery from 'lightgallery/react';
 import EmptyState from '../ui/EmptyState';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { useAutoDeleteCookie } from '@/lib/hooks/useAutoDeleteCookie';
+import { useInfiniteScroll } from '@/lib/hooks/useInfiniteScroll';
 import { EMPTY_STATE } from '@/lib/Constants';
 import { getRandomInt } from '@/lib/utils';
 import { COLLECTION } from '@/lib/types';
+import { Skeleton } from '@/components/ui/Skeleton';
 
 // import styles
 import 'lightgallery/css/lightgallery.css';
@@ -27,23 +29,24 @@ const LICENSE_KEY =
   process.env.NEXT_PUBLIC_LG_LICENSE_KEY || '0000-0000-000-0000';
 
 const Gallery = ({ collection }: Props) => {
-  const { title, gallery, uniqueId, isPrivate } = collection;
+  const { title, uniqueId, isPrivate, imageCount } = collection;
+  const { images, isLoading, hasMore } = useInfiniteScroll(collection);
 
   useAutoDeleteCookie(uniqueId ?? '', isPrivate);
 
-  const isEmpty = !collection.gallery || collection.gallery?.length <= 0;
+  const isEmpty = !images || images?.length <= 0;
   const { collection: empty } = EMPTY_STATE;
 
   const [aspectRatios, setAspectRatios] = useState<number[]>([]);
 
   useEffect(() => {
-    const ratios = gallery.map(() => {
+    const newRatios = images.slice(aspectRatios.length).map(() => {
       const randomWidth = getRandomInt(400, 600);
       const randomHeight = getRandomInt(400, 600);
       return randomWidth / randomHeight;
     });
-    setAspectRatios(ratios);
-  }, [gallery]);
+    setAspectRatios((prevRatios) => [...prevRatios, ...newRatios]);
+  }, [images]);
 
   return (
     <LocomotiveScrollSection
@@ -52,7 +55,7 @@ const Gallery = ({ collection }: Props) => {
     >
       <div className='flex justify-between items-center m-2 text-lg lg:text-xl'>
         <span>{title}</span>
-        <span className='text-primary'>{gallery?.length ?? 0} Items</span>
+        <span className='text-primary'>{imageCount ?? 0} Items</span>
       </div>
 
       {isEmpty ? (
@@ -60,39 +63,60 @@ const Gallery = ({ collection }: Props) => {
           <EmptyState heading={empty.heading} paragraph={empty.paragraph} />
         </div>
       ) : (
-        <LightGallery
-          speed={500}
-          download={false}
-          elementClassNames='flex flex-wrap relative'
-          licenseKey={LICENSE_KEY}
-          plugins={[lgThumbnail, lgZoom]}
-        >
-          {gallery.map((image, idx) => {
-            const aspectRatio = aspectRatios[idx] || 1;
-            return (
-              <a
-                key={image}
-                href={image}
-                data-lg-size={'1400-800'}
-                className='h-96 lg:h-120 relative block m-2'
-                style={{
-                  width: `${aspectRatio * 20}rem`,
-                  flexGrow: aspectRatio * 200,
-                }}
-              >
-                <Image
-                  width={500}
-                  height={500}
-                  src={image}
-                  loading='lazy'
-                  alt={`${title} (${++idx} of ${gallery.length})`}
-                  title={`[MOGZ]-${title}-(${++idx}/${gallery.length})`}
-                  className='h-full w-full object-cover'
-                />
-              </a>
-            );
-          })}
-        </LightGallery>
+        <>
+          <LightGallery
+            speed={500}
+            download={false}
+            elementClassNames='flex flex-wrap relative'
+            licenseKey={LICENSE_KEY}
+            plugins={[lgThumbnail, lgZoom]}
+          >
+            {images.map((image, idx) => {
+              const aspectRatio = aspectRatios[idx] || 1;
+              const isLastItem = idx === images.length - 1;
+
+              const scrollCallAttributes =
+                isLastItem && hasMore
+                  ? {
+                      'data-scroll': true,
+                      'data-scroll-call': 'fetchMore',
+                      'data-scroll-repeat': true,
+                    }
+                  : {};
+
+              return (
+                <a
+                  key={`${image}-${idx}`}
+                  href={image}
+                  data-lg-size={'1400-800'}
+                  className='h-96 lg:h-120 relative block m-2'
+                  style={{
+                    width: `${aspectRatio * 20}rem`,
+                    flexGrow: aspectRatio * 200,
+                  }}
+                  {...scrollCallAttributes}
+                >
+                  <Image
+                    width={500}
+                    height={500}
+                    src={image}
+                    loading='lazy'
+                    alt={`${title} (${idx + 1} of ${imageCount})`}
+                    title={`[MOGZ]-${title}-(${idx + 1}/${imageCount})`}
+                    className='h-full w-full object-cover'
+                  />
+                </a>
+              );
+            })}
+          </LightGallery>
+          {isLoading && (
+            <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-4'>
+              {Array.from({ length: 4 }).map((_, i) => (
+                <Skeleton className='h-[25rem]' key={i} />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </LocomotiveScrollSection>
   );

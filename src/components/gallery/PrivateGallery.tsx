@@ -2,7 +2,7 @@ import React from 'react';
 import CryptoJS from 'crypto-js';
 import { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 import Gallery from './Gallery';
-import { getPrivateCollectionGallery } from '@/lib/sanity/queries';
+import { getPrivateCollectionInitialGallery } from '@/lib/sanity/queries';
 import { fetchSanityData } from '@/lib/sanity/client';
 import { ENCRYPTION_KEY } from '@/lib/Constants';
 import { COLLECTION } from '@/lib/types';
@@ -33,11 +33,14 @@ const PrivateGallery = async ({ collection, cookie }: Props) => {
     return <></>;
   }
 
-  const gallery: string[] = await fetchSanityData(getPrivateCollectionGallery, {
-    id: collection.uniqueId,
-  });
+  const initialGallery: { imageCount: number; gallery: string[] } =
+    await fetchSanityData(getPrivateCollectionInitialGallery, {
+      id: collection.uniqueId,
+    });
 
-  return <Gallery collection={{ ...collection, gallery }} />;
+  return (
+    <Gallery collection={{ ...collection, ...initialGallery }} />
+  );
 };
 
 export default PrivateGallery;

@@ -78,3 +78,32 @@ export const getAllCollectionsForSitemap = `*[_type == "collection" && (isPrivat
 }`;
 
 export const getCollectionsCount = `count(*[_type == "collection" && (isPrivate == false || isPrivate == null)])`;
+
+export const getPublicCollectionWithInitialImages = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
+  isPrivate,
+  uniqueId,
+  title,
+  slug,
+  "mainImage": mainImage.asset->url,
+  service,
+  date,
+  "imageCount": count(gallery),
+  "gallery": gallery[0...20].asset->url,
+}[0]`;
+
+export const getPrivateCollectionWithInitialImages = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
+  isPrivate,
+  title,
+  uniqueId,
+  "mainImage": mainImage.asset->url,
+  service,
+  date,
+  password,
+  "imageCount": count(gallery),
+  "gallery": gallery[0...20].asset->url,
+}[0]`;
+
+export const getPrivateCollectionInitialGallery = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
+  "imageCount": count(gallery),
+  "gallery": gallery[0...20].asset->url,
+}[0]`;

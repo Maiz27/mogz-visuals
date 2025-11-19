@@ -2,7 +2,10 @@ import { notFound } from 'next/navigation';
 import CollectionHeader from '@/components/gallery/CollectionHeader';
 import Gallery from '@/components/gallery/Gallery';
 import { fetchSanityData } from '@/lib/sanity/client';
-import { getCollectionBySlug, getCollectionForSEO } from '@/lib/sanity/queries';
+import {
+  getPublicCollectionWithInitialImages,
+  getCollectionForSEO,
+} from '@/lib/sanity/queries';
 import { COLLECTION } from '@/lib/types';
 import { BASEURL } from '@/lib/Constants';
 
@@ -11,13 +14,14 @@ export const revalidate = 60;
 const page = async (props: { params: Promise<{ slug: string }> }) => {
   const params = await props.params;
 
-  const {
-    slug
-  } = params;
+  const { slug } = params;
 
-  const collection: COLLECTION = await fetchSanityData(getCollectionBySlug, {
-    slug,
-  });
+  const collection: COLLECTION = await fetchSanityData(
+    getPublicCollectionWithInitialImages,
+    {
+      slug,
+    }
+  );
 
   if (!collection) {
     return notFound();

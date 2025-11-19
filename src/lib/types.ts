@@ -21,6 +21,7 @@ export type COLLECTION = {
   service: SERVICE;
   mainImage: string;
   gallery: string[];
+  imageCount: number;
 };
 
 export type COLLECTION_CREDENTIALS = {
