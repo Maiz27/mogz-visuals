@@ -1,4 +1,5 @@
 'use client';
+
 import Image from 'next/image';
 import LightGallery from 'lightgallery/react';
 import EmptyState from '../ui/EmptyState';
@@ -16,6 +17,7 @@ import 'lightgallery/css/lg-thumbnail.css';
 // import plugins
 import lgThumbnail from 'lightgallery/plugins/thumbnail';
 import lgZoom from 'lightgallery/plugins/zoom';
+import { useState, useEffect } from 'react';
 
 type Props = {
   collection: COLLECTION;
@@ -31,6 +33,17 @@ const Gallery = ({ collection }: Props) => {
 
   const isEmpty = !collection.gallery || collection.gallery?.length <= 0;
   const { collection: empty } = EMPTY_STATE;
+
+  const [aspectRatios, setAspectRatios] = useState<number[]>([]);
+
+  useEffect(() => {
+    const ratios = gallery.map(() => {
+      const randomWidth = getRandomInt(400, 600);
+      const randomHeight = getRandomInt(400, 600);
+      return randomWidth / randomHeight;
+    });
+    setAspectRatios(ratios);
+  }, [gallery]);
 
   return (
     <LocomotiveScrollSection
@@ -55,9 +68,7 @@ const Gallery = ({ collection }: Props) => {
           plugins={[lgThumbnail, lgZoom]}
         >
           {gallery.map((image, idx) => {
-            const randomWidth = getRandomInt(400, 600);
-            const randomHeight = getRandomInt(400, 600);
-            const aspectRatio = randomWidth / randomHeight;
+            const aspectRatio = aspectRatios[idx] || 1;
             return (
               <a
                 key={image}
