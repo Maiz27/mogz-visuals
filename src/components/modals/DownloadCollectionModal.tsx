@@ -10,6 +10,7 @@ import { HiArrowDownTray } from 'react-icons/hi2';
 import { COLLECTION } from '@/lib/types';
 import { FORMS } from '@/lib/Constants';
 import RadioGroup from '../ui/form/RadioGroup';
+import Progress from '@/components/ui/Progress';
 
 type Props = {
   collection: COLLECTION;
@@ -18,8 +19,15 @@ type Props = {
 const DownloadCollectionModal = ({ collection }: Props) => {
   const closeBtn = useRef<HTMLButtonElement>(null);
 
-  const { loading, segments, downloadChunk, downloadAllChunks } =
-    useDownloadCollection(collection);
+  const {
+    loading,
+    segments,
+    downloadChunk,
+    downloadAllChunks,
+    progress,
+    current,
+    total,
+  } = useDownloadCollection(collection);
 
   const segmentOptions = segments.map((_segment, i) => ({
     label: `Part ${i + 1}`,
@@ -58,6 +66,9 @@ const DownloadCollectionModal = ({ collection }: Props) => {
   };
 
   const hasSegments = segments.length > 1;
+
+  const overallProgress =
+    total <= 1 ? progress : ((current - 1) / total) * 100 + progress / total;
 
   return (
     <Modal
@@ -101,21 +112,34 @@ const DownloadCollectionModal = ({ collection }: Props) => {
           );
         })}
 
-        <div className='pt-8 flex justify-end gap-2 md:gap-4'>
-          <CTAButton type='submit' loading={loading}>
-            {hasSegments ? 'Download Part' : 'Download'}
-          </CTAButton>
-
-          {hasSegments && (
-            <CTAButton
-              type='button'
-              loading={loading}
-              style={hasSegments ? 'ghost' : undefined}
-              onClick={handleDownloadAll}
-            >
-              Download All
-            </CTAButton>
+        <div className='flex flex-col gap-2 pt-8'>
+          {loading && (
+            <div className='flex flex-col items-center justify-center gap-y-2'>
+              <Progress value={overallProgress} className='w-full' />
+              <span className='text-sm text-gray-500'>
+                {current > 0 && total > 1
+                  ? `Downloading part ${current} of ${total}...`
+                  : `Downloading...`}
+              </span>
+            </div>
           )}
+
+          <div className='flex justify-end gap-2 md:gap-4'>
+            <CTAButton type='submit' loading={loading}>
+              {hasSegments ? 'Download Part' : 'Download'}
+            </CTAButton>
+
+            {hasSegments && (
+              <CTAButton
+                type='button'
+                loading={loading}
+                style={hasSegments ? 'ghost' : undefined}
+                onClick={handleDownloadAll}
+              >
+                Download All
+              </CTAButton>
+            )}
+          </div>
         </div>
       </form>
     </Modal>

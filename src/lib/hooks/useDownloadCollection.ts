@@ -152,9 +152,6 @@ const useDownloadCollection = ({
     start(segments.length);
     try {
       for (let i = 0; i < segments.length; i++) {
-        if (i > 0) {
-          advance();
-        }
         const segment = segments[i];
         const segmentQuery = isPrivate
           ? getPrivateCollectionGallerySegment
@@ -164,6 +161,9 @@ const useDownloadCollection = ({
           : { slug: slug.current, start: segment.start, end: segment.end };
         const images: string[] = await fetchSanityData(segmentQuery, params);
         await _zipAndSave(images, i);
+        if (i < segments.length - 1) { // Advance only if there are more segments to download
+          advance();
+        }
       }
       showToast('All parts downloaded successfully!', 'success');
     } catch (err: any) {
