@@ -1,18 +1,54 @@
-import JSZip from 'jszip';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { saveAs } from 'file-saver';
+import * as Comlink from 'comlink';
 import { useToast } from '../context/ToastContext';
 import { fetchSanityData } from '../sanity/client';
-import { getPrivateCollectionGallery } from '../sanity/queries';
+import { getCollectionImageCount, getCollectionGallerySegment } from '../sanity/queries';
 import { COLLECTION } from '../types';
 
-const useDownloadCollection = ({ title, uniqueId, gallery }: COLLECTION) => {
+const CHUNK_SIZE = 100;
+
+type Segment = {
+  start: number;
+  end: number;
+}
+
+const useDownloadCollection = ({ title, uniqueId, slug, isPrivate }: COLLECTION) => {
   const [loading, setLoading] = useState(false);
+  const [segments, setSegments] = useState<Segment[]>([]);
   const { show } = useToast();
 
   const folderName = `[MOGZ] ${title}`;
-  const zip = new JSZip();
-  const folder = zip.folder(folderName);
+
+  useEffect(() => {
+    const getSegments = async () => {
+      // Ensure uniqueId or slug is present for the query
+      if ((isPrivate && !uniqueId) || (!isPrivate && !slug?.current)) {
+        console.error("Missing uniqueId for private collection or slug for public collection.");
+        setSegments([]);
+        return;
+      }
+
+      const imageCount: number = await fetchSanityData(
+        getCollectionImageCount,
+        { id: isPrivate ? uniqueId : null, slug: !isPrivate ? slug.current : null }
+      );
+
+      const numChunks = Math.ceil(imageCount / CHUNK_SIZE);
+      const newSegments = Array.from({ length: numChunks }, (_, i) => {
+        const start = i * CHUNK_SIZE;
+        let end = start + CHUNK_SIZE;
+        // Ensure the last segment's end doesn't exceed the total image count
+        if (end > imageCount) {
+          end = imageCount;
+        }
+        return { start, end };
+      });
+      setSegments(newSegments);
+    };
+
+    getSegments();
+  }, [uniqueId, slug, isPrivate]);
 
   const showToast = (
     message: string,
@@ -28,7 +64,6 @@ const useDownloadCollection = ({ title, uniqueId, gallery }: COLLECTION) => {
     });
     if (!response.ok) {
       const { message } = await response.json();
-      console.log('Rate limit status:', response.status, message);
       showToast('Rate limit exceeded, please try again later.', 'error', false);
       return false;
     }
@@ -37,69 +72,94 @@ const useDownloadCollection = ({ title, uniqueId, gallery }: COLLECTION) => {
 
   const addEmailToAudience = async (email: string) => {
     try {
-      const response = await fetch('/api/contact/audience', {
+      await fetch('/api/contact/audience', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email }),
       });
-      console.log(response);
     } catch (error) {
       console.log(error);
     }
   };
 
-  const fetchImages = async () => {
-    const gallery: string[] = await fetchSanityData(
-      getPrivateCollectionGallery,
-      { id: uniqueId }
-    );
-    return gallery;
-  };
-
-  const downloadImages = async (email: string) => {
+  const downloadChunk = async (segmentIndex: number) => {
+    // Note: Removed checkRateLimit here to allow downloadAllChunks to manage global rate limit
+    
     setLoading(true);
-    let images = gallery;
     try {
-      if (!(await checkRateLimit('download'))) return;
-
-      await addEmailToAudience(email);
-
-      if (!images) {
-        images = await fetchImages();
-      }
-
-      const imageFetchPromises = images.map(async (image, index) => {
-        try {
-          const response = await fetch(image);
-          if (!response.ok) {
-            throw new Error(
-              `Failed to fetch image at index ${index}, status: ${response.status}`
-            );
-          }
-          const blob = await response.blob();
-          if (!folder) {
-            throw new Error('folder is undefined');
-          }
-          folder.file(generateImageName(title, index), blob, { binary: true });
-        } catch (err) {
-          console.error(`Error fetching image at index ${index}:`, err);
-          throw err;
+      const segment = segments[segmentIndex];
+      const images: string[] = await fetchSanityData(
+        getCollectionGallerySegment,
+        { 
+          id: isPrivate ? uniqueId : null, 
+          slug: !isPrivate ? slug.current : null,
+          start: segment.start,
+          end: segment.end
         }
-      });
+      );
 
-      await Promise.all(imageFetchPromises);
+      const worker = new Worker(new URL('../workers/zip.worker.ts', import.meta.url));
+      const workerApi = Comlink.wrap<any>(worker);
 
-      console.log('Adding images done, proceeding to ZIP...');
-      const content = await zip.generateAsync({ type: 'blob' });
+      const content = await workerApi.zipImages(
+        images,
+        `${folderName}-part-${segmentIndex + 1}`
+      );
 
-      saveAs(content, `${folderName}.zip`);
-      showToast('Collection downloaded successfully!', 'success');
+      saveAs(content, `${folderName}-part-${segmentIndex + 1}.zip`);
+      showToast(
+        `Part ${segmentIndex + 1} downloaded successfully!`,
+        'success'
+      );
     } catch (err: any) {
       console.error(err);
       showToast(
-        `An error occurred while downloading the collection! Try again later.`,
+        `An error occurred while downloading part ${
+          segmentIndex + 1
+        }! Try again later.`,
+        'error'
+      );
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const downloadAllChunks = async (email: string) => {
+    if (!(await checkRateLimit('download-all'))) return; // Apply rate limit to the overall download
+    await addEmailToAudience(email);
+
+    setLoading(true); // Set loading for the entire process
+    try {
+      for (let i = 0; i < segments.length; i++) {
+        const segment = segments[i];
+        const images: string[] = await fetchSanityData(
+          getCollectionGallerySegment,
+          { 
+            id: isPrivate ? uniqueId : null, 
+            slug: !isPrivate ? slug.current : null,
+            start: segment.start,
+            end: segment.end
+          }
+        );
+
+        const worker = new Worker(new URL('../workers/zip.worker.ts', import.meta.url));
+        const workerApi = Comlink.wrap<any>(worker);
+
+        // This will create a zip for each chunk
+        const content = await workerApi.zipImages(
+          images,
+          `${folderName}-part-${i + 1}`
+        );
+        saveAs(content, `${folderName}-part-${i + 1}.zip`);
+        showToast(`Part ${i + 1} downloaded successfully!`, 'success');
+      }
+      showToast('All parts downloaded successfully!', 'success');
+    } catch (err: any) {
+      console.error(err);
+      showToast(
+        `An error occurred during the full collection download! Try again later.`,
         'error'
       );
     } finally {
@@ -109,13 +169,10 @@ const useDownloadCollection = ({ title, uniqueId, gallery }: COLLECTION) => {
 
   return {
     loading,
-    downloadImages,
+    segments,
+    downloadChunk,
+    downloadAllChunks,
   };
 };
 
 export default useDownloadCollection;
-
-const generateImageName = (title: string, index: number): string => {
-  const formattedTitle = title.replace(/\s/g, '-');
-  return `[MOGZ]-${formattedTitle}-${index + 1}.jpg`;
-};
