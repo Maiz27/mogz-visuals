@@ -8,8 +8,11 @@ if (!isDevelopment) {
   redisClient = new Redis(process.env.REDIS_URL!);
 }
 
-const limit = parseInt(process.env.RATE_LIMIT!) || 10;
-const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW!) || 60 * 1000; // 1 minute
+const limitFull = parseInt(process.env.RATE_LIMIT!) || 5;
+const limitPartialPerCollection =
+  parseInt(process.env.RATE_LIMIT_PARTIAL_PER_COLLECTION!) || 15;
+const windowMs =
+  parseInt(process.env.RATE_LIMIT_WINDOW!) || 60 * 60 * 1000 * 2; // 2 hours
 
 export async function GET(req: NextRequest) {
   if (req.method !== 'GET') {
@@ -28,7 +31,24 @@ export async function GET(req: NextRequest) {
 
   try {
     const id = req.nextUrl.searchParams.get('id');
-    const { message, status } = await rateLimit(req, id!);
+    const collectionId = req.nextUrl.searchParams.get('collectionId');
+    let limit: number;
+    let keyParts: (string | null)[];
+
+    if (id === 'download-all') {
+      limit = limitFull;
+      keyParts = [id];
+    } else if (id === 'download-part' && collectionId) {
+      limit = limitPartialPerCollection;
+      keyParts = [id, collectionId];
+    } else {
+      return NextResponse.json(
+        { message: 'Invalid request parameters', status: 400 },
+        { status: 400 }
+      );
+    }
+
+    const { message, status } = await rateLimit(req, keyParts, limit);
     return NextResponse.json({ message, status }, { status });
   } catch (error) {
     console.error('Rate limiting error:', error);
@@ -39,9 +59,13 @@ export async function GET(req: NextRequest) {
   }
 }
 
-const rateLimit = async (req: NextRequest, id: string) => {
+const rateLimit = async (
+  req: NextRequest,
+  keyParts: (string | null)[],
+  limit: number
+) => {
   const ipAddress = req.headers.get('x-forwarded-for') || '127.0.0.1';
-  const key = `rateLimit:${id}:${ipAddress}`;
+  const key = `rateLimit:${keyParts.join(':')}:${ipAddress}`;
 
   if (!redisClient) {
     return { message: 'Redis not configured', status: 500 };

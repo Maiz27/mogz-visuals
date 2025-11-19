@@ -70,8 +70,15 @@ const useDownloadCollection = ({
     show(message, { status, autoClose });
   };
 
-  const checkRateLimit = async (id: string): Promise<boolean> => {
-    const response = await fetch(`/api/rateLimit?id=${id}`, {
+  const checkRateLimit = async (
+    id: string,
+    collectionId?: string
+  ): Promise<boolean> => {
+    let url = `/api/rateLimit?id=${id}`;
+    if (collectionId) {
+      url += `&collectionId=${collectionId}`;
+    }
+    const response = await fetch(url, {
       method: 'GET',
     });
     if (!response.ok) {
@@ -116,6 +123,8 @@ const useDownloadCollection = ({
   };
 
   const downloadChunk = async (segmentIndex: number) => {
+    const collectionId = isPrivate ? uniqueId : slug?.current;
+    if (!(await checkRateLimit('download-part', collectionId))) return;
     setLoading(true);
     start(1);
     try {
