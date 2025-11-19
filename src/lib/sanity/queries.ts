@@ -42,10 +42,6 @@ export const getPrivateCollectionByID = `*[_type == "collection" && uniqueId == 
   password,
 }[0]`;
 
-export const getPrivateCollectionGallery = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
-  "gallery": gallery[].asset->url,
-}[0].gallery[]`;
-
 export const getCollectionsByName = `*[_type == "collection" && title match $name && (isPrivate == false || isPrivate == null)]{
   isPrivate,
   title,
@@ -53,6 +49,14 @@ export const getCollectionsByName = `*[_type == "collection" && title match $nam
   date,
   "mainImage": mainImage.asset->url,
 }`;
+
+export const getCollectionImageCount = `*[_type == "collection" && (uniqueId == $id || slug.current == $slug)]{
+  "count": count(gallery)
+}[0].count`;
+
+export const getCollectionGallerySegment = `*[_type == "collection" && (uniqueId == $id || slug.current == $slug)]{
+  "gallery": gallery[$start...$end].asset->url
+}[0].gallery`;
 
 export const getCollectionForSEO = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
   slug, 
