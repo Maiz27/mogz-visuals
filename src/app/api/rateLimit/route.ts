@@ -1,9 +1,15 @@
 import Redis from 'ioredis';
 import { NextRequest, NextResponse } from 'next/server';
 
-const redisClient = new Redis(process.env.REDIS_URL!);
-const limit = parseInt(process.env.RATE_LIMIT!);
-const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW!) || 60 * 60 * 1000 * 4;
+const isDevelopment = process.env.NODE_ENV === 'development';
+let redisClient: Redis | null = null;
+
+if (!isDevelopment) {
+  redisClient = new Redis(process.env.REDIS_URL!);
+}
+
+const limit = parseInt(process.env.RATE_LIMIT!) || 10;
+const windowMs = parseInt(process.env.RATE_LIMIT_WINDOW!) || 60 * 1000; // 1 minute
 
 export async function GET(req: NextRequest) {
   if (req.method !== 'GET') {
@@ -13,38 +19,43 @@ export async function GET(req: NextRequest) {
     );
   }
 
+  if (isDevelopment) {
+    return NextResponse.json(
+      { message: 'Success (dev mode)', status: 200 },
+      { status: 200 }
+    );
+  }
+
   try {
     const id = req.nextUrl.searchParams.get('id');
     const { message, status } = await rateLimit(req, id!);
-    console.log('rateLimit result', { message, status });
     return NextResponse.json({ message, status }, { status });
   } catch (error) {
-    console.error('Error decrypting cookie:', error);
+    console.error('Rate limiting error:', error);
     return NextResponse.json({
-      message: 'Error decrypting cookie',
+      message: 'Internal server error',
       status: 500,
     });
   }
 }
 
 const rateLimit = async (req: NextRequest, id: string) => {
-  const ipAddress = req.headers.get('x-forwarded-for');
-  const key = `rateLimit:${id}:${ipAddress!}`;
-  const currentCount = await redisClient.get(key);
+  const ipAddress = req.headers.get('x-forwarded-for') || '127.0.0.1';
+  const key = `rateLimit:${id}:${ipAddress}`;
 
-  console.log('currentCount', currentCount);
+  if (!redisClient) {
+    return { message: 'Redis not configured', status: 500 };
+  }
+  const currentCount = await redisClient.get(key);
 
   if (currentCount && parseInt(currentCount) >= limit) {
     return { message: 'Rate limit exceeded', status: 429 };
   }
 
-  // Increment the request count for the IP address
-  if (currentCount) {
-    await redisClient.incr(key);
-  }
-
-  // Set the key with an expiry if it's a new key
-  await redisClient.set(key, 1, 'PX', windowMs);
+  const pipeline = redisClient.pipeline();
+  pipeline.incr(key);
+  pipeline.pexpire(key, windowMs); // pexpire takes milliseconds
+  await pipeline.exec();
 
   return { message: 'Success', status: 200 };
 };

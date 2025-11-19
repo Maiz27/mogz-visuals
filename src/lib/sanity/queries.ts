@@ -42,6 +42,10 @@ export const getPrivateCollectionByID = `*[_type == "collection" && uniqueId == 
   password,
 }[0]`;
 
+export const getPrivateCollectionGallery = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
+  "gallery": gallery[].asset->url,
+}[0].gallery[]`;
+
 export const getCollectionsByName = `*[_type == "collection" && title match $name && (isPrivate == false || isPrivate == null)]{
   isPrivate,
   title,
