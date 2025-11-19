@@ -1,4 +1,5 @@
 'use client';
+
 import { FormEvent, useRef } from 'react';
 import Modal from '@/components/ui/Modal';
 import Input from '@/components/ui/form/Input';
@@ -32,12 +33,12 @@ const DownloadCollectionModal = ({ collection }: Props) => {
   );
 
   const _fields = fields.map((field: any) =>
-    field.name === 'segment' ? { ...field, options: segmentOptions } : field
+    field.name === 'part' ? { ...field, options: segmentOptions } : field
   );
 
   const handleDownloadSegment = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const segmentIndex = parseInt(state.segment, 10);
+    const segmentIndex = parseInt(state.part, 10);
     if (!isNaN(segmentIndex)) {
       await downloadChunk(segmentIndex);
     }
@@ -56,6 +57,8 @@ const DownloadCollectionModal = ({ collection }: Props) => {
     closeBtn.current?.click();
   };
 
+  const hasSegments = segments.length > 1;
+
   return (
     <Modal
       scrollId='collection-header'
@@ -73,10 +76,10 @@ const DownloadCollectionModal = ({ collection }: Props) => {
         you with high-quality visual content.
       </span>
 
-      <form onSubmit={handleDownloadSegment}>
+      <form onSubmit={handleDownloadSegment} className='space-y-2'>
         {_fields.map((field) => {
           if (field.comp === 'radio') {
-            if (segments.length <= 1) return null; // Only show radio if more than one chunk
+            if (!hasSegments) return null; // Only show radio if more than one chunk
             return (
               <RadioGroup
                 key={field.name}
@@ -99,18 +102,20 @@ const DownloadCollectionModal = ({ collection }: Props) => {
         })}
 
         <div className='pt-8 flex justify-end gap-2 md:gap-4'>
-          {segments.length > 1 && (
+          <CTAButton type='submit' loading={loading}>
+            {hasSegments ? 'Download Part' : 'Download'}
+          </CTAButton>
+
+          {hasSegments && (
             <CTAButton
               type='button'
               loading={loading}
+              style={hasSegments ? 'ghost' : undefined}
               onClick={handleDownloadAll}
             >
               Download All
             </CTAButton>
           )}
-          <CTAButton type='submit' loading={loading} style='ghost'>
-            {segments.length > 1 ? 'Download Segment' : 'Download'}
-          </CTAButton>
         </div>
       </form>
     </Modal>

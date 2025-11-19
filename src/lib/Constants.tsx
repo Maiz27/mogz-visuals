@@ -217,7 +217,7 @@ export const FORMS = {
     },
   },
   download: {
-    initialValue: { email: '', segment: '0' },
+    initialValue: { email: '', part: '0' },
     fields: [
       {
         id: 'download-email',
@@ -229,9 +229,9 @@ export const FORMS = {
       },
       {
         comp: 'radio',
-        id: 'download-segment',
-        name: 'segment',
-        label: 'Select a segment to download',
+        id: 'download-part',
+        name: 'part',
+        label: 'Select part of the collection to download (100 images / part)',
         options: [],
       },
     ],
