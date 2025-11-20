@@ -6,6 +6,7 @@ import { ScrollProvider } from '@/lib/context/scrollContext';
 import { IsClientCtxProvider } from '@/lib/context/IsClientContext';
 import { ToastProvider } from '@/lib/context/ToastContext';
 import { getPageMetadata } from '@/lib/utils';
+import JsonLD from '@/components/SEO/JsonLD';
 import './globals.css';
 
 export const metadata = getPageMetadata('home');
@@ -21,6 +22,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang='en'>
+      <head>
+        <JsonLD />
+      </head>
       <body className=''>
         <IsClientCtxProvider>
           <ScrollProvider>
