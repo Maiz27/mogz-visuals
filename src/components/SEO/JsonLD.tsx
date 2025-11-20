@@ -1,10 +1,10 @@
-import { BASEURL, ROUTES } from '@/lib/Constants';
+import { BASEURL, ROUTES, SITE_NAME } from '@/lib/Constants';
 
 const JsonLD = () => {
   const websiteJsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebSite',
-    name: 'Mogz Visuals',
+    name: SITE_NAME,
     url: BASEURL,
     potentialAction: {
       '@type': 'SearchAction',

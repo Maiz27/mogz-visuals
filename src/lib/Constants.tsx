@@ -13,6 +13,8 @@ import {
   RiTwitterXLine,
 } from 'react-icons/ri';
 
+export const SITE_NAME = 'Mogz Visuals';
+
 export const BASEURL = 'https://www.mogz.studio';
 
 export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
@@ -28,28 +30,30 @@ export const ROUTES = [
 
 export const COLLECTION_SORT_OPTIONS = ['Newest', 'Oldest'];
 
+export const SOCIALS = [
+  {
+    label: 'Facebook',
+    url: 'https://www.facebook.com/profile.php?id=100066717096074',
+    icon: <RiFacebookBoxLine />,
+  },
+  {
+    label: 'Instagram',
+    url: 'https://www.instagram.com/mogzvisuals/',
+    icon: <RiInstagramLine />,
+  },
+  {
+    label: 'Twitter',
+    url: 'https://twitter.com/MogzVisuals',
+    icon: <RiTwitterXLine />,
+  },
+];
+
 export const MOGZ = {
   about:
     "Welcome to Mogz Visuals, where each click of our camera captures more than a moment—it tells your unique story. Our founder, Jacob Mogga Kei, leads our team with a vision for authentic expression and heartfelt connections, making every frame a canvas and every photograph a chapter in your life's narrative. With over a decade of experience, Jacob's philosophy of focusing on the genuine moments drives our commitment to visual storytelling. We are more than creators; we are custodians of your memories, dedicated to preserving the love, joy, laughter, and tears that make each photograph a testament to the human experience.",
   inspiration:
     'Our inspiration comes from the vivid tapestry of life that surrounds us—from the rich colors and diverse cultures of South Sudan to the personal stories of our clients. Each project is a new adventure, a new story to tell. We celebrate the beauty and uniqueness of each individual, community, and landscape we capture, always striving to convey the depth and emotion of the moment.',
-  social: [
-    {
-      label: 'Facebook',
-      url: 'https://www.facebook.com/profile.php?id=100066717096074',
-      icon: <RiFacebookBoxLine />,
-    },
-    {
-      label: 'Instagram',
-      url: 'https://www.instagram.com/mogzvisuals/',
-      icon: <RiInstagramLine />,
-    },
-    {
-      label: 'Twitter',
-      url: 'https://twitter.com/MogzVisuals',
-      icon: <RiTwitterXLine />,
-    },
-  ],
+
   contact: [
     {
       title: 'Visit',

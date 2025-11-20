@@ -4,8 +4,8 @@ import { fetchSanityData } from '@/lib/sanity/client';
 import { getFooterImages } from '@/lib/sanity/queries';
 import { divideImagesArray } from '@/lib/utils';
 import { HERO_IMAGES } from '@/lib/types';
-import { MOGZ } from '@/lib/Constants';
 import { CTALink } from '../ui/CTA/CTALink';
+import { SITE_NAME, SOCIALS } from '@/lib/Constants';
 
 export const revalidate = 60;
 
@@ -13,7 +13,6 @@ const Footer = async () => {
   const data: HERO_IMAGES = await fetchSanityData(getFooterImages);
 
   const arrays: string[][] = divideImagesArray(data.images, 4);
-  const { social } = MOGZ;
 
   return (
     <LocomotiveScrollSection
@@ -22,7 +21,9 @@ const Footer = async () => {
       className='w-full mx-auto mt-20'
     >
       <div className='w-full flex justify-between items-center px-4'>
-        <span>&copy; {new Date().getFullYear().toString()} Mogz Visuals.</span>
+        <span>
+          &copy; {new Date().getFullYear().toString()} {SITE_NAME}.
+        </span>
         <span>All Rights Reserved.</span>
       </div>
 
@@ -30,7 +31,7 @@ const Footer = async () => {
 
       <div className='flex justify-between items-center mb-4 px-4'>
         <div className='grid place-items-center gap-2 grid-cols-3'>
-          {social.map(({ label, url, icon }) => {
+          {SOCIALS.map(({ label, url, icon }) => {
             return (
               <CTALink
                 key={label}
