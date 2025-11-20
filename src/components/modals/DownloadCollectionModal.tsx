@@ -50,14 +50,10 @@ const DownloadCollectionModal = ({ collection }: Props) => {
     if (!isNaN(segmentIndex)) {
       await downloadChunk(segmentIndex);
     }
-    reset();
-    closeBtn.current?.click();
   };
 
   const handleDownloadAll = async () => {
     await downloadAllChunks(state.email.toLowerCase());
-    reset();
-    closeBtn.current?.click();
   };
 
   const handleCancel = () => {

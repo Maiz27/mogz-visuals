@@ -123,45 +123,19 @@ const useDownloadCollection = ({
   };
 
   const downloadChunk = async (segmentIndex: number) => {
-    const collectionId = isPrivate ? uniqueId : slug?.current;
-    if (!(await checkRateLimit('download-part', collectionId))) return;
     setLoading(true);
     start(1);
-    try {
-      const segment = segments[segmentIndex];
-      const segmentQuery = isPrivate
-        ? getPrivateCollectionGallerySegment
-        : getPublicCollectionGallerySegment;
-      const params = isPrivate
-        ? { id: uniqueId, start: segment.start, end: segment.end }
-        : { slug: slug.current, start: segment.start, end: segment.end };
-      const images: string[] = await fetchSanityData(segmentQuery, params);
 
-      await _zipAndSave(images, segmentIndex);
-      showToast(`Part ${segmentIndex + 1} downloaded successfully!`, 'success');
-    } catch (err: any) {
-      console.error(err);
-      showToast(
-        `An error occurred while downloading part ${
-          segmentIndex + 1
-        }! Try again later.`,
-        'error'
-      );
-    } finally {
-      setLoading(false);
-      reset();
-    }
-  };
+    setTimeout(async () => {
+      try {
+        const collectionId = isPrivate ? uniqueId : slug?.current;
+        if (!(await checkRateLimit('download-part', collectionId))) {
+          setLoading(false);
+          reset();
+          return;
+        }
 
-  const downloadAllChunks = async (email: string) => {
-    if (!(await checkRateLimit('download-all'))) return;
-    await addEmailToAudience(email);
-
-    setLoading(true);
-    start(segments.length);
-    try {
-      for (let i = 0; i < segments.length; i++) {
-        const segment = segments[i];
+        const segment = segments[segmentIndex];
         const segmentQuery = isPrivate
           ? getPrivateCollectionGallerySegment
           : getPublicCollectionGallerySegment;
@@ -169,22 +143,67 @@ const useDownloadCollection = ({
           ? { id: uniqueId, start: segment.start, end: segment.end }
           : { slug: slug.current, start: segment.start, end: segment.end };
         const images: string[] = await fetchSanityData(segmentQuery, params);
-        await _zipAndSave(images, i);
-        if (i < segments.length - 1) { // Advance only if there are more segments to download
-          advance();
-        }
+
+        await _zipAndSave(images, segmentIndex);
+        showToast(`Part ${segmentIndex + 1} downloaded successfully!`, 'success');
+      } catch (err: any) {
+        console.error(err);
+        showToast(
+          `An error occurred while downloading part ${
+            segmentIndex + 1
+          }! Try again later.`,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+        reset();
       }
-      showToast('All parts downloaded successfully!', 'success');
-    } catch (err: any) {
-      console.error(err);
-      showToast(
-        `An error occurred during the full collection download! Try again later.`,
-        'error'
-      );
-    } finally {
-      setLoading(false);
-      reset();
-    }
+    }, 0);
+  };
+
+  const downloadAllChunks = async (email: string) => {
+    setLoading(true);
+    start(segments.length);
+
+    setTimeout(async () => {
+      if (!(await checkRateLimit('download-all'))) {
+        setLoading(false);
+        reset();
+        return;
+      }
+      await addEmailToAudience(email);
+
+      try {
+        for (let i = 0; i < segments.length; i++) {
+          const segment = segments[i];
+          const segmentQuery = isPrivate
+            ? getPrivateCollectionGallerySegment
+            : getPublicCollectionGallerySegment;
+          const params = isPrivate
+            ? { id: uniqueId, start: segment.start, end: segment.end }
+            : { slug: slug.current, start: segment.start, end: segment.end };
+          const images: string[] = await fetchSanityData(
+            segmentQuery,
+            params
+          );
+          await _zipAndSave(images, i);
+          if (i < segments.length - 1) {
+            // Advance only if there are more segments to download
+            advance();
+          }
+        }
+        showToast('All parts downloaded successfully!', 'success');
+      } catch (err: any) {
+        console.error(err);
+        showToast(
+          `An error occurred during the full collection download! Try again later.`,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+        reset();
+      }
+    }, 0);
   };
 
   return {
