@@ -19,7 +19,7 @@ const RadioGroup = ({ className, options, ...props }: RadioGroupProps) => {
   return (
     <div>
       <Label id={id!} label={label!} className='' />
-      <div className='flex items-center mt-2 gap-4'>
+      <div className='flex flex-wrap items-center mt-2 gap-4'>
         {options.map((option, i) => (
           <div key={option.value} className='flex items-center gap-2'>
             <input

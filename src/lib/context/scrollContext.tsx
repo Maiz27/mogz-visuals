@@ -11,8 +11,6 @@ import {
 
 type ScrollContextValue = {
   scrollInstance: LocomotiveScroll | null;
-  scroll: number;
-  windowHeight: number;
   scrollToSection: (id: string) => void;
 };
 
@@ -28,19 +26,18 @@ export const useScroll = (): ScrollContextValue => {
 
 export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   const scrollRef = useRef<LocomotiveScroll | null>(null);
-  const [scrollPosition, setScrollPosition] = useState(0);
-  const [windowHeight, setWindowHeight] = useState(0);
+  const [scrollInstance, setScrollInstance] =
+    useState<LocomotiveScroll | null>(null);
   const pathname = usePathname();
 
   useEffect(() => {
     const initializeScroll = async () => {
       if (scrollRef.current) {
         scrollRef.current.destroy();
-        scrollRef.current = null;
       }
 
       const LocomotiveScroll = (await import('locomotive-scroll')).default;
-      scrollRef.current = new LocomotiveScroll({
+      const scroll = new LocomotiveScroll({
         el: document.querySelector('[data-scroll-container]') as HTMLElement,
         lerp: 0.05,
         smooth: true,
@@ -49,12 +46,8 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
         touchMultiplier: 3,
       });
 
-      scrollRef.current.on('scroll', (event: any) => {
-        setScrollPosition(event.scroll.y);
-        if (windowHeight !== event.limit.y) {
-          setWindowHeight(event.limit.y);
-        }
-      });
+      scrollRef.current = scroll;
+      setScrollInstance(scroll);
     };
 
     initializeScroll();
@@ -63,6 +56,7 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
       if (scrollRef.current) {
         scrollRef.current.destroy();
         scrollRef.current = null;
+        setScrollInstance(null);
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -77,10 +71,8 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   return (
     <ScrollContext.Provider
       value={{
-        scroll: scrollPosition,
         scrollToSection,
-        windowHeight,
-        scrollInstance: scrollRef.current,
+        scrollInstance,
       }}
     >
       {children}

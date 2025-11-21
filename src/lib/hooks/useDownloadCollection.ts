@@ -1,18 +1,66 @@
-import JSZip from 'jszip';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { saveAs } from 'file-saver';
+import * as Comlink from 'comlink';
 import { useToast } from '../context/ToastContext';
 import { fetchSanityData } from '../sanity/client';
-import { getPrivateCollectionGallery } from '../sanity/queries';
+import {
+  getPublicCollectionImageCount,
+  getPublicCollectionGallerySegment,
+  getPrivateCollectionImageCount,
+  getPrivateCollectionGallerySegment,
+} from '../sanity/queries';
+import useProgress from './useProgress';
 import { COLLECTION } from '../types';
 
-const useDownloadCollection = ({ title, uniqueId, gallery }: COLLECTION) => {
+const CHUNK_SIZE = 100;
+
+type Segment = {
+  start: number;
+  end: number;
+};
+
+const useDownloadCollection = ({
+  title,
+  uniqueId,
+  slug,
+  isPrivate,
+}: COLLECTION) => {
   const [loading, setLoading] = useState(false);
+  const [segments, setSegments] = useState<Segment[]>([]);
   const { show } = useToast();
+  const { progress, current, total, start, advance, update, reset } =
+    useProgress();
 
   const folderName = `[MOGZ] ${title}`;
-  const zip = new JSZip();
-  const folder = zip.folder(folderName);
+
+  useEffect(() => {
+    const getSegments = async () => {
+      if ((isPrivate && !uniqueId) || (!isPrivate && !slug?.current)) {
+        setSegments([]);
+        return;
+      }
+
+      const countQuery = isPrivate
+        ? getPrivateCollectionImageCount
+        : getPublicCollectionImageCount;
+      const params = isPrivate ? { id: uniqueId } : { slug: slug?.current };
+
+      const imageCount: number = await fetchSanityData(countQuery, params);
+
+      const numChunks = imageCount ? Math.ceil(imageCount / CHUNK_SIZE) : 0;
+      const newSegments = Array.from({ length: numChunks }, (_, i) => {
+        const start = i * CHUNK_SIZE;
+        let end = start + CHUNK_SIZE;
+        if (end > imageCount) {
+          end = imageCount;
+        }
+        return { start, end };
+      });
+      setSegments(newSegments);
+    };
+
+    getSegments();
+  }, [uniqueId, slug, isPrivate]);
 
   const showToast = (
     message: string,
@@ -22,13 +70,19 @@ const useDownloadCollection = ({ title, uniqueId, gallery }: COLLECTION) => {
     show(message, { status, autoClose });
   };
 
-  const checkRateLimit = async (id: string): Promise<boolean> => {
-    const response = await fetch(`/api/rateLimit?id=${id}`, {
+  const checkRateLimit = async (
+    id: string,
+    collectionId?: string
+  ): Promise<boolean> => {
+    let url = `/api/rateLimit?id=${id}`;
+    if (collectionId) {
+      url += `&collectionId=${collectionId}`;
+    }
+    const response = await fetch(url, {
       method: 'GET',
     });
     if (!response.ok) {
       const { message } = await response.json();
-      console.log('Rate limit status:', response.status, message);
       showToast('Rate limit exceeded, please try again later.', 'error', false);
       return false;
     }
@@ -37,85 +91,130 @@ const useDownloadCollection = ({ title, uniqueId, gallery }: COLLECTION) => {
 
   const addEmailToAudience = async (email: string) => {
     try {
-      const response = await fetch('/api/contact/audience', {
+      await fetch('/api/contact/audience', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ email }),
       });
-      console.log(response);
     } catch (error) {
       console.log(error);
     }
   };
 
-  const fetchImages = async () => {
-    const gallery: string[] = await fetchSanityData(
-      getPrivateCollectionGallery,
-      { id: uniqueId }
+  const _zipAndSave = async (images: string[], segmentIndex: number) => {
+    const worker = new Worker(
+      new URL('../workers/zip.worker.ts', import.meta.url)
     );
-    return gallery;
+    const workerApi = Comlink.wrap<any>(worker);
+
+    const onProgress = (p: number) => {
+      update(p);
+    };
+
+    const content = await workerApi.zipImages(
+      images,
+      `${folderName}-part-${segmentIndex + 1}`,
+      Comlink.proxy(onProgress)
+    );
+
+    saveAs(content, `${folderName}-part-${segmentIndex + 1}.zip`);
   };
 
-  const downloadImages = async (email: string) => {
+  const downloadChunk = async (segmentIndex: number) => {
     setLoading(true);
-    let images = gallery;
-    try {
-      if (!(await checkRateLimit('download'))) return;
+    start(1);
 
+    setTimeout(async () => {
+      try {
+        const collectionId = isPrivate ? uniqueId : slug?.current;
+        if (!(await checkRateLimit('download-part', collectionId))) {
+          setLoading(false);
+          reset();
+          return;
+        }
+
+        const segment = segments[segmentIndex];
+        const segmentQuery = isPrivate
+          ? getPrivateCollectionGallerySegment
+          : getPublicCollectionGallerySegment;
+        const params = isPrivate
+          ? { id: uniqueId, start: segment.start, end: segment.end }
+          : { slug: slug.current, start: segment.start, end: segment.end };
+        const images: string[] = await fetchSanityData(segmentQuery, params);
+
+        await _zipAndSave(images, segmentIndex);
+        showToast(`Part ${segmentIndex + 1} downloaded successfully!`, 'success');
+      } catch (err: any) {
+        console.error(err);
+        showToast(
+          `An error occurred while downloading part ${
+            segmentIndex + 1
+          }! Try again later.`,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+        reset();
+      }
+    }, 0);
+  };
+
+  const downloadAllChunks = async (email: string) => {
+    setLoading(true);
+    start(segments.length);
+
+    setTimeout(async () => {
+      if (!(await checkRateLimit('download-all'))) {
+        setLoading(false);
+        reset();
+        return;
+      }
       await addEmailToAudience(email);
 
-      if (!images) {
-        images = await fetchImages();
-      }
-
-      const imageFetchPromises = images.map(async (image, index) => {
-        try {
-          const response = await fetch(image);
-          if (!response.ok) {
-            throw new Error(
-              `Failed to fetch image at index ${index}, status: ${response.status}`
-            );
+      try {
+        for (let i = 0; i < segments.length; i++) {
+          const segment = segments[i];
+          const segmentQuery = isPrivate
+            ? getPrivateCollectionGallerySegment
+            : getPublicCollectionGallerySegment;
+          const params = isPrivate
+            ? { id: uniqueId, start: segment.start, end: segment.end }
+            : { slug: slug.current, start: segment.start, end: segment.end };
+          const images: string[] = await fetchSanityData(
+            segmentQuery,
+            params
+          );
+          await _zipAndSave(images, i);
+          if (i < segments.length - 1) {
+            // Advance only if there are more segments to download
+            advance();
           }
-          const blob = await response.blob();
-          if (!folder) {
-            throw new Error('folder is undefined');
-          }
-          folder.file(generateImageName(title, index), blob, { binary: true });
-        } catch (err) {
-          console.error(`Error fetching image at index ${index}:`, err);
-          throw err;
         }
-      });
-
-      await Promise.all(imageFetchPromises);
-
-      console.log('Adding images done, proceeding to ZIP...');
-      const content = await zip.generateAsync({ type: 'blob' });
-
-      saveAs(content, `${folderName}.zip`);
-      showToast('Collection downloaded successfully!', 'success');
-    } catch (err: any) {
-      console.error(err);
-      showToast(
-        `An error occurred while downloading the collection! Try again later.`,
-        'error'
-      );
-    } finally {
-      setLoading(false);
-    }
+        showToast('All parts downloaded successfully!', 'success');
+      } catch (err: any) {
+        console.error(err);
+        showToast(
+          `An error occurred during the full collection download! Try again later.`,
+          'error'
+        );
+      } finally {
+        setLoading(false);
+        reset();
+      }
+    }, 0);
   };
 
   return {
     loading,
-    downloadImages,
+    segments,
+    progress,
+    current,
+    total,
+    downloadChunk,
+    downloadAllChunks,
   };
 };
 
 export default useDownloadCollection;
-
-const generateImageName = (title: string, index: number): string => {
-  const formattedTitle = title.replace(/\s/g, '-');
-  return `[MOGZ]-${formattedTitle}-${index + 1}.jpg`;
-};

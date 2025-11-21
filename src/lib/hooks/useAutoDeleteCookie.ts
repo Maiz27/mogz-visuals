@@ -15,7 +15,6 @@ export const useAutoDeleteCookie = (id: string, isPrivate: boolean) => {
 
         if (cookie) {
           const _decrypted = await decryptCookie(cookie);
-          console.log('decrypted', _decrypted);
 
           setDecrypted(_decrypted);
         }

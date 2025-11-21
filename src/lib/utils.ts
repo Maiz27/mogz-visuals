@@ -1,7 +1,29 @@
 import Cookies from 'js-cookie';
 import { Metadata } from 'next';
 import { OpenGraph } from 'next/dist/lib/metadata/types/opengraph-types';
-import { BASEURL, METADATA } from './Constants';
+import { BASEURL, METADATA, SITE_NAME, SOCIALS } from './Constants';
+import { Twitter } from 'next/dist/lib/metadata/types/twitter-types';
+
+const deepMerge = (base: any, overwrites: any): any => {
+  const result = { ...base };
+  for (const key in overwrites) {
+    if (Object.prototype.hasOwnProperty.call(overwrites, key)) {
+      if (
+        typeof result[key] === 'object' &&
+        result[key] !== null &&
+        !Array.isArray(result[key]) &&
+        typeof overwrites[key] === 'object' &&
+        overwrites[key] !== null &&
+        !Array.isArray(overwrites[key])
+      ) {
+        result[key] = deepMerge(result[key], overwrites[key]);
+      } else {
+        result[key] = overwrites[key];
+      }
+    }
+  }
+  return result;
+};
 
 export const divideImagesArray = (images: string[], chunkSize: number) => {
   const result: string[][] = [];
@@ -184,10 +206,25 @@ export const setCollectionAccessCookie = (secret: string) => {
   });
 };
 
-export const getPageMetadata = (name: string): Metadata => {
-  const pageMetaData = METADATA.get(name);
+type MetadataOverwrites = {
+  title?: string;
+  description?: string;
+  url?: string;
+  image?: string;
+  openGraph?: Partial<OpenGraph>;
+  twitter?: Partial<Twitter>;
+};
 
-  return {
+export const getPageMetadata = (
+  name: string,
+  overwrites?: MetadataOverwrites
+): Metadata => {
+  const pageMetaData = METADATA.get(name);
+  const twitterHandle = SOCIALS.find((s) => s.label === 'Twitter')
+    ?.url.split('/')
+    .pop();
+
+  const baseMetadata: Metadata = {
     metadataBase: new URL(BASEURL),
     title: pageMetaData.title,
     description: pageMetaData.description,
@@ -208,16 +245,18 @@ export const getPageMetadata = (name: string): Metadata => {
       url: pageMetaData.url,
       title: pageMetaData.title,
       description: pageMetaData.description,
-      siteName: pageMetaData.title,
+      siteName: SITE_NAME,
       images: [
         {
           url: pageMetaData.image,
         },
       ],
-    } as OpenGraph,
+    },
     twitter: {
       card: 'summary_large_image',
-      site: pageMetaData.url,
+      site: `@${twitterHandle}`,
+      title: pageMetaData.title,
+      description: pageMetaData.description,
       images: [
         {
           url: pageMetaData.image,
@@ -225,4 +264,53 @@ export const getPageMetadata = (name: string): Metadata => {
       ],
     },
   };
+
+  if (overwrites) {
+    const customMetadata: Partial<Metadata> = {};
+    if (overwrites.title) customMetadata.title = overwrites.title;
+    if (overwrites.description)
+      customMetadata.description = overwrites.description;
+    if (overwrites.url)
+      customMetadata.alternates = { canonical: overwrites.url };
+
+    if (
+      overwrites.openGraph ||
+      overwrites.url ||
+      overwrites.title ||
+      overwrites.description ||
+      overwrites.image
+    ) {
+      customMetadata.openGraph = {
+        ...baseMetadata.openGraph,
+        ...overwrites.openGraph,
+        url: overwrites.url || pageMetaData.url,
+        title: overwrites.title || pageMetaData.title,
+        description: overwrites.description || pageMetaData.description,
+      };
+      if (overwrites.image) {
+        customMetadata.openGraph.images = [{ url: overwrites.image }];
+      }
+    }
+
+    if (
+      overwrites.twitter ||
+      overwrites.title ||
+      overwrites.description ||
+      overwrites.image
+    ) {
+      customMetadata.twitter = {
+        ...baseMetadata.twitter,
+        ...overwrites.twitter,
+        title: overwrites.title || pageMetaData.title,
+        description: overwrites.description || pageMetaData.description,
+      };
+      if (overwrites.image) {
+        customMetadata.twitter.images = [{ url: overwrites.image }];
+      }
+    }
+
+    return deepMerge(baseMetadata, customMetadata);
+  }
+
+  return baseMetadata;
 };

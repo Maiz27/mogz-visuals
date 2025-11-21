@@ -2,7 +2,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import MobileMenu from './MobileMenu';
-import { ROUTES } from '@/lib/Constants';
+import { ROUTES, SITE_NAME } from '@/lib/Constants';
 
 const Header = () => {
   return (
@@ -47,8 +47,8 @@ export const Logo = ({ black = false }: { black?: boolean }) => {
         loading='eager'
         priority={true}
         src={src}
-        alt='Mogz Visuals Logo'
-        title='Mogz Visuals Logo'
+        alt={`${SITE_NAME} Logo`}
+        title={`${SITE_NAME} Logo`}
         className='h-full w-ful object-contain'
       />
     </Link>

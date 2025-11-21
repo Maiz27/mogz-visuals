@@ -1,23 +1,57 @@
+import { getPageMetadata } from '@/lib/utils';
 import { notFound } from 'next/navigation';
 import CollectionHeader from '@/components/gallery/CollectionHeader';
 import Gallery from '@/components/gallery/Gallery';
 import { fetchSanityData } from '@/lib/sanity/client';
-import { getCollectionBySlug, getCollectionForSEO } from '@/lib/sanity/queries';
+import {
+  getPublicCollectionWithInitialImages,
+  getCollectionForSEO,
+} from '@/lib/sanity/queries';
 import { COLLECTION } from '@/lib/types';
-import { BASEURL } from '@/lib/Constants';
+import { BASEURL, SITE_NAME } from '@/lib/Constants';
 
 export const revalidate = 60;
+
+export async function generateMetadata(props: {
+  params: Promise<{ slug: string }>;
+}) {
+  const params = await props.params;
+  const { slug } = params;
+
+  const collection: COLLECTION = await fetchSanityData(getCollectionForSEO, {
+    slug,
+  });
+
+  if (collection) {
+    const { title, mainImage } = collection;
+    const url = `${BASEURL}/gallery/${slug}`;
+    const desc = `Dive into ${title}, an exclusive collection from Mogz Visuals, where every project is a testament to our dedication to visual excellence.`;
+
+    return getPageMetadata('gallery', {
+      title: `${title} - ${SITE_NAME}`,
+      description: desc,
+      url: url,
+      image: mainImage,
+      openGraph: {
+        type: 'article',
+      },
+    });
+  }
+
+  return getPageMetadata('gallery');
+}
 
 const page = async (props: { params: Promise<{ slug: string }> }) => {
   const params = await props.params;
 
-  const {
-    slug
-  } = params;
+  const { slug } = params;
 
-  const collection: COLLECTION = await fetchSanityData(getCollectionBySlug, {
-    slug,
-  });
+  const collection: COLLECTION = await fetchSanityData(
+    getPublicCollectionWithInitialImages,
+    {
+      slug,
+    }
+  );
 
   if (!collection) {
     return notFound();
@@ -33,65 +67,3 @@ const page = async (props: { params: Promise<{ slug: string }> }) => {
 };
 
 export default page;
-
-export async function generateMetadata(
-  props: {
-    params: Promise<{ slug: string }>;
-  }
-) {
-  const params = await props.params;
-
-  const {
-    slug
-  } = params;
-
-  const collection: COLLECTION = await fetchSanityData(getCollectionForSEO, {
-    slug,
-  });
-
-  if (collection) {
-    const { title, slug, mainImage } = collection;
-    const url = `${BASEURL}/gallery/${slug.current}`;
-    const desc = `Dive into ${title}, an exclusive collection from Mogz Visuals, where every project is a testament to our dedication to visual excellence.`;
-
-    return {
-      metadataBase: new URL(BASEURL),
-      title: `${title} - Mogz Visuals`,
-      description: desc,
-      image: mainImage,
-      alternates: {
-        canonical: url,
-      },
-      icons: {
-        icon: '/imgs/logo/favicon.ico',
-        shortcut: '/imgs/logo/favicon.ico',
-        apple: '/imgs/logo/favicon.ico',
-        other: {
-          rel: 'apple-touch-icon-precomposed',
-          url: '/imgs/logo/favicon.ico',
-        },
-      },
-      openGraph: {
-        type: 'article',
-        url: url,
-        title: title,
-        description: desc,
-        siteName: title,
-        images: [
-          {
-            url: mainImage,
-          },
-        ],
-      },
-      twitter: {
-        card: 'summary_large_image',
-        site: url,
-        images: [
-          {
-            url: mainImage,
-          },
-        ],
-      },
-    };
-  }
-}
