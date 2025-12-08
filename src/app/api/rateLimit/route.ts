@@ -1,10 +1,12 @@
 import Redis from 'ioredis';
 import { NextRequest, NextResponse } from 'next/server';
 
-const isDevelopment = process.env.NODE_ENV === 'development';
 let redisClient: Redis | null = null;
 
-if (!isDevelopment) {
+if (
+  process.env.NODE_ENV !== 'development' &&
+  process.env.REDIS_ENABLED === 'true'
+) {
   redisClient = new Redis(process.env.REDIS_URL!);
 }
 
@@ -22,9 +24,9 @@ export async function GET(req: NextRequest) {
     );
   }
 
-  if (isDevelopment) {
+  if (!redisClient) {
     return NextResponse.json(
-      { message: 'Success (dev mode)', status: 200 },
+      { message: 'Success (Redis not enabled)', status: 200 },
       { status: 200 }
     );
   }
@@ -68,7 +70,7 @@ const rateLimit = async (
   const key = `rateLimit:${keyParts.join(':')}:${ipAddress}`;
 
   if (!redisClient) {
-    return { message: 'Redis not configured', status: 500 };
+    return { message: 'Success (Redis not configured)', status: 200 };
   }
   const currentCount = await redisClient.get(key);
 
