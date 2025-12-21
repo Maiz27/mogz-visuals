@@ -48,7 +48,7 @@ const ScrollToTop = () => {
           scrollLimit - scrollPosition < 100
             ? 'bottom-20'
             : 'bottom-4 md:bottom-6'
-        } right-4 lg:right-6 p-2 border-2 border-primary text-2xl`}
+        } right-4 lg:right-6 p-1 border-2 border-primary text-2xl`}
       >
         <HiOutlineChevronUp />
       </button>
