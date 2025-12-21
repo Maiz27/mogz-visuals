@@ -12,6 +12,7 @@ import {
   RiInstagramLine,
   RiTwitterXLine,
 } from 'react-icons/ri';
+import Link from 'next/link';
 
 export const SITE_NAME = 'Mogz Visuals';
 
@@ -59,7 +60,7 @@ export const MOGZ = {
       title: 'Visit',
       icon: HiOutlineMapPin,
       href: undefined,
-      text: 'Phenicia Juba, CES, South Sudan.',
+      text: 'Thongping Next to Phenicia Supermarket, Juba, South Sudan',
     },
     {
       title: 'Email',
@@ -90,6 +91,7 @@ export const FORMS = {
       datetime: new Date().toISOString(),
       session: 'indoor',
       message: '',
+      terms: false,
     },
     fields: [
       {
@@ -133,6 +135,24 @@ export const FORMS = {
         label: 'Message',
         placeholder: 'Type your message here...',
       },
+      {
+        comp: 'checkbox',
+        id: 'contact-terms',
+        name: 'terms',
+        label: (
+          <span>
+            I agree to the{' '}
+            <Link
+              href='/terms-of-use'
+              target='_blank'
+              className='underline hover:text-primary transition-colors'
+            >
+              Terms & Conditions
+            </Link>
+          </span>
+        ),
+        required: true,
+      },
     ],
     rules: {
       name: (value: string) =>
@@ -167,6 +187,7 @@ export const FORMS = {
       },
       message: (value: string) =>
         value.length > 10 ? '' : 'Message must be longer than 10 characters!',
+      terms: (value: boolean) => (value ? '' : 'You must agree to the terms!'),
     },
   },
   browse: {

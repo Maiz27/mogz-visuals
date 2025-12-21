@@ -3,6 +3,7 @@ import Input from '@/components/ui/form/Input';
 import Textarea from '@/components/ui/form/Textarea';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import RadioGroup from '@/components/ui/form/RadioGroup';
+import Checkbox from '@/components/ui/form/Checkbox';
 import { FORMS } from '@/lib/Constants';
 import useFormState from '@/lib/hooks/useFormState';
 import { useToast } from '@/lib/context/ToastContext';
@@ -79,6 +80,18 @@ const ContactForm = () => {
               state={state}
               errors={errors}
               options={field.options!}
+              onChange={handleChange}
+              {...field}
+            />
+          );
+        }
+
+        if (field.comp === 'checkbox') {
+          return (
+            <Checkbox
+              key={field.name}
+              state={state}
+              errors={errors}
               onChange={handleChange}
               {...field}
             />

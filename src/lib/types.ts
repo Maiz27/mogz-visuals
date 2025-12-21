@@ -61,7 +61,7 @@ export type Tag =
   | 'footer';
 
 export type BaseFormFieldProps = {
-  label?: string;
+  label?: React.ReactNode;
   state?: object;
   errors?: object;
   [x: string]: any;
