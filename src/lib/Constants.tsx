@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import {
   HiOutlineMapPin,
   HiOutlineEnvelope,
@@ -7,12 +9,7 @@ import {
   HiOutlineInformationCircle,
   HiOutlineXMark,
 } from 'react-icons/hi2';
-import {
-  RiFacebookBoxLine,
-  RiInstagramLine,
-  RiTwitterXLine,
-} from 'react-icons/ri';
-import Link from 'next/link';
+
 import {
   SiFacebook,
   SiInstagram,
@@ -45,17 +42,17 @@ export const SOCIALS = [
   {
     label: 'Facebook',
     url: 'https://www.facebook.com/profile.php?id=100066717096074',
-    icon: <RiFacebookBoxLine />,
+    icon: <SiFacebook />,
   },
   {
     label: 'Instagram',
     url: 'https://www.instagram.com/mogzvisuals/',
-    icon: <RiInstagramLine />,
+    icon: <SiInstagram />,
   },
   {
     label: 'Twitter',
     url: 'https://twitter.com/MogzVisuals',
-    icon: <RiTwitterXLine />,
+    icon: <SiX />,
   },
 ];
 
