@@ -26,6 +26,7 @@ export const PAGE_SIZE = 10;
 
 export const ROUTES = [
   { name: 'Home', href: '/' },
+  { name: 'About', href: '/about' },
   { name: 'Gallery', href: '/gallery' },
 ];
 
@@ -298,6 +299,18 @@ export const METADATA: Map<string, any> = new Map([
     },
   ],
   [
+    'about',
+    {
+      title: 'About Us - Mogz Visuals',
+      description:
+        'Meet the creative team behind Mogz Visuals. We are storytellers dedicated to capturing your most precious moments.',
+      type: 'website',
+      url: `${BASEURL}/about`,
+      image: `${BASEURL}/imgs/logo/logo.jpg`,
+      icon: '/imgs/logo/favicon.ico',
+    },
+  ],
+  [
     'gallery',
     {
       title: 'Gallery - Mogz Visuals Collections',
@@ -380,6 +393,11 @@ export const IMAGE_CARD_ANIMATE_OPTIONS = {
 };
 
 export const PAGES = {
+  about: {
+    title: 'The Minds Behind the Magic',
+    paragraph:
+      'Meet the creative collective at Mogz Visuals. We are more than just photographers and videographers; we are storytellers dedicated to preserving your most cherished memories with passion and artistic vision.',
+  },
   gallery: {
     title: 'Visual Stories, Captured Moments',
     paragraph:

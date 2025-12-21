@@ -45,6 +45,7 @@ export type SOCIAL_LINK = {
 };
 
 export type TEAM_MEMBER = {
+  order: number;
   name: string;
   title: string;
   image: string;

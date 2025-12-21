@@ -8,7 +8,7 @@ const About = () => {
   return (
     <LocomotiveScrollSection
       id='about'
-      className='p-8 pt-20 w-full min-h-[90vh] flex flex-col justify-around relative space-y-8 md:space-y-20 lg:space-y-40 -mt-32 lg:-mt-52'
+      className='p-8  w-full min-h-[90vh] flex flex-col justify-around relative space-y-8 md:space-y-20 lg:space-y-40'
     >
       <div
         data-scroll

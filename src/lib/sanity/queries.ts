@@ -137,7 +137,9 @@ export const getTeamImages = `*[_type == "team"]{
   "image": image.asset->url
 }.image`;
 
-export const getTeamMembers = `*[_type == "team"]{
+export const getTeamMembers = `*[_type == "team"]
+ | order(order asc){
+  order,
   name,
   title,
   "image": image.asset->url,

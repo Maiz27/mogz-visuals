@@ -45,9 +45,10 @@ const Footer = async () => {
               <Link
                 key={label}
                 href={href}
-                className='text-primary transition-all hover:underline underline-offset-2 first:pr-2'
+                className='transition-colors tracking-wider lg:tracking-widest ml-2 relative group hover:text-primary first:pr-2'
               >
                 {label}
+                <span className='absolute bottom-0 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
               </Link>
             );
           })}
