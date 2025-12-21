@@ -22,7 +22,7 @@ type Props = {
 
 type Step = 'email' | 'choice' | 'download_parts' | 'download_stream';
 
-const DownloadContent = ({ onClose, collection }: Props) => {
+const DownloadContent = ({ collection }: Props) => {
   const [step, setStep] = useState<Step>('email');
   const [isPreparingStream, setIsPreparingStream] = useState(false);
 
@@ -104,7 +104,7 @@ const DownloadContent = ({ onClose, collection }: Props) => {
           className='h-full flex flex-col justify-between'
         >
           <div className='space-y-4'>
-            <p className='!text-lg'>
+            <p className='text-lg!'>
               Please enter your email address to access and download this
               exclusive collection.
             </p>
@@ -135,7 +135,7 @@ const DownloadContent = ({ onClose, collection }: Props) => {
             </div>
           ) : (
             <>
-              <p className='!text-lg'>
+              <p className='text-lg!'>
                 Your download is ready! Select an option below to download.
               </p>
               <div className='space-y-2'>
@@ -201,7 +201,7 @@ const DownloadContent = ({ onClose, collection }: Props) => {
                 key={i}
                 onClick={() => handlePartDownload(i)}
                 disabled={loading}
-                className='border border-border p-3 rounded-md hover:bg-border/50 text-left transition-colors flex items-center justify-between group disabled:opacity-50'
+                className='border border-border p-3 hover:bg-border/50 text-left transition-colors flex items-center justify-between group disabled:opacity-50 hover:border-primary hover:text-primary cursor-pointer disabled:cursor-not-allowed'
               >
                 <span>Part {i + 1}</span>
                 <HiOutlineArrowDownTray className='text-primary opacity-0 group-hover:opacity-100 transition-opacity' />
