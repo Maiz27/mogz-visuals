@@ -197,13 +197,17 @@ export async function POST(req: NextRequest) {
       })();
 
       // WAIT for generation to complete!
-      // This blocks the HTTP response until the file exists on disk.
-      // This fixes the "Premature Download Started" UX issue.
-      // Behavior: Browser waits (Spinner) -> Server finishes -> Browser starts download.
       await generationPromise;
     }
 
-    // 5. Serve the File
+    // 5. Check Mode
+    // If 'prepare' mode, return JSON success
+    const mode = formData.get('mode') as string;
+    if (mode === 'prepare') {
+      return NextResponse.json({ success: true, filename: tempFilename });
+    }
+
+    // 6. Serve the File (Download Mode)
     const stats = fs.statSync(tempFilePath);
     const fileStream = fs.createReadStream(tempFilePath);
 

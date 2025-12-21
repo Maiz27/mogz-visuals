@@ -207,38 +207,67 @@ const useDownloadCollection = ({
   };
 
   const downloadStream = async (email: string) => {
-    // Use a hidden form to trigger the POST download without buffering in memory
-    const form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/api/download/stream';
-    form.style.display = 'none';
-
-    const addInput = (name: string, value: string) => {
-      const input = document.createElement('input');
-      input.type = 'hidden';
-      input.name = name;
-      input.value = value;
-      form.appendChild(input);
-    };
-
-    addInput('email', email);
+    // 1. PREPARE: Trigger generation or cache check
+    // This allows the UI to show a spinner while the server does the heavy lifting
+    const formData = new FormData();
+    formData.append('email', email);
+    formData.append('mode', 'prepare'); // Signal to API to just prepare
     if (isPrivate && uniqueId) {
-      addInput('collectionId', uniqueId);
-      addInput('isPrivate', 'true');
+      formData.append('collectionId', uniqueId);
+      formData.append('isPrivate', 'true');
     } else if (slug?.current) {
-      addInput('slug', slug.current);
-      addInput('isPrivate', 'false');
+      formData.append('slug', slug.current);
+      formData.append('isPrivate', 'false');
     }
 
-    document.body.appendChild(form);
-    form.submit();
+    try {
+      const res = await fetch('/api/download/stream', {
+        method: 'POST',
+        body: formData,
+      });
 
-    // Cleanup after a small delay
-    setTimeout(() => {
-      document.body.removeChild(form);
-    }, 1000);
+      if (!res.ok) {
+        showToast('Failed to prepare download. Please try again.', 'error');
+        return;
+      }
 
-    await addEmailToAudience(email);
+      // 2. DOWNLOAD: Once prepared, trigger the actual file download
+      // Since file is ready/cached, this will be instant
+      const form = document.createElement('form');
+      form.method = 'POST';
+      form.action = '/api/download/stream';
+      form.style.display = 'none';
+
+      const addInput = (name: string, value: string) => {
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = name;
+        input.value = value;
+        form.appendChild(input);
+      };
+
+      addInput('email', email);
+      // No 'mode' means download mode
+      if (isPrivate && uniqueId) {
+        addInput('collectionId', uniqueId);
+        addInput('isPrivate', 'true');
+      } else if (slug?.current) {
+        addInput('slug', slug.current);
+        addInput('isPrivate', 'false');
+      }
+
+      document.body.appendChild(form);
+      form.submit();
+
+      setTimeout(() => {
+        document.body.removeChild(form);
+      }, 1000);
+
+      await addEmailToAudience(email);
+    } catch (e) {
+      console.error(e);
+      showToast('An error occurred. Please try again.', 'error');
+    }
   };
 
   return {

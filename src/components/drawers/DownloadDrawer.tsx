@@ -69,9 +69,7 @@ const DownloadContent = ({ onClose, collection }: Props) => {
     setIsPreparingStream(true);
     await downloadStream(state.email.toLowerCase());
     // Simulate "Preparing" delay or wait for stream to start
-    setTimeout(() => {
-      setIsPreparingStream(false);
-    }, 3000);
+    setIsPreparingStream(false);
   };
 
   const handlePartDownload = async (index: number) => {
