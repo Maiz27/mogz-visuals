@@ -132,6 +132,28 @@ export const getMonthYear = (StringDate: string) => {
     .replace(' ', ', ');
 };
 
+export const createSlug = (text: string) => {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '') // Remove all non-word characters except spaces and hyphens
+    .replace(/\s+/g, '-') // Replace spaces with hyphens
+    .replace(/^-+|-+$/g, ''); // Remove leading and trailing hyphens
+};
+
+export const extractYoutubeVideoId = (url: string) => {
+  if (!url) return null;
+
+  if (url.includes('youtu.be/')) {
+    return url.split('youtu.be/')[1].split('?')[0];
+  }
+
+  if (url.includes('youtube.com')) {
+    return url.split('v=')[1].split('&')[0];
+  }
+
+  return null;
+};
+
 export const formatDateTimeForInput = (timestamp: string) => {
   try {
     if (!timestamp) {

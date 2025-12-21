@@ -44,7 +44,7 @@ const ScrollToTop = () => {
       <button
         title='Scroll To Top'
         onClick={() => scrollToTop()}
-        className={`z-30 fixed transition-all duration- scale-95 hover:scale-100 active:scale-95 ${
+        className={`cursor-pointer z-30 fixed transition-all duration- scale-95 hover:scale-100 active:scale-95 ${
           scrollLimit - scrollPosition < 100
             ? 'bottom-20'
             : 'bottom-4 md:bottom-6'

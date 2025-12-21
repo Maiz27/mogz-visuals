@@ -6,6 +6,7 @@ import { divideImagesArray } from '@/lib/utils';
 import { HERO_IMAGES } from '@/lib/types';
 import { CTALink } from '../ui/CTA/CTALink';
 import { SITE_NAME, SOCIALS } from '@/lib/Constants';
+import Link from 'next/link';
 
 export const revalidate = 60;
 
@@ -14,17 +15,43 @@ const Footer = async () => {
 
   const arrays: string[][] = divideImagesArray(data.images, 4);
 
+  const legalPages = [
+    {
+      label: 'Terms of Use',
+      href: '/terms-of-use',
+    },
+    {
+      label: 'Privacy Policy',
+      href: '/privacy-policy',
+    },
+  ];
+
   return (
     <LocomotiveScrollSection
       Tag='footer'
       id='footer'
       className='w-full mx-auto mt-20'
     >
-      <div className='w-full flex justify-between items-center px-4'>
-        <span>
-          &copy; {new Date().getFullYear().toString()} {SITE_NAME}.
-        </span>
-        <span>All Rights Reserved.</span>
+      <div className='w-full flex justify-between items-center px-4 text-sm lg:text-base'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-2 md:divide-x-2 divide-primary'>
+          <span className='pr-2'>
+            &copy; {new Date().getFullYear().toString()} {SITE_NAME}
+          </span>
+          <span>All rights reserved</span>
+        </div>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-2 md:divide-x-2 divide-primary'>
+          {legalPages.map(({ label, href }) => {
+            return (
+              <Link
+                key={label}
+                href={href}
+                className='text-primary transition-all hover:underline underline-offset-2 first:pr-2'
+              >
+                {label}
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       <Grid images={arrays} />

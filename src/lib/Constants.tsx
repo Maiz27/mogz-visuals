@@ -251,11 +251,6 @@ export const FORMS = {
 
 export const PAGE_HEADERS = [
   {
-    title: 'Visual Stories, Captured Moments',
-    paragraph:
-      'Dive into our curated gallery of collections, where each card opens a window into a unique story captured through our lens. Every project reflects our dedication to visual excellence from weddings and corporate events to personal portraits and artistic endeavors. Click on any card to delve deeper into our creative world or enter a specific collection ID to access exclusive content.',
-  },
-  {
     title: 'Lost in the Frames?',
     paragraph:
       "It looks like the page you were searching for isn't in our gallery. Don't worry, we can help guide you back to the main exhibit. Click below to return to our homepage, or if you prefer a more personal touch, reach out to us directly for assistance.",
@@ -289,6 +284,30 @@ export const METADATA: Map<string, any> = new Map([
         'Explore the gallery of Mogz Visuals, showcasing our diverse collections of professional photography and videography that capture the essence of every moment.',
       type: 'website',
       url: `${BASEURL}/gallery`,
+      image: `${BASEURL}/imgs/logo/logo.jpg`,
+      icon: '/imgs/logo/favicon.ico',
+    },
+  ],
+  [
+    'terms',
+    {
+      title: 'Terms of Use - Mogz Visuals',
+      description:
+        'Read our Terms of Use to understand the guidelines, rights, and responsibilities that govern your use of Mogz Visuals services and website.',
+      type: 'website',
+      url: `${BASEURL}/terms-of-use`,
+      image: `${BASEURL}/imgs/logo/logo.jpg`,
+      icon: '/imgs/logo/favicon.ico',
+    },
+  ],
+  [
+    'privacy',
+    {
+      title: 'Privacy Policy - Mogz Visuals',
+      description:
+        'Learn how Mogz Visuals collects, uses, and protects your personal information. Your privacy and trust are our top priorities.',
+      type: 'website',
+      url: `${BASEURL}/privacy-policy`,
       image: `${BASEURL}/imgs/logo/logo.jpg`,
       icon: '/imgs/logo/favicon.ico',
     },
@@ -336,5 +355,23 @@ export const IMAGE_CARD_ANIMATE_OPTIONS = {
   slideDown: {
     origin: '150% 100%',
     animate: 'scaleY',
+  },
+};
+
+export const PAGES = {
+  gallery: {
+    title: 'Visual Stories, Captured Moments',
+    paragraph:
+      'Dive into our curated gallery of collections, where each card opens a window into a unique story captured through our lens. Every project reflects our dedication to visual excellence from weddings and corporate events to personal portraits and artistic endeavors. Click on any card to delve deeper into our creative world or enter a specific collection ID to access exclusive content.',
+  },
+  privacy: {
+    title: 'Your Privacy, Secure & Respected',
+    description:
+      'Your privacy is important to us. We are committed to protecting the personal information you share with us. This policy explains how we collect, use, and safeguard your data when you visit our website or use our services.',
+  },
+  terms: {
+    title: 'Our Commitments, Your Rights',
+    description:
+      'Please read these terms carefully before using our website or services. By accessing or using Mogz Visuals, you agree to be bound by these terms, which govern our relationship and ensure a clear understanding of our mutual rights and responsibilities.',
   },
 };

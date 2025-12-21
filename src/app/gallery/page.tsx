@@ -3,7 +3,7 @@ import CTAButton from '@/components/ui/CTA/CTAButton';
 import CollectionGrid from '@/components/gallery/CollectionGrid';
 import GalleryActions from '@/components/gallery/GalleryActions';
 import { fetchSanityData } from '@/lib/sanity/client';
-import { PAGE_HEADERS, PAGE_SIZE } from '@/lib/Constants';
+import { PAGE_HEADERS, PAGE_SIZE, PAGES } from '@/lib/Constants';
 import { COLLECTION } from '@/lib/types';
 import { getPageMetadata } from '@/lib/utils';
 import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
@@ -16,7 +16,7 @@ export const metadata = getPageMetadata('gallery');
 const page = async (props: { searchParams?: Promise<SearchParams> }) => {
   const searchParams = await props.searchParams;
   const collections = await fetchCollections(searchParams);
-  const { title, paragraph } = PAGE_HEADERS[0];
+  const { title, paragraph } = PAGES.gallery;
 
   return (
     <main>
@@ -28,7 +28,7 @@ const page = async (props: { searchParams?: Promise<SearchParams> }) => {
               title='View Collections'
               scrollId='collections'
               style='ghost'
-              className='text-3xl'
+              className='text-3xl animate-bounce'
             >
               <HiOutlineChevronDoubleDown />
             </CTAButton>

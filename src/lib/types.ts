@@ -66,3 +66,17 @@ export type BaseFormFieldProps = {
   errors?: object;
   [x: string]: any;
 };
+
+export type RichText = Array<{
+  _type: string;
+  style: string;
+  children: Array<{
+    _type: string;
+    text: string;
+  }>;
+}>;
+
+export type TermsPrivacy = {
+  lastUpdated: string;
+  content: RichText;
+};

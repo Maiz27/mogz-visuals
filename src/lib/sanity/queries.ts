@@ -124,3 +124,11 @@ export const getDownloadGalleryById = `*[_type == "collection" && uniqueId == $i
   },
   title // Assuming title is needed for zip name
 }[0]`;
+
+export const getTermsOfUse = `*[_type == 'other'] {
+  terms
+}[0]`;
+
+export const getPrivacyPolicy = `*[_type == 'other'] {
+  privacy
+}[0]`;
