@@ -1,17 +1,19 @@
 'use client';
+
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FormEvent, useRef } from 'react';
-import Modal from '@/components/ui/Modal';
+import { FormEvent } from 'react';
 import CTAButton from '@/components/ui/CTA/CTAButton';
-import AccessCollectionForm from '../forms/AccessCollectionForm';
+import AccessCollectionForm from '@/components/forms/AccessCollectionForm';
 import useFormState from '@/lib/hooks/useFormState';
 import useVerifyAccess from '@/lib/hooks/useVerifyAccess';
 import { setCollectionAccessCookie } from '@/lib/utils';
 import { FORMS } from '@/lib/Constants';
-import { HiOutlineLockClosed } from 'react-icons/hi2';
 
-const AccessPrivateCollectionModal = () => {
-  const closeBtn = useRef<HTMLButtonElement>(null);
+type Props = {
+  onClose: () => void;
+};
+
+const AccessContent = ({ onClose }: Props) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -32,69 +34,47 @@ const AccessPrivateCollectionModal = () => {
     if (response.status === 200) {
       setCollectionAccessCookie(response.secret);
       reset();
+      onClose(); // Close drawer first
       if (id && pathname === '/private') {
         window.location.reload();
       } else {
         router.push(`/private?id=${response.id}`);
       }
-      closeBtn.current?.click();
     }
   };
 
-  const handleCancel = () => {
-    reset();
-    closeBtn.current?.click();
-  };
-
   return (
-    <Modal
-      scrollId='collection-header'
-      closeBtn={closeBtn}
-      icon={<HiOutlineLockClosed className='text-lg text-inherit' />}
-      CTA='Access Collection'
-      classNames='flex flex-col space-y-4'
-    >
-      <h3 className='w-fit text-primary text-lg lg:text-2xl font-bold tracking-wider'>
-        Access Collection
-      </h3>
-      <span className='lg:tracking-wide text-left'>
+    <div className='flex flex-col space-y-6 pt-4'>
+      <p className='text-copy-light'>
         Enter the collection ID and password to unlock and view this exclusive
-        collection. This ensures secure access to private content, allowing you
-        to explore our high-quality visuals with confidence.
-      </span>
+        collection.
+      </p>
 
       <AccessCollectionForm
         onSubmit={handleSubmit}
         state={state}
         errors={errors}
         handleChange={handleChange}
-        className='flex flex-col justify-center space-y-4'
+        className='flex flex-col space-y-4'
       >
         {response && (
           <span
-            className={`pt-4 ${
-              response.status === 200 ? 'text-green-500' : 'text-red-600'
+            className={`pt-2 text-sm ${
+              response.status === 200 ? 'text-green-500' : 'text-red-500'
             }`}
           >
             {response.message}
           </span>
         )}
 
-        <div className='pt-4 flex justify-end gap-2 md:gap-4'>
+        <div className='pt-6 flex justify-end gap-2 md:gap-4'>
           <CTAButton type='submit' loading={loading}>
             Access Collection
           </CTAButton>
-          <CTAButton
-            loading={loading}
-            style='ghost'
-            onClick={() => handleCancel()}
-          >
-            Cancel
-          </CTAButton>
         </div>
       </AccessCollectionForm>
-    </Modal>
+    </div>
   );
 };
 
-export default AccessPrivateCollectionModal;
+export default AccessContent;

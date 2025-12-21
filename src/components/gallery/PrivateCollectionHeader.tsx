@@ -5,7 +5,6 @@ import { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 import Heading from '../heading/Heading';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import CTAButton from '../ui/CTA/CTAButton';
-import GalleryOptions from './GalleryOptions';
 import { COLLECTION } from '@/lib/types';
 import { getStringDate } from '@/lib/utils';
 import {
@@ -13,8 +12,9 @@ import {
   HiOutlineCalendarDays,
   HiOutlineChevronDoubleDown,
 } from 'react-icons/hi2';
-import AccessPrivateCollectionModal from '../modals/AccessPrivateCollectionModal';
 import { decryptCookie } from '@/lib/hooks/useAutoDeleteCookie';
+import { useDrawer } from '@/lib/context/DrawerContext';
+import AccessContent from '../drawers/AccessDrawer';
 
 type Props = {
   collection: COLLECTION;
@@ -24,6 +24,7 @@ type Props = {
 const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
   const { title, mainImage, date } = collection;
   const [decrypted, setDecrypted] = useState<any | null>(null);
+  const { openDrawer } = useDrawer();
 
   useEffect(() => {
     if (cookie) {
@@ -41,65 +42,90 @@ const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
     decrypted.uniqueId === collection.uniqueId &&
     decrypted.password === collection.password;
 
+  // Auto-open access drawer if not authenticated?
+  // Maybe better to have a button.
+  // The original code showed `AccessPrivateCollectionModal` inline (it renders a button/modal wrapped).
+  // Actually, the original code rendered `<AccessPrivateCollectionModal />` directly inside the layout if not valid.
+  // `AccessPrivateCollectionModal` renders a `Modal` which renders a `CTAButton`.
+  // So replacing it with `AccessDrawer` which is hidden by default means we need a trigger button.
+
   return (
-    <LocomotiveScrollSection
-      id='collection-header'
-      className='relative h-full w-full'
-    >
-      <div className='w-full h-screen relative after:content-[""] after:absolute after:inset-0 after:bg-linear-to-b after:from-transparent after:via-background/50 after:to-background overflow-hidden'>
-        <Image
-          src={mainImage}
-          width={1080}
-          height={720}
-          alt={title}
-          title={`[MOGZ]-${title}`}
-          loading='eager'
-          className='w-full h-full object-cover object-center'
-          priority={true}
-        />
-      </div>
-      <div className='absolute inset-0 grid place-items-center'>
-        <div className='flex flex-col items-center'>
-          <div className='flex flex-col items-center gap-1 mb-4'>
-            <Heading
-              Tag='h1'
-              text={title}
-              color='copy'
-              className='2xl:text-6xl mb-0 text-center'
-            />
-
-            <div className='md:text-lg gap-4 flex items-center'>
-              <div className='flex items-center gap-1'>
-                <HiOutlineLockClosed />
-                <span>Private</span>
-              </div>
-
-              <time className='flex items-center gap-1'>
-                <HiOutlineCalendarDays />
-                {getStringDate(date)}
-              </time>
-            </div>
-          </div>
-
-          {isValidCookie ? (
-            <GalleryOptions collection={collection} />
-          ) : (
-            <AccessPrivateCollectionModal />
-          )}
+    <>
+      <LocomotiveScrollSection
+        id='collection-header'
+        className='relative h-full w-full'
+      >
+        <div className='w-full h-screen relative after:content-[""] after:absolute after:inset-0 after:bg-linear-to-b after:from-transparent after:via-background/50 after:to-background overflow-hidden'>
+          <Image
+            src={mainImage}
+            width={1080}
+            height={720}
+            alt={title}
+            title={`[MOGZ]-${title}`}
+            loading='eager'
+            className='w-full h-full object-cover object-center'
+            priority={true}
+          />
         </div>
-      </div>
 
-      {/* <div className='absolute left-1/2 -translate-x-1/2 bottom-8'>
-        <CTAButton
-          title='View Collection'
-          scrollId='gallery'
-          style='ghost'
-          className='text-3xl'
-        >
-          <HiOutlineChevronDoubleDown />
-        </CTAButton>
-      </div> */}
-    </LocomotiveScrollSection>
+        <div className='absolute inset-0 grid place-items-center z-10 pointer-events-none'>
+          <div className='flex flex-col items-center pointer-events-auto'>
+            <div className='flex flex-col items-center gap-1 mb-4'>
+              <Heading
+                Tag='h1'
+                text={title}
+                color='copy'
+                className='2xl:text-6xl mb-0 text-center'
+              />
+
+              <div className='md:text-lg gap-4 flex items-center justify-center text-copy-light'>
+                <div className='flex items-center gap-1'>
+                  <HiOutlineLockClosed />
+                  <span>Private</span>
+                </div>
+
+                <time className='flex items-center gap-1'>
+                  <HiOutlineCalendarDays />
+                  {getStringDate(date)}
+                </time>
+                {isValidCookie && collection.imageCount > 0 && (
+                  <span className='text-primary font-bold tracking-wider'>
+                    {collection.imageCount} Items
+                  </span>
+                )}
+              </div>
+            </div>
+
+            {!isValidCookie && (
+              <CTAButton
+                onClick={() =>
+                  openDrawer(
+                    <AccessContent onClose={() => openDrawer(null)} />,
+                    'Access Collection'
+                  )
+                }
+              >
+                Unlock Collection
+              </CTAButton>
+            )}
+          </div>
+        </div>
+
+        {/* Scroll Down */}
+        {isValidCookie && (
+          <div className='absolute left-1/2 -translate-x-1/2 bottom-8 z-20'>
+            <CTAButton
+              title='View Collection'
+              scrollId='gallery'
+              style='ghost'
+              className='text-3xl animate-bounce'
+            >
+              <HiOutlineChevronDoubleDown />
+            </CTAButton>
+          </div>
+        )}
+      </LocomotiveScrollSection>
+    </>
   );
 };
 

@@ -40,6 +40,7 @@ export const getPrivateCollectionByID = `*[_type == "collection" && uniqueId == 
   service,
   date,
   password,
+  "imageCount": count(gallery),
 }[0]`;
 
 export const getPrivateCollectionGallery = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
@@ -106,4 +107,20 @@ export const getPrivateCollectionWithInitialImages = `*[_type == "collection" &&
 export const getPrivateCollectionInitialGallery = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
   "imageCount": count(gallery),
   "gallery": gallery[0...20].asset->url,
+}[0]`;
+
+export const getDownloadGalleryBySlug = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
+  "gallery": gallery[].asset->{
+    "url": url,
+    "size": size
+  },
+  title
+}[0]`;
+
+export const getDownloadGalleryById = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
+  "gallery": gallery[].asset->{
+    "url": url,
+    "size": size
+  },
+  title // Assuming title is needed for zip name
 }[0]`;

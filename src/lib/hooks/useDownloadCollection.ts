@@ -145,7 +145,10 @@ const useDownloadCollection = ({
         const images: string[] = await fetchSanityData(segmentQuery, params);
 
         await _zipAndSave(images, segmentIndex);
-        showToast(`Part ${segmentIndex + 1} downloaded successfully!`, 'success');
+        showToast(
+          `Part ${segmentIndex + 1} downloaded successfully!`,
+          'success'
+        );
       } catch (err: any) {
         console.error(err);
         showToast(
@@ -182,10 +185,7 @@ const useDownloadCollection = ({
           const params = isPrivate
             ? { id: uniqueId, start: segment.start, end: segment.end }
             : { slug: slug.current, start: segment.start, end: segment.end };
-          const images: string[] = await fetchSanityData(
-            segmentQuery,
-            params
-          );
+          const images: string[] = await fetchSanityData(segmentQuery, params);
           await _zipAndSave(images, i);
           if (i < segments.length - 1) {
             // Advance only if there are more segments to download
@@ -206,6 +206,41 @@ const useDownloadCollection = ({
     }, 0);
   };
 
+  const downloadStream = async (email: string) => {
+    // Use a hidden form to trigger the POST download without buffering in memory
+    const form = document.createElement('form');
+    form.method = 'POST';
+    form.action = '/api/download/stream';
+    form.style.display = 'none';
+
+    const addInput = (name: string, value: string) => {
+      const input = document.createElement('input');
+      input.type = 'hidden';
+      input.name = name;
+      input.value = value;
+      form.appendChild(input);
+    };
+
+    addInput('email', email);
+    if (isPrivate && uniqueId) {
+      addInput('collectionId', uniqueId);
+      addInput('isPrivate', 'true');
+    } else if (slug?.current) {
+      addInput('slug', slug.current);
+      addInput('isPrivate', 'false');
+    }
+
+    document.body.appendChild(form);
+    form.submit();
+
+    // Cleanup after a small delay
+    setTimeout(() => {
+      document.body.removeChild(form);
+    }, 1000);
+
+    await addEmailToAudience(email);
+  };
+
   return {
     loading,
     segments,
@@ -214,6 +249,7 @@ const useDownloadCollection = ({
     total,
     downloadChunk,
     downloadAllChunks,
+    downloadStream,
   };
 };
 

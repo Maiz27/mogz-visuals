@@ -10,6 +10,11 @@ import { EMPTY_STATE } from '@/lib/Constants';
 import { getRandomInt } from '@/lib/utils';
 import { COLLECTION } from '@/lib/types';
 import { Skeleton } from '@/components/ui/Skeleton';
+import CTAButton from '../ui/CTA/CTAButton';
+import { HiOutlineArrowDownTray, HiOutlineShare } from 'react-icons/hi2';
+import { useDrawer } from '@/lib/context/DrawerContext';
+import DownloadContent from '../drawers/DownloadDrawer';
+import ShareContent from '../drawers/ShareDrawer';
 
 // import styles
 import 'lightgallery/css/lightgallery.css';
@@ -36,6 +41,8 @@ const Gallery = ({ collection }: Props) => {
 
   const isEmpty = !images || images?.length <= 0;
   const { collection: empty } = EMPTY_STATE;
+  const { isPrivate: isCollectionPrivate } = collection;
+  const { openDrawer } = useDrawer();
 
   const [aspectRatios, setAspectRatios] = useState<number[]>([]);
 
@@ -53,9 +60,51 @@ const Gallery = ({ collection }: Props) => {
       id='gallery'
       className='min-h-screen mb-40 lg:mb-64 2xl:mb-80 mx-4 md:mx-8'
     >
-      <div className='flex justify-between items-center m-2 text-lg lg:text-xl'>
-        <span>{title}</span>
-        <span className='text-primary'>{imageCount ?? 0} Items</span>
+      <div className='flex justify-between items-center m-2 text-lg lg:text-xl border-b border-white/10 pb-4 mb-4'>
+        <div className='flex items-center gap-4'>
+          <span className='font-bold tracking-wide text-primary'>
+            {imageCount ?? 0} Items
+          </span>
+          <div className='h-4 w-[1px] bg-white/20'></div>
+          <span>{title}</span>
+        </div>
+
+        <div className='flex items-center gap-2'>
+          <CTAButton
+            onClick={() =>
+              openDrawer(
+                <DownloadContent
+                  collection={collection}
+                  onClose={() => openDrawer(null)}
+                />,
+                'Download Collection'
+              )
+            }
+            style='ghost'
+            className='p-2 hover:text-primary transition-colors text-copy'
+            title='Download Collection'
+          >
+            <HiOutlineArrowDownTray className='text-2xl' />
+          </CTAButton>
+          {!isCollectionPrivate && (
+            <CTAButton
+              onClick={() =>
+                openDrawer(
+                  <ShareContent
+                    collection={collection}
+                    onClose={() => openDrawer(null)}
+                  />,
+                  `Share ${collection.title}`
+                )
+              }
+              style='ghost'
+              className='p-2 hover:text-primary transition-colors text-copy'
+              title='Share Collection'
+            >
+              <HiOutlineShare className='text-2xl' />
+            </CTAButton>
+          )}
+        </div>
       </div>
 
       {isEmpty ? (
