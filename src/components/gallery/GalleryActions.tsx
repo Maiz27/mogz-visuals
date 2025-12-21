@@ -7,14 +7,14 @@ import SearchContent from '../drawers/SearchDrawer';
 import AccessContent from '../drawers/AccessDrawer';
 
 const GalleryActions = () => {
-  const { openDrawer } = useDrawer();
+  const { openDrawer, closeDrawer } = useDrawer();
 
   return (
     <div className='flex flex-col md:flex-row justify-center gap-4'>
       <CTAButton
         onClick={() =>
           openDrawer(
-            <AccessContent onClose={() => openDrawer(null)} />,
+            <AccessContent onClose={closeDrawer} />,
             'Access Private Collection'
           )
         }
@@ -27,7 +27,7 @@ const GalleryActions = () => {
       <CTAButton
         onClick={() =>
           openDrawer(
-            <SearchContent onClose={() => openDrawer(null)} />,
+            <SearchContent onClose={closeDrawer} />,
             'Find Your Collection'
           )
         }

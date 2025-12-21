@@ -42,7 +42,7 @@ const Gallery = ({ collection }: Props) => {
   const isEmpty = !images || images?.length <= 0;
   const { collection: empty } = EMPTY_STATE;
   const { isPrivate: isCollectionPrivate } = collection;
-  const { openDrawer } = useDrawer();
+  const { openDrawer, closeDrawer } = useDrawer();
 
   const [aspectRatios, setAspectRatios] = useState<number[]>([]);
 
@@ -75,7 +75,7 @@ const Gallery = ({ collection }: Props) => {
               openDrawer(
                 <DownloadContent
                   collection={collection}
-                  onClose={() => openDrawer(null)}
+                  onClose={closeDrawer}
                 />,
                 `Download ${collection.title}`
               )
@@ -91,7 +91,7 @@ const Gallery = ({ collection }: Props) => {
                 openDrawer(
                   <ShareContent
                     collection={collection}
-                    onClose={() => openDrawer(null)}
+                    onClose={closeDrawer}
                   />,
                   `Share ${collection.title}`
                 )

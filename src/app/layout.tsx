@@ -32,7 +32,7 @@ export default function RootLayout({
           <ScrollProvider>
             <ToastProvider>
               <DrawerProvider>
-                <div data-scroll-container>
+                <div data-scroll-container className='relative'>
                   <Header />
                   {children}
                   <GlobalDrawer />

@@ -5,36 +5,53 @@ import {
   getDownloadGalleryBySlug,
   getDownloadGalleryById,
 } from '@/lib/sanity/queries';
-import { PassThrough } from 'stream';
+import fs from 'fs';
+import path from 'path';
+import os from 'os';
 
-// Helper to fetch image as a stream
-async function fetchImageStream(url: string) {
-  const response = await fetch(url);
-  if (!response.ok) throw new Error(`Failed to fetch ${url}`);
-  if (!response.body) throw new Error(`No body for ${url}`);
-  // response.body is a ReadableStream (web stream), we need to ensure it's compatible
-  // For Node.js environments (Next.js server), fetch returns a compatible stream or we convert it.
-  // Actually, archiver expects Node.js Readable streams. response.body is a Web ReadableStream.
-  // We need to convert it.
-  // @ts-ignore - response.body is iterable in recent Node versions or using specific fetch implementation
-  const reader = response.body.getReader();
+/**
+ * 🧹 Maintenance: Clean up old zip files to free up disk space
+ */
+const cleanupOldFiles = (dir: string) => {
+  try {
+    const files = fs.readdirSync(dir);
+    const now = Date.now();
+    for (const file of files) {
+      if (!file.startsWith('mogz_')) continue; // Only touch our files
 
-  // Create a Node.js Readable stream from the Web Stream
-  const nodeStream = new PassThrough();
-  const pump = async () => {
-    try {
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-        nodeStream.write(value);
+      const filePath = path.join(dir, file);
+      const stat = fs.statSync(filePath);
+      // Delete files older than 1 hour (3600000 ms)
+      if (now - stat.mtimeMs > 3600000) {
+        fs.unlinkSync(filePath);
       }
-      nodeStream.end();
-    } catch (err) {
-      nodeStream.emit('error', err);
     }
-  };
-  pump();
-  return nodeStream;
+  } catch (e) {
+    console.warn('[Cleanup] Warning:', e);
+  }
+};
+
+/**
+ * Manual Iterator to Stream converter
+ * This is more robust than Readable.toWeb in some Next.js environments
+ */
+function iteratorToStream(iterator: any) {
+  return new ReadableStream({
+    async pull(controller) {
+      const { value, done } = await iterator.next();
+      if (done) {
+        controller.close();
+      } else {
+        controller.enqueue(value);
+      }
+    },
+  });
+}
+
+async function* nodeStreamToIterator(stream: fs.ReadStream) {
+  for await (const chunk of stream) {
+    yield chunk;
+  }
 }
 
 export async function POST(req: NextRequest) {
@@ -45,23 +62,23 @@ export async function POST(req: NextRequest) {
     const email = formData.get('email') as string;
     const isPrivate = formData.get('isPrivate') === 'true';
 
-    if (!email) {
-      return NextResponse.json(
-        { message: 'Email is required' },
-        { status: 400 }
-      );
-    }
-
+    // ... Validation Logic ...
+    if (!email)
+      return NextResponse.json({ message: 'Email required' }, { status: 400 });
     if ((isPrivate && !collectionId) || (!isPrivate && !slug)) {
       return NextResponse.json(
-        { message: 'Missing collection identifier' },
+        { message: 'Missing identifier' },
         { status: 400 }
       );
     }
 
-    // 1. Fetch Image URLs and Sizes from Sanity
-    let items: { url: string; size: number }[] = [];
+    // 1. Fetch Metadata (Title) - ALWAYS fetch to ensure correct naming!
+    // We do this lightweight fetch even if we might hit cache later.
     let title = 'Collection';
+    let items: { url: string; size: number }[] = [];
+
+    // Sanitize slug/id
+    const safeId = isPrivate ? collectionId : slug;
 
     if (isPrivate) {
       const data = await fetchSanityData(getDownloadGalleryById, {
@@ -69,7 +86,6 @@ export async function POST(req: NextRequest) {
       });
       if (data) {
         items = data.gallery || [];
-        // Use ID or separate title fetch if needed, but title is in query now
         title = data.title || 'Collection';
       }
     } else {
@@ -81,123 +97,138 @@ export async function POST(req: NextRequest) {
     }
 
     if (!items || items.length === 0) {
-      return NextResponse.json({ message: 'No images found' }, { status: 404 });
+      return NextResponse.json(
+        { message: 'Collection not found or empty' },
+        { status: 404 }
+      );
     }
 
-    // 2. Calculate Content-Length (Approximate)
-    // Formula for STORE (level 0):
-    // Total = Sum(file_size) + Sum(LocalHeader) + Sum(DataDescriptor) + Sum(CentralDir) + EOCD
-    // LocalHeader = 30 + filename_len
-    // DataDescriptor = 16 (optional, but archiver usually adds it for streams)
-    // CentralDir = 46 + filename_len
-    // EOCD = 22
+    // 2. Determine Cache Key (Filename)
+    // Use a stable filename so we can reuse the file if it exists!
+    const cacheKey = isPrivate ? `priv_${collectionId}` : `pub_${slug}`;
+    const safeCacheKey = cacheKey.replace(/[^a-z0-9]/gi, '_').toLowerCase();
 
-    // We need to determine filenames first to get lengths
-    const files = items.map((item) => {
-      const filename = item.url.split('/').pop() || `image-${Date.now()}.jpg`;
-      return { ...item, filename, filenameLen: Buffer.byteLength(filename) };
-    });
+    const tempDir = os.tmpdir();
+    // NO Date.now() here -> allows caching
+    const tempFilename = `mogz_${safeCacheKey}.zip`;
+    const tempFilePath = path.join(tempDir, tempFilename);
 
-    const totalContentSize = files.reduce((acc, item) => acc + item.size, 0);
-    const totalFiles = files.length;
+    console.log(`[Stream] Request for: ${title} (${tempFilename})`);
 
-    // Overhead calculation
-    const localHeaderOverhead = files.reduce(
-      (acc, item) => acc + 30 + item.filenameLen,
-      0
-    );
-    const dataDescriptorOverhead = totalFiles * 16;
-    const centralDirOverhead = files.reduce(
-      (acc, item) => acc + 46 + item.filenameLen,
-      0
-    );
-    const eocdOverhead = 22;
+    // 3. Check Cache (Hit or Miss?)
+    let useCache = false;
+    try {
+      if (fs.existsSync(tempFilePath)) {
+        const stats = fs.statSync(tempFilePath);
+        const age = Date.now() - stats.mtimeMs;
+        // Check if file is valid (not empty and < 1 hour old)
+        if (stats.size > 0 && age < 3600000) {
+          console.log(
+            `[Cache] HIT: Available (${(stats.size / 1024 / 1024).toFixed(
+              2
+            )} MB)`
+          );
+          useCache = true;
+        }
+      }
+    } catch (e) {
+      console.warn('[Cache] Check failed, forcing regeneration.');
+    }
 
-    const estimatedSize =
-      totalContentSize +
-      localHeaderOverhead +
-      dataDescriptorOverhead +
-      centralDirOverhead +
-      eocdOverhead;
+    // 4. Generate if needed (Blocking Operation)
+    if (!useCache) {
+      cleanupOldFiles(tempDir); // Run cleanup before new generation
+      console.log(`[Disk] Generating new ZIP: ${tempFilePath}`);
 
-    console.log(
-      `[Stream] Estimated size: ${estimatedSize} bytes for ${totalFiles} files.`
-    );
+      const output = fs.createWriteStream(tempFilePath);
+      const archive = archiver('zip', {
+        zlib: { level: 0 }, // Store only
+        forceZip64: false,
+      });
 
-    // 3. Set headers for Download
-    const zipName = `[MOGZ] ${title
+      // Wrap generation in a Promise we can await
+      const generationPromise = new Promise<void>((resolve, reject) => {
+        output.on('close', resolve);
+        output.on('error', (err) =>
+          reject(new Error(`Write Error: ${err.message}`))
+        );
+        archive.on('error', (err) =>
+          reject(new Error(`Archive Error: ${err.message}`))
+        );
+        archive.pipe(output);
+      });
+
+      // Start Async Processing
+      (async () => {
+        try {
+          const BATCH_SIZE = 10;
+          for (let i = 0; i < items.length; i += BATCH_SIZE) {
+            const batch = items.slice(i, i + BATCH_SIZE);
+            const buffers = await Promise.all(
+              batch.map(async (img: any, idx) => {
+                try {
+                  const extension = img.url.split('.').pop();
+                  // Sanitize filename inside ZIP
+                  const cleanName = title
+                    .replace(/[^a-z0-9]/gi, '_')
+                    .toLowerCase();
+                  const filename = `${cleanName}-${i + idx + 1}.${extension}`;
+
+                  const res = await fetch(img.url);
+                  if (!res.ok) return null;
+                  const ab = await res.arrayBuffer();
+                  return { name: filename, buffer: Buffer.from(ab) };
+                } catch {
+                  return null;
+                }
+              })
+            );
+
+            for (const file of buffers) {
+              if (file) archive.append(file.buffer, { name: file.name });
+            }
+          }
+          await archive.finalize();
+        } catch (err) {
+          console.error('[Stream] Archive Gen Failed:', err);
+          archive.abort();
+          // The error listener will catch it
+        }
+      })();
+
+      // WAIT for generation to complete!
+      // This blocks the HTTP response until the file exists on disk.
+      // This fixes the "Premature Download Started" UX issue.
+      // Behavior: Browser waits (Spinner) -> Server finishes -> Browser starts download.
+      await generationPromise;
+    }
+
+    // 5. Serve the File
+    const stats = fs.statSync(tempFilePath);
+    const fileStream = fs.createReadStream(tempFilePath);
+
+    // Correct Filename using the Fetched Title
+    const downloadName = `[MOGZ] ${title
       .replace(/[^a-z0-9]/gi, '_')
       .toLowerCase()}.zip`;
 
-    // We need to return a Stream. Next.js App Router route handlers can return a Response with a stream.
-    const responseStream = new PassThrough();
+    console.log(`[Stream] Serving: ${downloadName}`);
 
-    // 4. Setup Archiver
-    const archive = archiver('zip', {
-      zlib: { level: 0 }, // Store only, for speed and CPU saving on VPS
-      forceZip64: false, // Force standard zip to match our size calc if possible (limit 4GB)
-    });
+    // Robust Stream Conversion
+    // @ts-ignore - The iterator method is universally compatible with Next.js Response
+    const stream = iteratorToStream(nodeStreamToIterator(fileStream));
 
-    archive.on('error', (err: any) => {
-      console.error('Archiver error:', err);
-      // Can't really change the response status now since headers are sent
-    });
-
-    // Pipe archive to response stream
-    archive.pipe(responseStream);
-
-    // 4. Append images to archive
-    // We process them asynchronously but we don't want to await all of them at once to memory.
-    // However, archiver.append handles promises/streams nicely.
-    // But iterating 800 images and creating 800 fetch streams at once might blow up.
-    // We should do it in chunks or sequentially.
-
-    (async () => {
-      try {
-        console.log(
-          `[Stream] Starting processing ${files.length} images for ${zipName}`
-        );
-        for (const file of files) {
-          try {
-            // Skip if url is invalid
-            if (!file.url) continue;
-
-            console.log(`[Stream] Fetching ${file.url}`);
-            const response = await fetch(file.url);
-
-            if (response.ok) {
-              const arrayBuffer = await response.arrayBuffer();
-              const buffer = Buffer.from(arrayBuffer);
-              archive.append(buffer, { name: file.filename });
-            } else {
-              console.error(
-                `[Stream] Failed to fetch ${file.url}: ${response.statusText}`
-              );
-            }
-          } catch (e) {
-            console.error(`[Stream] Failed to append ${file.url}:`, e);
-          }
-        }
-        console.log('[Stream] Finalizing archive');
-        await archive.finalize();
-      } catch (err) {
-        console.error('[Stream] Generation error:', err);
-        archive.abort();
-      }
-    })();
-
-    // 5. Return Response
-    // We return the response immediately with the stream.
-    // @ts-ignore - Next.js Response constructor accepts text, blob, buffer, stream... Types might be strict.
-    return new Response(responseStream as any, {
+    return new NextResponse(stream as any, {
       headers: {
         'Content-Type': 'application/zip',
-        'Content-Disposition': `attachment; filename="${zipName}"`,
-        'Content-Length': estimatedSize.toString(),
+        'Content-Disposition': `attachment; filename="${downloadName}"`,
+        'Content-Length': stats.size.toString(), // We have exact size now!
+        'Accept-Ranges': 'bytes', // Resume support
+        'Cache-Control': 'no-cache',
       },
     });
-  } catch (error) {
-    console.error(error);
+  } catch (error: any) {
+    console.error('[API] Download Error:', error);
     return NextResponse.json(
       { message: 'Internal Server Error' },
       { status: 500 }

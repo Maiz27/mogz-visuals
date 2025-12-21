@@ -25,7 +25,7 @@ type Props = {
 const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
   const { title, mainImage, date } = collection;
   const [decrypted, setDecrypted] = useState<any | null>(null);
-  const { openDrawer } = useDrawer();
+  const { openDrawer, closeDrawer } = useDrawer();
 
   useEffect(() => {
     if (cookie) {
@@ -90,7 +90,7 @@ const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
                 onClick={() =>
                   openDrawer(
                     <AccessContent
-                      onClose={() => openDrawer(null)}
+                      onClose={closeDrawer}
                       collection={collection}
                     />,
                     'Access Collection'

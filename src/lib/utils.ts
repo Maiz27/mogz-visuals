@@ -79,7 +79,7 @@ export const getStringDate = (StringDate: string, isRelative = false) => {
     }
   } else {
     // By default, display the date in the "weekday, month day, year" format
-    return inputDate.toLocaleString(undefined, {
+    return inputDate.toLocaleString('en-US', {
       weekday: 'long',
       year: 'numeric',
       month: 'long',

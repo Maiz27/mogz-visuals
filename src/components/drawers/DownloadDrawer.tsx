@@ -168,9 +168,7 @@ const DownloadContent = ({ onClose, collection }: Props) => {
           {isPreparingStream ? (
             <>
               <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
-              <p className='text-lg font-semibold'>
-                Preparing your download...
-              </p>
+              <p className='text-lg font-semibold'>Processing Request...</p>
               <p className='text-sm text-gray-500'>
                 This might take a few moments for large collections.
               </p>
@@ -223,13 +221,6 @@ const DownloadContent = ({ onClose, collection }: Props) => {
               </span>
             </div>
           )}
-
-          <button
-            onClick={() => setStep('choice')}
-            className='text-gray-500 hover:text-copy text-sm p-2 mt-4'
-          >
-            Back to options
-          </button>
         </div>
       )}
     </div>

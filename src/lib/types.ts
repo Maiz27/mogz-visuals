@@ -44,6 +44,7 @@ export type Tag =
   | 'div'
   | 'section'
   | 'article'
+  | 'header'
   | 'ul'
   | 'a'
   | 'form'
