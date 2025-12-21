@@ -37,6 +37,20 @@ export type VERIFY_ACCESS_RESPONSE_BODY = {
   secret: string;
 };
 
+export type SOCIAL_LINK = {
+  provider: 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'tiktok';
+  url: {
+    href: string;
+  };
+};
+
+export type TEAM_MEMBER = {
+  name: string;
+  title: string;
+  image: string;
+  socials?: SOCIAL_LINK[];
+};
+
 export type TOAST_STATUS = 'success' | 'error' | 'info' | 'warning';
 
 export type Tag =

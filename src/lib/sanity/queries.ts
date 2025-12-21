@@ -132,3 +132,14 @@ export const getTermsOfUse = `*[_type == 'other'] {
 export const getPrivacyPolicy = `*[_type == 'other'] {
   privacy
 }[0]`;
+
+export const getTeamImages = `*[_type == "team"]{
+  "image": image.asset->url
+}.image`;
+
+export const getTeamMembers = `*[_type == "team"]{
+  name,
+  title,
+  "image": image.asset->url,
+  socials
+}`;

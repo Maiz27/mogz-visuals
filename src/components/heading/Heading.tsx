@@ -13,7 +13,7 @@ type Props = {
 const Heading = ({ Tag = 'h2', text, color = 'primary', className }: Props) => {
   return (
     <Tag
-      className={`text-${color} text-4xl 2xl:text-5xl font-bold mb-4 tracking-wider ${className}`}
+      className={`text-${color} text-4xl 2xl:text-5xl font-bold mb-4 tracking-wider leading-tight ${className}`}
     >
       {text}
     </Tag>
