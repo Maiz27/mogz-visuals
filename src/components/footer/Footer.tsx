@@ -38,7 +38,7 @@ const Footer = async () => {
                 external={true}
                 href={url}
                 sm={true}
-                className='text-xl xl:text-2xl'
+                className='text-xl xl:text-2xl lg:px-1'
               >
                 {icon}
               </CTALink>
