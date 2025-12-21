@@ -36,6 +36,11 @@ export const ROUTES = [
   { name: 'Gallery', href: '/gallery' },
 ];
 
+export const LEGAL_ROUTES = [
+  { name: 'Terms of Use', href: '/terms-of-use' },
+  { name: 'Privacy Policy', href: '/privacy-policy' },
+];
+
 export const COLLECTION_SORT_OPTIONS = ['Newest', 'Oldest'];
 
 export const SOCIALS = [

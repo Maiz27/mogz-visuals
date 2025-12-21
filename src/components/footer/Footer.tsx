@@ -1,12 +1,12 @@
+import Link from 'next/link';
 import Image from 'next/image';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
+import { CTALink } from '../ui/CTA/CTALink';
 import { fetchSanityData } from '@/lib/sanity/client';
 import { getFooterImages } from '@/lib/sanity/queries';
 import { divideImagesArray } from '@/lib/utils';
+import { LEGAL_ROUTES, SITE_NAME, SOCIALS } from '@/lib/Constants';
 import { HERO_IMAGES } from '@/lib/types';
-import { CTALink } from '../ui/CTA/CTALink';
-import { SITE_NAME, SOCIALS } from '@/lib/Constants';
-import Link from 'next/link';
 
 export const revalidate = 60;
 
@@ -14,17 +14,6 @@ const Footer = async () => {
   const data: HERO_IMAGES = await fetchSanityData(getFooterImages);
 
   const arrays: string[][] = divideImagesArray(data.images, 4);
-
-  const legalPages = [
-    {
-      label: 'Terms of Use',
-      href: '/terms-of-use',
-    },
-    {
-      label: 'Privacy Policy',
-      href: '/privacy-policy',
-    },
-  ];
 
   return (
     <LocomotiveScrollSection
@@ -40,14 +29,14 @@ const Footer = async () => {
           <span>All rights reserved</span>
         </div>
         <div className='grid grid-cols-1 md:grid-cols-2 gap-2 md:divide-x-2 divide-primary'>
-          {legalPages.map(({ label, href }) => {
+          {LEGAL_ROUTES.map(({ name, href }) => {
             return (
               <Link
-                key={label}
+                key={name}
                 href={href}
                 className='transition-colors tracking-wider lg:tracking-widest ml-2 relative group hover:text-primary first:pr-2'
               >
-                {label}
+                {name}
                 <span className='absolute bottom-0 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
               </Link>
             );
