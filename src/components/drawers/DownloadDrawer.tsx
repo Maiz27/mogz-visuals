@@ -8,7 +8,12 @@ import useDownloadCollection from '@/lib/hooks/useDownloadCollection';
 import { COLLECTION } from '@/lib/types';
 import { FORMS } from '@/lib/Constants';
 import Progress from '@/components/ui/Progress';
-import { HiOutlineArrowDownTray, HiOutlineCheck } from 'react-icons/hi2';
+import {
+  HiChevronDoubleLeft,
+  HiOutlineArrowDownTray,
+  HiOutlineCheck,
+} from 'react-icons/hi2';
+import CollectionDrawerHeader from '../gallery/CollectionDrawerHeader';
 
 type Props = {
   onClose: () => void;
@@ -20,6 +25,22 @@ type Step = 'email' | 'choice' | 'download_parts' | 'download_stream';
 const DownloadContent = ({ onClose, collection }: Props) => {
   const [step, setStep] = useState<Step>('email');
   const [isPreparingStream, setIsPreparingStream] = useState(false);
+
+  const stepNumber = step === 'email' ? 1 : step === 'choice' ? 2 : 3;
+
+  const handleBack = () => {
+    switch (step) {
+      case 'email':
+        break;
+      case 'choice':
+        setStep('email');
+        break;
+      case 'download_parts':
+      case 'download_stream':
+        setStep('choice');
+        break;
+    }
+  };
 
   const {
     loading,
@@ -61,63 +82,83 @@ const DownloadContent = ({ onClose, collection }: Props) => {
     total <= 1 ? progress : ((current - 1) / total) * 100 + progress / total;
 
   return (
-    <div className='flex flex-col h-full space-y-6'>
+    <div className='flex flex-col h-full gap-4'>
+      <CollectionDrawerHeader collection={collection} />
+
+      {/* Step Navigation */}
+      <div className='flex justify-between items-center text-gray-500'>
+        <button
+          onClick={handleBack}
+          className='text-xl hover:text-primary transition-colors hover:cursor-pointer disabled:cursor-not-allowed'
+          aria-label='Go back'
+          disabled={step === 'email'}
+        >
+          <HiChevronDoubleLeft />
+        </button>
+
+        <span className='text-sm font-medium'>Step {stepNumber} of 3</span>
+      </div>
+
       {/* Step 1: Email */}
       {step === 'email' && (
-        <form onSubmit={handleEmailSubmit} className='flex flex-col space-y-6'>
-          <p className='text-copy-light'>
-            Please enter your email address to access and download this
-            exclusive collection.
-          </p>
-          {fields.map((field) => {
-            if (field.name !== 'email') return null;
-            return (
-              <Input
-                key={field.name}
-                state={state}
-                errors={errors}
-                onChange={handleChange}
-                {...field}
-              />
-            );
-          })}
+        <form
+          onSubmit={handleEmailSubmit}
+          className='h-full flex flex-col justify-between'
+        >
+          <div className='space-y-4'>
+            <p className='!text-lg'>
+              Please enter your email address to access and download this
+              exclusive collection.
+            </p>
+            {fields.map((field) => {
+              if (field.name !== 'email') return null;
+              return (
+                <Input
+                  key={field.name}
+                  state={state}
+                  errors={errors}
+                  onChange={handleChange}
+                  {...field}
+                />
+              );
+            })}
+          </div>
           <CTAButton type='submit'>Next</CTAButton>
         </form>
       )}
 
       {/* Step 2: Choice */}
       {step === 'choice' && (
-        <div className='flex flex-col space-y-4'>
+        <div className='h-full flex flex-col justify-between'>
           {loading ? (
             <div className='flex flex-col items-center py-8 gap-2'>
               <span className='loading loading-spinner text-primary'></span>
-              <span className='text-sm text-copy-light'>
-                Loading options...
-              </span>
+              <span className='text-sm '>Loading options...</span>
             </div>
           ) : (
             <>
-              <CTAButton onClick={handleFullDownload} className='w-full'>
-                Download Full Collection (Zip)
-              </CTAButton>
+              <p className='!text-lg'>
+                Your download is ready! Select an option below to download.
+              </p>
+              <div className='space-y-2'>
+                <CTAButton
+                  style='primary'
+                  onClick={handleFullDownload}
+                  className='w-full'
+                >
+                  Download Full Collection (Zip)
+                </CTAButton>
 
-              {segments.length > 0 && (
-                <button
+                <CTAButton
                   onClick={() => setStep('download_parts')}
-                  className='text-primary hover:underline text-sm p-2'
+                  className='w-full'
+                  disabled={segments.length <= 1}
                 >
                   Or download in parts (Legacy)
-                </button>
-              )}
+                </CTAButton>
+              </div>
             </>
           )}
-
-          <button
-            onClick={() => setStep('email')}
-            className='text-gray-500 hover:text-copy text-sm p-2'
-          >
-            Back
-          </button>
         </div>
       )}
 
@@ -157,7 +198,7 @@ const DownloadContent = ({ onClose, collection }: Props) => {
       {/* Step 4: Parts Flow */}
       {step === 'download_parts' && (
         <div className='flex flex-col space-y-4'>
-          <p className='text-copy-light mb-4'>Select a part to download:</p>
+          <p className=' mb-4'>Select a part to download:</p>
           <div className='grid grid-cols-2 gap-3'>
             {segments.map((_, i) => (
               <button

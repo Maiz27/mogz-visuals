@@ -80,7 +80,7 @@ const Drawer = ({ isOpen, onClose, title, children, className }: Props) => {
   if (!isOpen) return null;
 
   return (
-    <div className='fixed inset-0 z-50 flex justify-end'>
+    <div className='fixed inset-0 z-[99999] flex justify-end'>
       {/* Backdrop */}
       <div
         ref={backdropRef}
@@ -113,7 +113,7 @@ const Drawer = ({ isOpen, onClose, title, children, className }: Props) => {
         </div>
 
         {/* Content */}
-        <div className='flex-1 w-full px-6 py-8 overflow-y-auto'>
+        <div className='flex-1 w-full px-4 py-8 md:px-6 overflow-y-auto'>
           {children}
         </div>
       </div>

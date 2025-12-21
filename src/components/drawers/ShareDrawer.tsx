@@ -23,6 +23,7 @@ import {
   RiTwitterXLine,
   RiWhatsappLine,
 } from 'react-icons/ri';
+import CollectionDrawerHeader from '../gallery/CollectionDrawerHeader';
 
 type Props = {
   onClose: () => void;
@@ -39,12 +40,14 @@ const ShareContent = ({ onClose, collection }: Props) => {
   };
 
   return (
-    <div className='flex flex-col space-y-6 pt-4'>
+    <div className='flex flex-col gap-4'>
+      <CollectionDrawerHeader collection={collection} />
+
       <label className='form-control w-full'>
         <div className='label'>
           <span className='label-text'>Page URL</span>
         </div>
-        <div className='flex gap-2'>
+        <div className='flex items-center gap-2'>
           <Input
             name='url'
             className='input input-bordered w-full'
@@ -68,11 +71,11 @@ const ShareContent = ({ onClose, collection }: Props) => {
               url={currentURL}
               className='transition-transform active:scale-95 hover:scale-110'
             >
-              <div className='bg-white/5 p-4 rounded-full text-3xl text-copy hover:text-primary transition-colors border border-white/10 hover:border-primary/50'>
+              <div className='text-4xl hover:text-primary transition-colors'>
                 {icon}
               </div>
             </ShareButton>
-            <span className='text-xs text-copy-light capitalize'>{id}</span>
+            <span className='text-xs  capitalize'>{id}</span>
           </div>
         ))}
       </div>

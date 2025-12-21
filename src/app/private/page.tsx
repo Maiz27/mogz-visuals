@@ -28,7 +28,7 @@ const page = async (props: { searchParams: Promise<SearchParams> }) => {
   }
 
   return (
-    <main className='min-h-screen'>
+    <main>
       <PrivateCollectionHeader
         collection={collection}
         cookie={encryptedCookie}

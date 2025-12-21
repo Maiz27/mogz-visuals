@@ -43,13 +43,6 @@ const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
     decrypted.uniqueId === collection.uniqueId &&
     decrypted.password === collection.password;
 
-  // Auto-open access drawer if not authenticated?
-  // Maybe better to have a button.
-  // The original code showed `AccessPrivateCollectionModal` inline (it renders a button/modal wrapped).
-  // Actually, the original code rendered `<AccessPrivateCollectionModal />` directly inside the layout if not valid.
-  // `AccessPrivateCollectionModal` renders a `Modal` which renders a `CTAButton`.
-  // So replacing it with `AccessDrawer` which is hidden by default means we need a trigger button.
-
   return (
     <>
       <LocomotiveScrollSection
@@ -79,7 +72,7 @@ const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
                 className='2xl:text-6xl mb-0 text-center'
               />
 
-              <div className='md:text-lg gap-4 flex items-center justify-center text-copy-light'>
+              <div className='md:text-lg gap-4 flex items-center justify-center '>
                 <div className='flex items-center gap-1'>
                   <HiOutlineLockClosed />
                   <span>Private</span>
@@ -89,11 +82,6 @@ const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
                   <HiOutlineCalendarDays />
                   {getStringDate(date)}
                 </time>
-                {isValidCookie && collection.imageCount > 0 && (
-                  <span className='text-primary font-bold tracking-wider'>
-                    {collection.imageCount} Items
-                  </span>
-                )}
               </div>
             </div>
 
@@ -101,7 +89,10 @@ const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
               <CTAButton
                 onClick={() =>
                   openDrawer(
-                    <AccessContent onClose={() => openDrawer(null)} />,
+                    <AccessContent
+                      onClose={() => openDrawer(null)}
+                      collection={collection}
+                    />,
                     'Access Collection'
                   )
                 }

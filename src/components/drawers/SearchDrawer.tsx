@@ -63,7 +63,7 @@ const SearchContent = ({ onClose }: Props) => {
 
   return (
     <div className='flex flex-col space-y-6 pt-4'>
-      <p className='text-copy-light'>
+      <p className=''>
         Type the name of the collection you&apos;re looking for, and we&apos;ll
         show you all matching results.
       </p>

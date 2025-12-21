@@ -8,12 +8,15 @@ import useFormState from '@/lib/hooks/useFormState';
 import useVerifyAccess from '@/lib/hooks/useVerifyAccess';
 import { setCollectionAccessCookie } from '@/lib/utils';
 import { FORMS } from '@/lib/Constants';
+import CollectionDrawerHeader from '../gallery/CollectionDrawerHeader';
+import { COLLECTION } from '@/lib/types';
 
 type Props = {
   onClose: () => void;
+  collection?: COLLECTION;
 };
 
-const AccessContent = ({ onClose }: Props) => {
+const AccessContent = ({ onClose, collection }: Props) => {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -44,8 +47,10 @@ const AccessContent = ({ onClose }: Props) => {
   };
 
   return (
-    <div className='flex flex-col space-y-6 pt-4'>
-      <p className='text-copy-light'>
+    <div className='flex flex-col space-y-6'>
+      {collection && <CollectionDrawerHeader collection={collection} />}
+
+      <p className='!text-lg'>
         Enter the collection ID and password to unlock and view this exclusive
         collection.
       </p>
@@ -55,19 +60,19 @@ const AccessContent = ({ onClose }: Props) => {
         state={state}
         errors={errors}
         handleChange={handleChange}
-        className='flex flex-col space-y-4'
+        className='flex flex-col justify-between'
       >
-        {response && (
-          <span
-            className={`pt-2 text-sm ${
-              response.status === 200 ? 'text-green-500' : 'text-red-500'
-            }`}
-          >
-            {response.message}
-          </span>
-        )}
+        <div className=''>
+          {response && (
+            <span
+              className={`pt-2 text-sm ${
+                response.status === 200 ? 'text-green-500' : 'text-red-500'
+              }`}
+            >
+              {response.message}
+            </span>
+          )}
 
-        <div className='pt-6 flex justify-end gap-2 md:gap-4'>
           <CTAButton type='submit' loading={loading}>
             Access Collection
           </CTAButton>

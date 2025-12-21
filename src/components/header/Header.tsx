@@ -7,7 +7,7 @@ import { ROUTES, SITE_NAME } from '@/lib/Constants';
 const Header = () => {
   return (
     <header className='relative '>
-      <div className='w-full absolute top-0 z-[9999] bg-transparent p-4 flex items-center justify-between'>
+      <div className='w-full absolute top-0 z-99 bg-transparent p-4 flex items-center justify-between'>
         <Logo />
 
         <div>

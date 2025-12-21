@@ -49,17 +49,10 @@ const CollectionHeader = ({ collection }: Props) => {
               />
 
               <div className='md:text-lg gap-4 flex items-center justify-center'>
-                <time className='flex items-center gap-1 text-copy-light'>
+                <time className='flex items-center gap-1 '>
                   <HiOutlineCalendarDays />
                   {getStringDate(date)}
                 </time>
-                {/* Item Count - Using Accent Color */}
-                {/* Note: I need to ensure `collection` has a way to show count. If `gallery` is an array of strings, length works. */}
-                {collection.imageCount > 0 && (
-                  <span className='text-primary font-bold tracking-wider'>
-                    {collection.imageCount} Items
-                  </span>
-                )}
               </div>
             </div>
           </div>

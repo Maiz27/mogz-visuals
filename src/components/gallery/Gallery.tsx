@@ -61,15 +61,15 @@ const Gallery = ({ collection }: Props) => {
       className='min-h-screen mb-40 lg:mb-64 2xl:mb-80 mx-4 md:mx-8'
     >
       <div className='flex justify-between items-center m-2 text-lg lg:text-xl border-b border-white/10 pb-4 mb-4'>
-        <div className='flex items-center gap-4'>
-          <span className='font-bold tracking-wide text-primary'>
+        <div className='flex flex-col md:flex-row text-base gap-1 md:gap-4 md:items-center'>
+          <span>{title}</span>
+          <div className='hidden md:block h-4 w-[1px] bg-white/20'></div>
+          <span className='text-sm font-bold tracking-wide text-primary'>
             {imageCount ?? 0} Items
           </span>
-          <div className='h-4 w-[1px] bg-white/20'></div>
-          <span>{title}</span>
         </div>
 
-        <div className='flex items-center gap-2'>
+        <div className='flex items-center gap-2 text-xl'>
           <CTAButton
             onClick={() =>
               openDrawer(
@@ -77,14 +77,13 @@ const Gallery = ({ collection }: Props) => {
                   collection={collection}
                   onClose={() => openDrawer(null)}
                 />,
-                'Download Collection'
+                `Download ${collection.title}`
               )
             }
             style='ghost'
-            className='p-2 hover:text-primary transition-colors text-copy'
             title='Download Collection'
           >
-            <HiOutlineArrowDownTray className='text-2xl' />
+            <HiOutlineArrowDownTray />
           </CTAButton>
           {!isCollectionPrivate && (
             <CTAButton
@@ -98,10 +97,9 @@ const Gallery = ({ collection }: Props) => {
                 )
               }
               style='ghost'
-              className='p-2 hover:text-primary transition-colors text-copy'
               title='Share Collection'
             >
-              <HiOutlineShare className='text-2xl' />
+              <HiOutlineShare />
             </CTAButton>
           )}
         </div>

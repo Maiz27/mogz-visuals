@@ -21,7 +21,7 @@ const AccessCollectionForm = ({
 }: Props) => {
   const { fields } = FORMS.browse;
   return (
-    <form onSubmit={onSubmit} className={`md:px-6 ${className}`}>
+    <form onSubmit={onSubmit} className={`${className}`}>
       <div className='flex flex-col items-center space-y-2'>
         {fields.map((field) => (
           <Input
