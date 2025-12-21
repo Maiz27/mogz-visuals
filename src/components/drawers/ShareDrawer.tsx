@@ -15,15 +15,8 @@ import {
   WhatsappShareButton,
 } from 'react-share';
 
-import {
-  RiFacebookBoxLine,
-  RiLinkedinBoxLine,
-  RiMailLine,
-  RiTelegramLine,
-  RiTwitterXLine,
-  RiWhatsappLine,
-} from 'react-icons/ri';
 import CollectionDrawerHeader from '../gallery/CollectionDrawerHeader';
+import { SOCIAL_ICONS } from '@/lib/Constants';
 
 type Props = {
   onClose: () => void;
@@ -65,19 +58,22 @@ const ShareContent = ({ onClose, collection }: Props) => {
       </label>
 
       <div className='grid grid-cols-3 gap-6 place-items-center py-6'>
-        {socials.map(({ id, icon, ShareButton }) => (
-          <div key={id} className='flex flex-col items-center gap-2'>
-            <ShareButton
-              url={currentURL}
-              className='transition-transform active:scale-95 hover:scale-110'
-            >
-              <div className='text-4xl hover:text-primary transition-colors'>
-                {icon}
-              </div>
-            </ShareButton>
-            <span className='text-xs  capitalize'>{id}</span>
-          </div>
-        ))}
+        {socials.map(({ id, icon, ShareButton }) => {
+          const Icon = icon;
+          return (
+            <div key={id} className='flex flex-col items-center gap-2'>
+              <ShareButton
+                url={currentURL}
+                className='transition-transform active:scale-95 hover:scale-110'
+              >
+                <div className='text-4xl hover:text-primary transition-colors'>
+                  <Icon />
+                </div>
+              </ShareButton>
+              <span className='text-xs  capitalize'>{id}</span>
+            </div>
+          );
+        })}
       </div>
     </div>
   );
@@ -88,32 +84,32 @@ export default ShareContent;
 const socials = [
   {
     id: 'email',
-    icon: <RiMailLine />,
+    icon: SOCIAL_ICONS.email,
     ShareButton: EmailShareButton,
   },
   {
     id: 'facebook',
-    icon: <RiFacebookBoxLine />,
+    icon: SOCIAL_ICONS.facebook,
     ShareButton: FacebookShareButton,
   },
   {
     id: 'linkedin',
-    icon: <RiLinkedinBoxLine />,
+    icon: SOCIAL_ICONS.linkedin,
     ShareButton: LinkedinShareButton,
   },
   {
     id: 'telegram',
-    icon: <RiTelegramLine />,
+    icon: SOCIAL_ICONS.telegram,
     ShareButton: TelegramShareButton,
   },
   {
     id: 'twitter',
-    icon: <RiTwitterXLine />,
+    icon: SOCIAL_ICONS.x,
     ShareButton: TwitterShareButton,
   },
   {
     id: 'whatsapp',
-    icon: <RiWhatsappLine />,
+    icon: SOCIAL_ICONS.whatsapp,
     ShareButton: WhatsappShareButton,
   },
 ];

@@ -13,6 +13,15 @@ import {
   RiTwitterXLine,
 } from 'react-icons/ri';
 import Link from 'next/link';
+import {
+  SiFacebook,
+  SiInstagram,
+  SiLinkedin,
+  SiTelegram,
+  SiTiktok,
+  SiWhatsapp,
+  SiX,
+} from 'react-icons/si';
 
 export const SITE_NAME = 'Mogz Visuals';
 
@@ -413,4 +422,15 @@ export const PAGES = {
     description:
       'Please read these terms carefully before using our website or services. By accessing or using Mogz Visuals, you agree to be bound by these terms, which govern our relationship and ensure a clear understanding of our mutual rights and responsibilities.',
   },
+};
+
+export const SOCIAL_ICONS = {
+  facebook: SiFacebook,
+  instagram: SiInstagram,
+  x: SiX,
+  linkedin: SiLinkedin,
+  tiktok: SiTiktok,
+  telegram: SiTelegram,
+  whatsapp: SiWhatsapp,
+  email: HiOutlineEnvelope,
 };
