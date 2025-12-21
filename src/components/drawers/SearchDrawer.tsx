@@ -23,14 +23,6 @@ const SearchContent = ({ onClose }: Props) => {
     reset: restCollections,
   } = useSearchCollection(state.name);
 
-  // We don't need handleClose here as DrawerContext handles close.
-  // But if we want to reset form on close, we might need a useEffect in this component
-  // or rely on unmount.
-  // Since this component unmounts when drawer closes (via view=null),
-  // the state should clean up if not persisted.
-  // Actually, useFormState hook maintains local state.
-  // Unmounting this component resets the state. Perfect.
-
   const renderResults = () => {
     if (loading) {
       return (

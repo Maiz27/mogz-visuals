@@ -8,11 +8,7 @@ import useDownloadCollection from '@/lib/hooks/useDownloadCollection';
 import { COLLECTION } from '@/lib/types';
 import { FORMS } from '@/lib/Constants';
 import Progress from '@/components/ui/Progress';
-import {
-  HiOutlineArrowDownTray,
-  HiOutlineDocumentDuplicate,
-  HiOutlineCheck,
-} from 'react-icons/hi2';
+import { HiOutlineArrowDownTray, HiOutlineCheck } from 'react-icons/hi2';
 
 type Props = {
   onClose: () => void;

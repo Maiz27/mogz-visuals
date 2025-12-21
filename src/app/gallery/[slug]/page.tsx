@@ -58,7 +58,7 @@ const page = async (props: { params: Promise<{ slug: string }> }) => {
   }
 
   return (
-    <main className='min-h-screen'>
+    <main>
       <CollectionHeader collection={collection} />
 
       <Gallery collection={collection} />

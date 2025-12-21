@@ -6,12 +6,11 @@ import { ROUTES, SITE_NAME } from '@/lib/Constants';
 
 const Header = () => {
   return (
-    <>
-      <header className='fixed z-40 top-0 w-full'>
-        <div className='absolute top-4 left-4 md:left-4'>
-          <Logo />
-        </div>
-        <div className='absolute top-6 right-4 md:right-4 '>
+    <header className='relative '>
+      <div className='w-full absolute top-0 z-[9999] bg-transparent p-4 flex items-center justify-between'>
+        <Logo />
+
+        <div>
           <nav className='hidden lg:block '>
             <ul className='flex items-center gap-4'>
               {ROUTES.map(({ name, href }) => (
@@ -29,9 +28,9 @@ const Header = () => {
           </nav>
           <MobileMenu />
         </div>
-      </header>
+      </div>
       <LocomotiveScrollSection id='top' />
-    </>
+    </header>
   );
 };
 
@@ -42,8 +41,8 @@ export const Logo = ({ black = false }: { black?: boolean }) => {
   return (
     <Link href='/' className='text-xl font-bold h-full'>
       <Image
-        width={60}
-        height={60}
+        width={50}
+        height={50}
         loading='eager'
         priority={true}
         src={src}

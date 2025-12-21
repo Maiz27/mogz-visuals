@@ -27,7 +27,7 @@ export default function RootLayout({
       <head>
         <JsonLD />
       </head>
-      <body className=''>
+      <body>
         <IsClientCtxProvider>
           <ScrollProvider>
             <ToastProvider>

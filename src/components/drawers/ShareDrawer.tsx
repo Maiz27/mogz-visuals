@@ -1,6 +1,5 @@
 'use client';
 
-import { useRef } from 'react';
 import Input from '@/components/ui/form/Input';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import useShareURL from '@/lib/hooks/useShareURL';

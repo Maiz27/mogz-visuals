@@ -1,6 +1,5 @@
 'use client';
 
-import { useState } from 'react';
 import Image from 'next/image';
 import Heading from '../heading/Heading';
 import CTAButton from '../ui/CTA/CTAButton';
@@ -19,10 +18,6 @@ type Props = {
 
 const CollectionHeader = ({ collection }: Props) => {
   const { title, mainImage, date, isPrivate } = collection;
-  // TODO: `collection` type might need `imageCount` or we fetch/calculate it.
-  // For now, if it's not in the type, we might not show it or use a fallback.
-  // Assuming `collection.gallery` has length if fetched fully, but usually it's stripped.
-  // The User mentioned "item count". I'll check if `collection` type has it.
 
   return (
     <>
@@ -67,8 +62,6 @@ const CollectionHeader = ({ collection }: Props) => {
                 )}
               </div>
             </div>
-
-            {/* Old GalleryOptions removed */}
           </div>
         </div>
         <div className='absolute left-1/2 -translate-x-1/2 bottom-8 z-20'>
