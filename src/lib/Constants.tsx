@@ -373,6 +373,11 @@ export const EMPTY_STATE = {
     paragraph:
       'This collection is currently being curated and will soon feature stunning visuals. Please check back later to explore the complete collection. In the meantime, feel free to browse our other collections or contact us for more information.',
   },
+  team: {
+    heading: 'Meet the Team Soon',
+    paragraph:
+      'We are currently assembling our team page. Please check back later to meet the creative minds behind Mogz Visuals. Our dedicated photographers and videographers are working hard to bring you their stories.',
+  },
 };
 
 export const TOAST_STATUS = {
