@@ -194,14 +194,13 @@ export async function POST(req: NextRequest) {
         }
 
         if (shouldRun) {
-          // FIX: Only update lock after successful start or completion to avoid locking on failure
-          cleanupOldFiles(tempDir)
-            .then(() => {
-              try {
-                fs.writeFileSync(lockPath, '');
-              } catch {}
-            })
-            .catch(console.error);
+          // FIX: Update lock file BEFORE starting cleanup to prevent race conditions where
+          // cleanup failure would leave the lock file untouched/stale
+          try {
+            fs.writeFileSync(lockPath, '');
+          } catch {}
+
+          cleanupOldFiles(tempDir).catch(console.error);
         }
       } catch (e) {
         // Fallback: random execute if lock check fails
@@ -254,6 +253,14 @@ export async function POST(req: NextRequest) {
               const buffers = await Promise.all(
                 batch.map(async (img: any, idx) => {
                   try {
+                    const extension = img.url.split('.').pop();
+                    const validExtension =
+                      extension &&
+                      extension.trim().length > 0 &&
+                      /^[a-z0-9]{2,5}$/i.test(extension.trim())
+                        ? extension.trim()
+                        : 'jpg';
+
                     // FIX SSRF: Validate URL origin using robust parsing BEFORE fetch
                     try {
                       const urlObj = new URL(img.url);
@@ -267,14 +274,6 @@ export async function POST(req: NextRequest) {
                       console.warn(`[Skip] Malformed URL: ${img.url}`);
                       return null;
                     }
-
-                    const extension = img.url.split('.').pop();
-                    const validExtension =
-                      extension &&
-                      extension.trim().length > 0 &&
-                      /^[a-z0-9]{2,5}$/i.test(extension.trim())
-                        ? extension.trim()
-                        : 'jpg';
 
                     // Sanitize filename inside ZIP
                     const cleanName = title
@@ -331,6 +330,7 @@ export async function POST(req: NextRequest) {
         const MAX_RETRIES = 3;
         let renamed = false;
 
+        // Optimizing retry with exponential backoff and lower base delay
         for (let i = 0; i < MAX_RETRIES; i++) {
           try {
             try {
@@ -342,7 +342,8 @@ export async function POST(req: NextRequest) {
             renamed = true;
             break;
           } catch (retryErr) {
-            await new Promise((r) => setTimeout(r, 100 * (i + 1))); // brief backoff
+            // Exponential backoff: 50ms, 100ms, 200ms...
+            await new Promise((r) => setTimeout(r, 50 * Math.pow(2, i)));
           }
         }
 

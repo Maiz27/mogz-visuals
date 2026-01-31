@@ -275,7 +275,11 @@ const useDownloadCollection = ({
       saveAs(blob, fileName);
     } catch (e: any) {
       console.error(e);
-      showToast(e.message || 'An error occurred. Please try again.', 'error');
+      showToast(
+        (e instanceof Error ? e.message : String(e)) ||
+          'An error occurred. Please try again.',
+        'error',
+      );
     }
   };
 

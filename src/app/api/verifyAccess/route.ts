@@ -1,4 +1,5 @@
 import CryptoJS from 'crypto-js';
+import crypto from 'node:crypto';
 import { NextRequest, NextResponse } from 'next/server';
 import { fetchSanityData } from '@/lib/sanity/client';
 import { getCollectionCredentials } from '@/lib/sanity/queries';
@@ -47,9 +48,13 @@ export async function POST(req: NextRequest) {
     { id },
   );
 
-  const isPasswordValid = credentials && 
+  const isPasswordValid =
+    credentials &&
     Buffer.from(credentials.password).length === Buffer.from(password).length &&
-    crypto.timingSafeEqual(Buffer.from(credentials.password), Buffer.from(password));
+    crypto.timingSafeEqual(
+      Buffer.from(credentials.password),
+      Buffer.from(password),
+    );
 
   if (!credentials || !isPasswordValid) {
     return NextResponse.json(
