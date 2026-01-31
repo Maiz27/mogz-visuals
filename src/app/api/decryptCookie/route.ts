@@ -1,12 +1,12 @@
 import CryptoJS from 'crypto-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { ENCRYPTION_KEY } from '@/lib/Constants';
+import { ENCRYPTION_KEY } from '@/lib/env';
 
 export async function POST(req: NextRequest) {
   if (req.method !== 'POST') {
     return NextResponse.json(
       { message: 'Method not allowed', status: 405 },
-      { status: 405 }
+      { status: 405 },
     );
   }
 
@@ -15,7 +15,7 @@ export async function POST(req: NextRequest) {
 
     const decryptedCookie = CryptoJS.AES.decrypt(
       encryptedCookie,
-      ENCRYPTION_KEY
+      ENCRYPTION_KEY,
     ).toString(CryptoJS.enc.Utf8);
 
     const responseBody = {

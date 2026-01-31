@@ -6,7 +6,7 @@ import {
   COLLECTION_CREDENTIALS,
   VERIFY_ACCESS_RESPONSE_BODY,
 } from '@/lib/types';
-import { ENCRYPTION_KEY } from '@/lib/Constants';
+import { ENCRYPTION_KEY } from '@/lib/env';
 
 export async function POST(req: NextRequest) {
   if (req.method !== 'POST') {

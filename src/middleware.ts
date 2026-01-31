@@ -1,6 +1,6 @@
 import CryptoJS from 'crypto-js';
 import { NextRequest, NextResponse } from 'next/server';
-import { ENCRYPTION_KEY } from './lib/Constants';
+import { ENCRYPTION_KEY } from './lib/env';
 
 export function middleware(req: NextRequest) {
   //   const url = req.nextUrl.clone();

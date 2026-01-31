@@ -10,7 +10,8 @@ import path from 'path';
 import os from 'os';
 import CryptoJS from 'crypto-js';
 
-const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
+import { Readable } from 'stream';
+import { ENCRYPTION_KEY } from '@/lib/env';
 
 /**
  * 🧹 Maintenance: Clean up old zip files to free up disk space
@@ -249,9 +250,17 @@ export async function POST(req: NextRequest) {
               const buffers = await Promise.all(
                 batch.map(async (img: any, idx) => {
                   try {
-                    // FIX SSRF: Validate URL origin
-                    if (!img.url.startsWith('https://cdn.sanity.io/')) {
-                      console.warn(`[Skip] Invalid image URL: ${img.url}`);
+                    // FIX SSRF: Validate URL origin using robust parsing
+                    try {
+                      const urlObj = new URL(img.url);
+                      if (urlObj.hostname !== 'cdn.sanity.io') {
+                        console.warn(
+                          `[Skip] Invalid image URL domain: ${img.url}`,
+                        );
+                        return null;
+                      }
+                    } catch {
+                      console.warn(`[Skip] Malformed URL: ${img.url}`);
                       return null;
                     }
 
@@ -276,11 +285,13 @@ export async function POST(req: NextRequest) {
                       return null;
                     }
 
-                    // FIX DoS: Handle streams/buffers properly (archiver handles streams but here we need concurrent fetching)
-                    // For now arrayBuffer is okay if we batch. But ideally piping.
-                    // Given the current architecture uses Promise.all for batching, ArrayBuffer is acceptable if BATCH_SIZE is small.
-                    const ab = await res.arrayBuffer();
-                    return { name: filename, buffer: Buffer.from(ab) };
+                    // FIX DoS: Pipe stream directly to archiver to avoid loading full image into RAM
+                    if (res.body) {
+                      // @ts-ignore - Readable.fromWeb is available in Node 18+ environment of Next.js
+                      const stream = Readable.fromWeb(res.body);
+                      return { name: filename, stream };
+                    }
+                    return null;
                   } catch (fetchErr) {
                     console.error(
                       `[Stream] URL processing error: ${img.url}`,
@@ -292,7 +303,9 @@ export async function POST(req: NextRequest) {
               );
 
               for (const file of buffers) {
-                if (file) archive.append(file.buffer, { name: file.name });
+                if (file?.stream) {
+                  archive.append(file.stream, { name: file.name });
+                }
               }
             }
             await archive.finalize();
@@ -308,10 +321,34 @@ export async function POST(req: NextRequest) {
 
         req.signal.removeEventListener('abort', abortHandler);
 
-        // Rename to final cache path (atomic overwrite if possible, or simple rename)
+        // Rename to final cache path with retry strategy for Windows file locking
         // Windows rename might fail if file open or exists, so we try simple remove then rename
-        if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
-        fs.renameSync(uniqueGenPath, tempFilePath);
+        const MAX_RETRIES = 3;
+        let renamed = false;
+
+        for (let i = 0; i < MAX_RETRIES; i++) {
+          try {
+            if (fs.existsSync(tempFilePath)) {
+              try {
+                fs.unlinkSync(tempFilePath);
+              } catch (unlinkErr) {
+                // Ignore unlink error if it's just race condition on exist check
+              }
+            }
+            fs.renameSync(uniqueGenPath, tempFilePath);
+            renamed = true;
+            break;
+          } catch (retryErr) {
+            await new Promise((r) => setTimeout(r, 100 * (i + 1))); // brief backoff
+          }
+        }
+
+        if (!renamed) {
+          console.error('[Stream] Failed to rename after retries, cleaning up');
+          // If we couldn't rename, we should just delete our unique gen and maybe throw or let client fail
+          throw new Error('File system contention prevented caching');
+        }
+
         fs.rmSync(uniqueGenDir, { recursive: true, force: true }); // cleanup unique dir
       } catch (err) {
         console.error('[Stream] Generation/Rename Failed:', err);

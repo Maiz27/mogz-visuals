@@ -240,9 +240,9 @@ const useDownloadCollection = ({
       // 2. DOWNLOAD: Fetch with blob to handle errors using same auth logic
       const downloadFormData = new FormData();
       downloadFormData.append('email', email);
-      // Fallback: Send token in body if cookie fails
-      const token = Cookies.get('collectionAccess');
-      if (token && isPrivate) downloadFormData.append('token', token);
+
+      // FIX: Do NOT send token in body. Rely strictly on httpOnly cookie.
+      // If cookie is missing, API will reject, which is correct secure behavior.
 
       if (isPrivate && uniqueId) {
         downloadFormData.append('collectionId', uniqueId);

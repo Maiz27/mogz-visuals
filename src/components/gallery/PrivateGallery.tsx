@@ -4,7 +4,7 @@ import { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 import Gallery from './Gallery';
 import { getPrivateCollectionInitialGallery } from '@/lib/sanity/queries';
 import { fetchSanityData } from '@/lib/sanity/client';
-import { ENCRYPTION_KEY } from '@/lib/Constants';
+import { ENCRYPTION_KEY } from '@/lib/env';
 import { COLLECTION } from '@/lib/types';
 
 type Props = {

@@ -24,8 +24,6 @@ export const SITE_NAME = 'Mogz Visuals';
 
 export const BASEURL = 'https://www.mogz.studio';
 
-export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
-
 export const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
 export const PAGE_SIZE = 10;
@@ -176,7 +174,7 @@ export const FORMS = {
       },
       session: (value: string) => {
         const options = FORMS.contact.fields.find(
-          (field) => field.name === 'session'
+          (field) => field.name === 'session',
         )!.options!;
         if (options.find((option) => option.value === value)) {
           return '';
