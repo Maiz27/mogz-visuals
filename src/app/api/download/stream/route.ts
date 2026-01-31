@@ -16,8 +16,14 @@ import { ENCRYPTION_KEY } from '@/lib/env';
 /**
  * 🧹 Maintenance: Clean up old zip files to free up disk space
  */
-const cleanupOldFiles = async (dir: string) => {
+const cleanupOldFiles = async (dir: string, lockPath: string) => {
   try {
+    // Determine strict debounce: unique touch of lock file at START of attempt
+    // This ensures that even if readdir fails or process crashes, we don't retry immediately.
+    try {
+      await fs.promises.writeFile(lockPath, '');
+    } catch {}
+
     const files = await fs.promises.readdir(dir);
     const now = Date.now();
     await Promise.all(
@@ -202,18 +208,13 @@ export async function POST(req: NextRequest) {
         }
 
         if (shouldRun) {
-          // FIX: Update lock file ONLY after successful cleanup to prevent blocking if cleanup fails
-          cleanupOldFiles(tempDir)
-            .then(() => {
-              try {
-                fs.writeFileSync(lockPath, '');
-              } catch {}
-            })
-            .catch(console.error);
+          // FIX: Update lock file inside cleanup logic using the passed path
+          cleanupOldFiles(tempDir, lockPath).catch(console.error);
         }
       } catch (e) {
         // Fallback: random execute if lock check fails
-        if (Math.random() < 0.1) cleanupOldFiles(tempDir).catch(console.error);
+        if (Math.random() < 0.1)
+          cleanupOldFiles(tempDir, lockPath).catch(console.error);
       }
 
       // FIX RACE CONDITION: Use mkdtemp for unique generation path
