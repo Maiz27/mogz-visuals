@@ -202,9 +202,9 @@ export async function POST(req: NextRequest) {
         }
 
         if (shouldRun) {
-          // FIX: Update lock file ONLY after successful cleanup to prevent race conditions
+          // FIX: Update lock file in finally to ensure we debounce even if cleanup fails
           cleanupOldFiles(tempDir)
-            .then(() => {
+            .finally(() => {
               try {
                 fs.writeFileSync(lockPath, '');
               } catch {}
@@ -255,8 +255,9 @@ export async function POST(req: NextRequest) {
         // Start Async Processing (captured in promise)
         const processingPromise = (async () => {
           try {
-            const BATCH_SIZE = 10;
+            const BATCH_SIZE = 5; // Reduced to 5 to limit concurrent streams and memory usage
             let successCount = 0;
+            const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']; // Strict whitelist
             for (let i = 0; i < items.length; i += BATCH_SIZE) {
               if (req.signal.aborted) throw new Error('Aborted');
 
@@ -266,13 +267,11 @@ export async function POST(req: NextRequest) {
                   try {
                     const urlPath = img.url.split('?')[0]; // Strip query params
                     const parts = urlPath.split('.');
-                    const extension = parts.length > 1 ? parts.pop() : '';
-                    const validExtension =
-                      extension &&
-                      extension.trim().length > 0 &&
-                      /^[a-z0-9]{2,5}$/i.test(extension.trim())
-                        ? extension.trim()
-                        : 'jpg';
+                    const extension =
+                      parts.length > 1 ? parts.pop().toLowerCase() : '';
+                    const validExtension = ALLOWED_EXTS.includes(extension)
+                      ? extension
+                      : 'jpg';
 
                     // FIX SSRF: Validate URL origin using robust parsing BEFORE fetch
                     try {
@@ -337,7 +336,9 @@ export async function POST(req: NextRequest) {
 
             // FIX: Validate final ZIP size to ensure it's not empty/corrupt (just headers ~22 bytes)
             if (archive.pointer() < 100) {
-              throw new Error('Generated archive is too small, likely empty');
+              console.warn(
+                '[Stream] Generated archive is very small (< 100 bytes), possibly empty.',
+              );
             }
           } catch (err) {
             console.error('[Stream] Archive Gen Failed:', err);
@@ -368,8 +369,8 @@ export async function POST(req: NextRequest) {
             renamed = true;
             break;
           } catch (retryErr) {
-            // Exponential backoff: 50ms, 100ms, 200ms...
-            await new Promise((r) => setTimeout(r, 50 * Math.pow(2, i)));
+            // Exponential backoff: 100ms, 200ms, 400ms...
+            await new Promise((r) => setTimeout(r, 100 * Math.pow(2, i)));
           }
         }
 

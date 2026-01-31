@@ -13,30 +13,36 @@ import {
   HiOutlineCalendarDays,
   HiOutlineChevronDoubleDown,
 } from 'react-icons/hi2';
-import { decryptCookie } from '@/lib/hooks/useAutoDeleteCookie';
 import { useDrawer } from '@/lib/context/DrawerContext';
 import AccessContent from '../drawers/AccessDrawer';
 
 type Props = {
   collection: COLLECTION;
+  /** @deprecated cookie prop is opaque httpOnly, verification happens via API */
   cookie: RequestCookie | undefined;
 };
-
 const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
   const { title, mainImage, date } = collection;
   const [decrypted, setDecrypted] = useState<any | null>(null);
   const { openDrawer, closeDrawer } = useDrawer();
 
+  // Check auth status on mount (or when cookie prop changes, though prop might be opaque)
   useEffect(() => {
-    if (cookie) {
-      const func = async () => {
-        const _decrypted = await decryptCookie(cookie.value);
-        setDecrypted(_decrypted);
-      };
-
-      func();
-    }
-  }, [cookie]);
+    const checkAuth = async () => {
+      try {
+        const res = await fetch('/api/auth/check');
+        if (res.ok) {
+          const data = await res.json();
+          if (data.authenticated) {
+            setDecrypted({ uniqueId: data.uniqueId });
+          }
+        }
+      } catch (e) {
+        console.error('Auth check error', e);
+      }
+    };
+    checkAuth();
+  }, []); // Run on mount
 
   const isValidCookie = decrypted && decrypted.uniqueId === collection.uniqueId;
 
