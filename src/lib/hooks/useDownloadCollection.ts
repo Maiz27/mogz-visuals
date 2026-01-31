@@ -255,7 +255,13 @@ const useDownloadCollection = ({
         credentials: 'include',
       });
 
-      if (!downloadRes.ok) throw new Error('Download failed');
+      if (!downloadRes.ok) {
+        throw new Error(
+          downloadRes.status === 401
+            ? 'Unauthorized access'
+            : 'Download failed',
+        );
+      }
 
       const blob = await downloadRes.blob();
       const contentDisposition = downloadRes.headers.get('Content-Disposition');

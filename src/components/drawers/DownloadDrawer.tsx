@@ -70,8 +70,7 @@ const DownloadContent = ({ collection }: Props) => {
     try {
       await downloadStream(state.email.toLowerCase());
     } finally {
-      // Wait for browser to register likely start or failure, then reset UI
-      setTimeout(() => setIsPreparingStream(false), 1000);
+      setIsPreparingStream(false);
     }
   };
 

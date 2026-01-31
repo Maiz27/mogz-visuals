@@ -164,7 +164,8 @@ export async function POST(req: NextRequest) {
 
     // 4. Generate if needed (Blocking Operation)
     if (!useCache) {
-      cleanupOldFiles(tempDir).catch(console.error); // Run cleanup asynchronously
+      // Run cleanup asynchronously with low probability to avoid contention
+      if (Math.random() < 0.05) cleanupOldFiles(tempDir).catch(console.error);
 
       // FIX RACE CONDITION: Use mkdtemp for unique generation path
       const uniqueGenDir = fs.mkdtempSync(path.join(tempDir, 'gen-'));
@@ -272,6 +273,7 @@ export async function POST(req: NextRequest) {
     // 6. Serve the File (Download Mode)
     const stats = fs.statSync(tempFilePath);
     const fileStream = fs.createReadStream(tempFilePath);
+    fileStream.on('error', () => fileStream.destroy()); // Ensure closure on error
 
     // Correct Filename using the Fetched Title
     const downloadName = `[MOGZ] ${title
