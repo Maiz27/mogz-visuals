@@ -205,7 +205,7 @@ export async function POST(req: NextRequest) {
                     return null;
                   }
 
-                  const extension = img.url.split('.').pop();
+                  const extension = img.url.split('.').pop() || 'jpg';
                   // Sanitize filename inside ZIP
                   const cleanName = title
                     .replace(/[^a-z0-9]/gi, '_')
