@@ -67,11 +67,12 @@ const DownloadContent = ({ collection }: Props) => {
   const handleFullDownload = async () => {
     setStep('download_stream');
     setIsPreparingStream(true);
-    await downloadStream(state.email.toLowerCase());
-    // Simulate "Preparing" delay or wait for stream to start
-    await downloadStream(state.email.toLowerCase());
-    // Wait for browser to register the download form submission
-    setTimeout(() => setIsPreparingStream(false), 1000);
+    try {
+      await downloadStream(state.email.toLowerCase());
+    } finally {
+      // Wait for browser to register likely start or failure, then reset UI
+      setTimeout(() => setIsPreparingStream(false), 1000);
+    }
   };
 
   const handlePartDownload = async (index: number) => {

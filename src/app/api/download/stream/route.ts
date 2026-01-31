@@ -249,6 +249,12 @@ export async function POST(req: NextRequest) {
         fs.rmdirSync(uniqueGenDir); // cleanup unique dir
       } catch (err) {
         console.error('[Stream] Rename Failed:', err);
+        // Clean up artifacts if rename failed
+        try {
+          if (fs.existsSync(uniqueGenPath)) fs.unlinkSync(uniqueGenPath);
+          if (fs.existsSync(uniqueGenDir)) fs.rmdirSync(uniqueGenDir);
+        } catch {}
+
         return NextResponse.json(
           { message: 'File generation failed' },
           { status: 500 },

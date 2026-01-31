@@ -234,41 +234,37 @@ const useDownloadCollection = ({
         return;
       }
 
-      // 2. DOWNLOAD: Once prepared, trigger the actual file download
-      // Since file is ready/cached, this will be instant
-      const form = document.createElement('form');
-      form.method = 'POST';
-      form.action = '/api/download/stream';
-      form.style.display = 'none';
-
-      const addInput = (name: string, value: string) => {
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = name;
-        input.value = value;
-        form.appendChild(input);
-      };
-
-      addInput('email', email);
+      // 2. DOWNLOAD: Fetch with blob to handle errors using same auth logic
+      const downloadFormData = new FormData();
+      downloadFormData.append('email', email);
       // Fallback: Send token in body if cookie fails
       const token = Cookies.get('collectionAccess');
-      if (token) addInput('token', token);
+      if (token) downloadFormData.append('token', token);
 
-      // No 'mode' means download mode
       if (isPrivate && uniqueId) {
-        addInput('collectionId', uniqueId);
-        addInput('isPrivate', 'true');
+        downloadFormData.append('collectionId', uniqueId);
+        downloadFormData.append('isPrivate', 'true');
       } else if (slug?.current) {
-        addInput('slug', slug.current);
-        addInput('isPrivate', 'false');
+        downloadFormData.append('slug', slug.current);
+        downloadFormData.append('isPrivate', 'false');
       }
 
-      document.body.appendChild(form);
-      form.submit();
+      const downloadRes = await fetch('/api/download/stream', {
+        method: 'POST',
+        body: downloadFormData,
+        credentials: 'include',
+      });
 
-      setTimeout(() => {
-        document.body.removeChild(form);
-      }, 1000);
+      if (!downloadRes.ok) throw new Error('Download failed');
+
+      const blob = await downloadRes.blob();
+      const contentDisposition = downloadRes.headers.get('Content-Disposition');
+      let fileName = 'download.zip';
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match && match[1]) fileName = match[1];
+      }
+      saveAs(blob, fileName);
 
       await addEmailToAudience(email);
     } catch (e) {
