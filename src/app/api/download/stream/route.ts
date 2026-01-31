@@ -15,21 +15,23 @@ const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
 /**
  * 🧹 Maintenance: Clean up old zip files to free up disk space
  */
-const cleanupOldFiles = (dir: string) => {
+const cleanupOldFiles = async (dir: string) => {
   try {
-    const files = fs.readdirSync(dir);
+    const files = await fs.promises.readdir(dir);
     const now = Date.now();
-    for (const file of files) {
-      if (!file.startsWith('mogz_')) continue; // Only touch our files
-
-      const filePath = path.join(dir, file);
-      const stat = fs.statSync(filePath);
-      // Delete files older than 1 hour (3600000 ms)
-      if (now - stat.mtimeMs > 3600000) {
-        fs.unlinkSync(filePath);
-        console.log(`[Cleanup] Deleted old file: ${file}`);
-      }
-    }
+    await Promise.all(
+      files.map(async (file) => {
+        if (!file.startsWith('mogz_')) return;
+        const filePath = path.join(dir, file);
+        try {
+          const stat = await fs.promises.stat(filePath);
+          if (now - stat.mtimeMs > 3600000) {
+            await fs.promises.unlink(filePath);
+            console.log(`[Cleanup] Deleted old file: ${file}`);
+          }
+        } catch {}
+      }),
+    );
   } catch (e) {
     console.warn('[Cleanup] Warning:', e);
   }
@@ -104,7 +106,6 @@ export async function POST(req: NextRequest) {
     let items: { url: string; size: number }[] = [];
 
     // Sanitize slug/id
-    const safeId = isPrivate ? collectionId : slug;
 
     if (isPrivate) {
       const data = await fetchSanityData(getDownloadGalleryById, {
@@ -163,7 +164,7 @@ export async function POST(req: NextRequest) {
 
     // 4. Generate if needed (Blocking Operation)
     if (!useCache) {
-      cleanupOldFiles(tempDir); // Run cleanup before new generation
+      cleanupOldFiles(tempDir).catch(console.error); // Run cleanup asynchronously
 
       // FIX RACE CONDITION: Use mkdtemp for unique generation path
       const uniqueGenDir = fs.mkdtempSync(path.join(tempDir, 'gen-'));
@@ -248,7 +249,10 @@ export async function POST(req: NextRequest) {
         fs.rmdirSync(uniqueGenDir); // cleanup unique dir
       } catch (err) {
         console.error('[Stream] Rename Failed:', err);
-        // Fallback or error
+        return NextResponse.json(
+          { message: 'File generation failed' },
+          { status: 500 },
+        );
       }
     }
 
