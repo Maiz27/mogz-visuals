@@ -1,10 +1,9 @@
 import PageHeader from '@/components/header/PageHeader';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import CollectionGrid from '@/components/gallery/CollectionGrid';
-import AccessPrivateCollectionModal from '@/components/modals/AccessPrivateCollectionModal';
-import SearchCollectionModal from '@/components/modals/SearchCollectionModal';
+import GalleryActions from '@/components/gallery/GalleryActions';
 import { fetchSanityData } from '@/lib/sanity/client';
-import { PAGE_HEADERS, PAGE_SIZE } from '@/lib/Constants';
+import { PAGE_HEADERS, PAGE_SIZE, PAGES } from '@/lib/Constants';
 import { COLLECTION } from '@/lib/types';
 import { getPageMetadata } from '@/lib/utils';
 import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
@@ -17,22 +16,19 @@ export const metadata = getPageMetadata('gallery');
 const page = async (props: { searchParams?: Promise<SearchParams> }) => {
   const searchParams = await props.searchParams;
   const collections = await fetchCollections(searchParams);
-  const { title, paragraph } = PAGE_HEADERS[0];
+  const { title, paragraph } = PAGES.gallery;
 
   return (
     <main>
       <PageHeader id='gallery' title={title} paragraph={paragraph}>
         <div className='pt-8 md:-ml-6'>
-          <div className='flex flex-col md:flex-row justify-center gap-4'>
-            <AccessPrivateCollectionModal />
-            <SearchCollectionModal />
-          </div>
+          <GalleryActions />
           <div className='absolute left-1/2 -translate-x-1/2 bottom-8'>
             <CTAButton
               title='View Collections'
               scrollId='collections'
               style='ghost'
-              className='text-3xl'
+              className='text-3xl animate-bounce'
             >
               <HiOutlineChevronDoubleDown />
             </CTAButton>

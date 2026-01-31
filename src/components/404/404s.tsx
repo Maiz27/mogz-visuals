@@ -16,7 +16,7 @@ export const Default404 = () => {
 };
 
 export const Collection404 = () => {
-  const { title, paragraph } = PAGE_HEADERS[2];
+  const { title, paragraph } = PAGE_HEADERS[1];
   return (
     <>
       <PageHeader id='collection404' title={title} paragraph={paragraph}>

@@ -10,6 +10,11 @@ import { EMPTY_STATE } from '@/lib/Constants';
 import { getRandomInt } from '@/lib/utils';
 import { COLLECTION } from '@/lib/types';
 import { Skeleton } from '@/components/ui/Skeleton';
+import CTAButton from '../ui/CTA/CTAButton';
+import { HiOutlineArrowDownTray, HiOutlineShare } from 'react-icons/hi2';
+import { useDrawer } from '@/lib/context/DrawerContext';
+import DownloadContent from '../drawers/DownloadDrawer';
+import ShareContent from '../drawers/ShareDrawer';
 
 // import styles
 import 'lightgallery/css/lightgallery.css';
@@ -36,6 +41,8 @@ const Gallery = ({ collection }: Props) => {
 
   const isEmpty = !images || images?.length <= 0;
   const { collection: empty } = EMPTY_STATE;
+  const { isPrivate: isCollectionPrivate } = collection;
+  const { openDrawer, closeDrawer } = useDrawer();
 
   const [aspectRatios, setAspectRatios] = useState<number[]>([]);
 
@@ -46,16 +53,56 @@ const Gallery = ({ collection }: Props) => {
       return randomWidth / randomHeight;
     });
     setAspectRatios((prevRatios) => [...prevRatios, ...newRatios]);
-  }, [images]);
+  }, [images, aspectRatios.length]);
 
   return (
     <LocomotiveScrollSection
       id='gallery'
       className='min-h-screen mb-40 lg:mb-64 2xl:mb-80 mx-4 md:mx-8'
     >
-      <div className='flex justify-between items-center m-2 text-lg lg:text-xl'>
-        <span>{title}</span>
-        <span className='text-primary'>{imageCount ?? 0} Items</span>
+      <div className='flex justify-between items-center m-2 text-lg lg:text-xl border-b border-white/10 pb-4 mb-4'>
+        <div className='flex flex-col md:flex-row text-base gap-1 md:gap-4 md:items-center'>
+          <span>{title}</span>
+          <div className='hidden md:block h-4 w-px bg-white/20'></div>
+          <span className='text-sm font-bold tracking-wide text-primary'>
+            {imageCount ?? 0} Items
+          </span>
+        </div>
+
+        <div className='flex items-center gap-2 text-xl'>
+          <CTAButton
+            onClick={() =>
+              openDrawer(
+                <DownloadContent
+                  collection={collection}
+                  onClose={closeDrawer}
+                />,
+                `Download ${collection.title}`,
+              )
+            }
+            style='ghost'
+            title='Download Collection'
+          >
+            <HiOutlineArrowDownTray />
+          </CTAButton>
+          {!isCollectionPrivate && (
+            <CTAButton
+              onClick={() =>
+                openDrawer(
+                  <ShareContent
+                    collection={collection}
+                    onClose={closeDrawer}
+                  />,
+                  `Share ${collection.title}`,
+                )
+              }
+              style='ghost'
+              title='Share Collection'
+            >
+              <HiOutlineShare />
+            </CTAButton>
+          )}
+        </div>
       </div>
 
       {isEmpty ? (
@@ -112,7 +159,7 @@ const Gallery = ({ collection }: Props) => {
           {isLoading && (
             <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-4'>
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton className='h-[25rem]' key={i} />
+                <Skeleton className='h-100' key={i} />
               ))}
             </div>
           )}

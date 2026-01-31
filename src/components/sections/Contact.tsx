@@ -25,26 +25,30 @@ const Contact = () => {
             Our team is eager to connect and discuss how we can bring your vision to life with stunning 
             visuals and expert craftsmanship.`}
           </p>
-          <div className='flex flex-col 2xl:flex-row justify-around'>
+          <div className='grid grid-cols-1 justify-around 2xl:grid-cols-3 gap-4'>
             {contact.map(({ text, href, icon, title }, i) => {
               const Icon = icon;
               return (
-                <div key={i} className='flex space-x-2'>
-                  <div className='text-3xl text-primary'>
-                    <Icon />
-                  </div>
-                  <div className='space-y-2 max-w-sm'>
+                <div
+                  key={i}
+                  className='w-fit flex flex-col space-y-2 2xl:first:col-span-3'
+                >
+                  <div className='flex items-center space-x-2'>
+                    <span className='text-3xl text-primary'>
+                      <Icon />
+                    </span>
                     <h3 className='text-lg font-bold'>{title}</h3>
-                    <a
-                      href={href}
-                      className='flex items-center space-x-1 text-sm 2xl:text-base relative group'
-                    >
-                      {text}
-                      {href && (
-                        <span className='absolute -bottom-1 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
-                      )}
-                    </a>
                   </div>
+
+                  <a
+                    href={href}
+                    className='flex items-center space-x-1 text-sm 2xl:text-base relative group text-justify'
+                  >
+                    {text}
+                    {href && (
+                      <span className='absolute -bottom-1 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
+                    )}
+                  </a>
                 </div>
               );
             })}

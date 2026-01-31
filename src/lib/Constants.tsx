@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 import {
   HiOutlineMapPin,
   HiOutlineEnvelope,
@@ -7,17 +9,20 @@ import {
   HiOutlineInformationCircle,
   HiOutlineXMark,
 } from 'react-icons/hi2';
+
 import {
-  RiFacebookBoxLine,
-  RiInstagramLine,
-  RiTwitterXLine,
-} from 'react-icons/ri';
+  SiFacebook,
+  SiInstagram,
+  SiLinkedin,
+  SiTelegram,
+  SiTiktok,
+  SiWhatsapp,
+  SiX,
+} from 'react-icons/si';
 
 export const SITE_NAME = 'Mogz Visuals';
 
 export const BASEURL = 'https://www.mogz.studio';
-
-export const ENCRYPTION_KEY = process.env.ENCRYPTION_KEY!;
 
 export const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
 
@@ -25,7 +30,13 @@ export const PAGE_SIZE = 10;
 
 export const ROUTES = [
   { name: 'Home', href: '/' },
+  { name: 'About', href: '/about' },
   { name: 'Gallery', href: '/gallery' },
+];
+
+export const LEGAL_ROUTES = [
+  { name: 'Terms of Use', href: '/terms-of-use' },
+  { name: 'Privacy Policy', href: '/privacy-policy' },
 ];
 
 export const COLLECTION_SORT_OPTIONS = ['Newest', 'Oldest'];
@@ -34,17 +45,17 @@ export const SOCIALS = [
   {
     label: 'Facebook',
     url: 'https://www.facebook.com/profile.php?id=100066717096074',
-    icon: <RiFacebookBoxLine />,
+    icon: <SiFacebook />,
   },
   {
     label: 'Instagram',
     url: 'https://www.instagram.com/mogzvisuals/',
-    icon: <RiInstagramLine />,
+    icon: <SiInstagram />,
   },
   {
     label: 'Twitter',
     url: 'https://twitter.com/MogzVisuals',
-    icon: <RiTwitterXLine />,
+    icon: <SiX />,
   },
 ];
 
@@ -59,7 +70,7 @@ export const MOGZ = {
       title: 'Visit',
       icon: HiOutlineMapPin,
       href: undefined,
-      text: 'Phenicia Juba, CES, South Sudan.',
+      text: 'Thongping Next to Phenicia Supermarket, Juba, South Sudan',
     },
     {
       title: 'Email',
@@ -90,6 +101,7 @@ export const FORMS = {
       datetime: new Date().toISOString(),
       session: 'indoor',
       message: '',
+      terms: false,
     },
     fields: [
       {
@@ -133,6 +145,24 @@ export const FORMS = {
         label: 'Message',
         placeholder: 'Type your message here...',
       },
+      {
+        comp: 'checkbox',
+        id: 'contact-terms',
+        name: 'terms',
+        label: (
+          <span>
+            I agree to the{' '}
+            <Link
+              href='/terms-of-use'
+              target='_blank'
+              className='underline hover:text-primary transition-colors'
+            >
+              Terms & Conditions
+            </Link>
+          </span>
+        ),
+        required: true,
+      },
     ],
     rules: {
       name: (value: string) =>
@@ -144,7 +174,7 @@ export const FORMS = {
       },
       session: (value: string) => {
         const options = FORMS.contact.fields.find(
-          (field) => field.name === 'session'
+          (field) => field.name === 'session',
         )!.options!;
         if (options.find((option) => option.value === value)) {
           return '';
@@ -167,6 +197,7 @@ export const FORMS = {
       },
       message: (value: string) =>
         value.length > 10 ? '' : 'Message must be longer than 10 characters!',
+      terms: (value: boolean) => (value ? '' : 'You must agree to the terms!'),
     },
   },
   browse: {
@@ -251,11 +282,6 @@ export const FORMS = {
 
 export const PAGE_HEADERS = [
   {
-    title: 'Visual Stories, Captured Moments',
-    paragraph:
-      'Dive into our curated gallery of collections, where each card opens a window into a unique story captured through our lens. Every project reflects our dedication to visual excellence from weddings and corporate events to personal portraits and artistic endeavors. Click on any card to delve deeper into our creative world or enter a specific collection ID to access exclusive content.',
-  },
-  {
     title: 'Lost in the Frames?',
     paragraph:
       "It looks like the page you were searching for isn't in our gallery. Don't worry, we can help guide you back to the main exhibit. Click below to return to our homepage, or if you prefer a more personal touch, reach out to us directly for assistance.",
@@ -282,6 +308,18 @@ export const METADATA: Map<string, any> = new Map([
     },
   ],
   [
+    'about',
+    {
+      title: 'About Us - Mogz Visuals',
+      description:
+        'Meet the creative team behind Mogz Visuals. We are storytellers dedicated to capturing your most precious moments.',
+      type: 'website',
+      url: `${BASEURL}/about`,
+      image: `${BASEURL}/imgs/logo/logo.jpg`,
+      icon: '/imgs/logo/favicon.ico',
+    },
+  ],
+  [
     'gallery',
     {
       title: 'Gallery - Mogz Visuals Collections',
@@ -289,6 +327,30 @@ export const METADATA: Map<string, any> = new Map([
         'Explore the gallery of Mogz Visuals, showcasing our diverse collections of professional photography and videography that capture the essence of every moment.',
       type: 'website',
       url: `${BASEURL}/gallery`,
+      image: `${BASEURL}/imgs/logo/logo.jpg`,
+      icon: '/imgs/logo/favicon.ico',
+    },
+  ],
+  [
+    'terms',
+    {
+      title: 'Terms of Use - Mogz Visuals',
+      description:
+        'Read our Terms of Use to understand the guidelines, rights, and responsibilities that govern your use of Mogz Visuals services and website.',
+      type: 'website',
+      url: `${BASEURL}/terms-of-use`,
+      image: `${BASEURL}/imgs/logo/logo.jpg`,
+      icon: '/imgs/logo/favicon.ico',
+    },
+  ],
+  [
+    'privacy',
+    {
+      title: 'Privacy Policy - Mogz Visuals',
+      description:
+        'Learn how Mogz Visuals collects, uses, and protects your personal information. Your privacy and trust are our top priorities.',
+      type: 'website',
+      url: `${BASEURL}/privacy-policy`,
       image: `${BASEURL}/imgs/logo/logo.jpg`,
       icon: '/imgs/logo/favicon.ico',
     },
@@ -310,6 +372,11 @@ export const EMPTY_STATE = {
     heading: 'Collection Under Construction',
     paragraph:
       'This collection is currently being curated and will soon feature stunning visuals. Please check back later to explore the complete collection. In the meantime, feel free to browse our other collections or contact us for more information.',
+  },
+  team: {
+    heading: 'Meet the Team Soon',
+    paragraph:
+      'We are currently assembling our team page. Please check back later to meet the creative minds behind Mogz Visuals. Our dedicated photographers and videographers are working hard to bring you their stories.',
   },
 };
 
@@ -337,4 +404,38 @@ export const IMAGE_CARD_ANIMATE_OPTIONS = {
     origin: '150% 100%',
     animate: 'scaleY',
   },
+};
+
+export const PAGES = {
+  about: {
+    title: 'The Minds Behind the Magic',
+    paragraph:
+      'Meet the creative collective at Mogz Visuals. We are more than just photographers and videographers; we are storytellers dedicated to preserving your most cherished memories with passion and artistic vision.',
+  },
+  gallery: {
+    title: 'Visual Stories, Captured Moments',
+    paragraph:
+      'Dive into our curated gallery of collections, where each card opens a window into a unique story captured through our lens. Every project reflects our dedication to visual excellence from weddings and corporate events to personal portraits and artistic endeavors. Click on any card to delve deeper into our creative world or enter a specific collection ID to access exclusive content.',
+  },
+  privacy: {
+    title: 'Your Privacy, Secure & Respected',
+    description:
+      'Your privacy is important to us. We are committed to protecting the personal information you share with us. This policy explains how we collect, use, and safeguard your data when you visit our website or use our services.',
+  },
+  terms: {
+    title: 'Our Commitments, Your Rights',
+    description:
+      'Please read these terms carefully before using our website or services. By accessing or using Mogz Visuals, you agree to be bound by these terms, which govern our relationship and ensure a clear understanding of our mutual rights and responsibilities.',
+  },
+};
+
+export const SOCIAL_ICONS = {
+  facebook: SiFacebook,
+  instagram: SiInstagram,
+  x: SiX,
+  linkedin: SiLinkedin,
+  tiktok: SiTiktok,
+  telegram: SiTelegram,
+  whatsapp: SiWhatsapp,
+  email: HiOutlineEnvelope,
 };

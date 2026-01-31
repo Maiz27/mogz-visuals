@@ -1,11 +1,12 @@
+import Link from 'next/link';
 import Image from 'next/image';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
+import { CTALink } from '../ui/CTA/CTALink';
 import { fetchSanityData } from '@/lib/sanity/client';
 import { getFooterImages } from '@/lib/sanity/queries';
 import { divideImagesArray } from '@/lib/utils';
+import { LEGAL_ROUTES, SITE_NAME, SOCIALS } from '@/lib/Constants';
 import { HERO_IMAGES } from '@/lib/types';
-import { CTALink } from '../ui/CTA/CTALink';
-import { SITE_NAME, SOCIALS } from '@/lib/Constants';
 
 export const revalidate = 60;
 
@@ -20,11 +21,27 @@ const Footer = async () => {
       id='footer'
       className='w-full mx-auto mt-20'
     >
-      <div className='w-full flex justify-between items-center px-4'>
-        <span>
-          &copy; {new Date().getFullYear().toString()} {SITE_NAME}.
-        </span>
-        <span>All Rights Reserved.</span>
+      <div className='w-full flex justify-between items-center px-4 text-sm lg:text-base'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-2 md:divide-x-2 divide-primary'>
+          <span className='pr-2'>
+            &copy; {new Date().getFullYear().toString()} {SITE_NAME}
+          </span>
+          <span>All rights reserved</span>
+        </div>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-2 md:divide-x-2 divide-primary'>
+          {LEGAL_ROUTES.map(({ name, href }) => {
+            return (
+              <Link
+                key={name}
+                href={href}
+                className='transition-colors tracking-wider lg:tracking-widest ml-2 relative group hover:text-primary first:pr-2'
+              >
+                {name}
+                <span className='absolute bottom-0 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
+              </Link>
+            );
+          })}
+        </div>
       </div>
 
       <Grid images={arrays} />

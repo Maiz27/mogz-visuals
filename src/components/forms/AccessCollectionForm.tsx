@@ -1,6 +1,7 @@
 import { FormEvent, ReactNode } from 'react';
 import Input from '../ui/form/Input';
 import { FORMS } from '@/lib/Constants';
+import TurnstileWidget from '../ui/TurnstileWidget';
 
 type Props = {
   children: ReactNode;
@@ -9,6 +10,7 @@ type Props = {
   state: any;
   errors: any;
   handleChange: any;
+  setToken: (token: string) => void;
 };
 
 const AccessCollectionForm = ({
@@ -18,11 +20,12 @@ const AccessCollectionForm = ({
   state,
   errors,
   handleChange,
+  setToken,
 }: Props) => {
   const { fields } = FORMS.browse;
   return (
-    <form onSubmit={onSubmit} className={`md:px-6 ${className}`}>
-      <div className='flex flex-col items-center space-y-2'>
+    <form onSubmit={onSubmit} className={`${className}`}>
+      <div className='flex flex-col space-y-2'>
         {fields.map((field) => (
           <Input
             key={field.id}
@@ -32,6 +35,7 @@ const AccessCollectionForm = ({
             {...field}
           />
         ))}
+        <TurnstileWidget onVerify={(t) => setToken(t)} />
       </div>
 
       {children}

@@ -40,6 +40,7 @@ export const getPrivateCollectionByID = `*[_type == "collection" && uniqueId == 
   service,
   date,
   password,
+  "imageCount": count(gallery),
 }[0]`;
 
 export const getPrivateCollectionGallery = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
@@ -107,3 +108,40 @@ export const getPrivateCollectionInitialGallery = `*[_type == "collection" && un
   "imageCount": count(gallery),
   "gallery": gallery[0...20].asset->url,
 }[0]`;
+
+export const getDownloadGalleryBySlug = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
+  "gallery": gallery[].asset->{
+    "url": url,
+    "size": size
+  },
+  title
+}[0]`;
+
+export const getDownloadGalleryById = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
+  "gallery": gallery[].asset->{
+    "url": url,
+    "size": size
+  },
+  title // Assuming title is needed for zip name
+}[0]`;
+
+export const getTermsOfUse = `*[_type == 'other'] {
+  terms
+}[0]`;
+
+export const getPrivacyPolicy = `*[_type == 'other'] {
+  privacy
+}[0]`;
+
+export const getTeamImages = `*[_type == "team"]{
+  "image": image.asset->url
+}.image`;
+
+export const getTeamMembers = `*[_type == "team"]
+ | order(order asc){
+  order,
+  name,
+  title,
+  "image": image.asset->url,
+  socials
+}`;

@@ -7,6 +7,8 @@ import { IsClientCtxProvider } from '@/lib/context/IsClientContext';
 import { ToastProvider } from '@/lib/context/ToastContext';
 import { getPageMetadata } from '@/lib/utils';
 import JsonLD from '@/components/SEO/JsonLD';
+import { DrawerProvider } from '@/lib/context/DrawerContext';
+import GlobalDrawer from '@/components/drawers/GlobalDrawer';
 import './globals.css';
 
 export const metadata = getPageMetadata('home');
@@ -25,16 +27,19 @@ export default function RootLayout({
       <head>
         <JsonLD />
       </head>
-      <body className=''>
+      <body>
         <IsClientCtxProvider>
           <ScrollProvider>
             <ToastProvider>
-              <div data-scroll-container>
-                <Header />
-                {children}
-                <Footer />
-                <ScrollToTop />
-              </div>
+              <DrawerProvider>
+                <div data-scroll-container className='relative'>
+                  <Header />
+                  {children}
+                  <GlobalDrawer />
+                  <Footer />
+                  <ScrollToTop />
+                </div>
+              </DrawerProvider>
             </ToastProvider>
           </ScrollProvider>
         </IsClientCtxProvider>

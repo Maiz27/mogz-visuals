@@ -1,6 +1,8 @@
 'use client';
+
 import { useRouter } from 'next/navigation';
-import { FormEvent } from 'react';
+import { createPortal } from 'react-dom';
+import { FormEvent, useState } from 'react';
 import { Logo } from './Header';
 import CTAButton from '../ui/CTA/CTAButton';
 import { ByNilotik } from '../footer/Footer';
@@ -33,46 +35,51 @@ const MobileMenu = () => {
   };
 
   return (
-    <div className='block lg:hidden'>
+    <div className='block lg:hidden z-99'>
       <button onClick={handleOpen} className='block text-4xl'>
         <HiBars3BottomRight />
       </button>
 
-      {isOpen && (
-        <div
-          ref={menuRef}
-          className='fixed left-0 top-0 flex justify-between min-h-dvh w-full flex-col bg-copy text-background'
-        >
-          <div className='py-6 px-4'>
-            <div className='flex items-center justify-between pb-6'>
-              <Logo black={true} />
-              <button onClick={handleClose}>
-                <HiMiniXMark className='text-4xl' />
-              </button>
+      {isOpen &&
+        // Using createPortal to render the menu outside the header container
+        // This prevents the menu from being clipped by the header's 'overflow-hidden' style
+        // and ensures it can cover the full screen height (z-index + fixed position).
+        createPortal(
+          <div
+            ref={menuRef}
+            className='fixed top-0 left-0 flex justify-between h-screen w-full flex-col bg-copy text-background overflow-y-auto z-999'
+          >
+            <div className='py-6 px-4'>
+              <div className='flex items-center justify-between pb-6'>
+                <Logo black={true} />
+                <button onClick={handleClose}>
+                  <HiMiniXMark className='text-4xl' />
+                </button>
+              </div>
+              <nav>
+                <ul>
+                  {ROUTES.map(({ name, href }, index) => (
+                    <MobileMenuLink
+                      key={name}
+                      href={href}
+                      handleMenuLinkClick={handleMenuLinkClick}
+                    >
+                      {name}
+                    </MobileMenuLink>
+                  ))}
+                </ul>
+              </nav>
             </div>
-            <nav>
-              <ul>
-                {ROUTES.map(({ name, href }, index) => (
-                  <MobileMenuLink
-                    key={name}
-                    href={href}
-                    handleMenuLinkClick={handleMenuLinkClick}
-                  >
-                    {name}
-                  </MobileMenuLink>
-                ))}
-              </ul>
-            </nav>
-          </div>
 
-          <div className='flex flex-col px-4'>
-            <AccessForm handleReroute={handleReroute} />
-            <div className='flex items-center justify-end mt-8 mb-2'>
-              <ByNilotik />
+            <div className='flex flex-col px-4'>
+              <AccessForm handleReroute={handleReroute} />
+              <div className='flex items-center justify-end mt-8 mb-2'>
+                <ByNilotik />
+              </div>
             </div>
-          </div>
-        </div>
-      )}
+          </div>,
+          document.body,
+        )}
     </div>
   );
 };
@@ -105,14 +112,15 @@ const AccessForm = ({ handleReroute }: { handleReroute: (r: any) => void }) => {
   const { initialValue, rules } = FORMS.browse;
   const { state, errors, handleChange, reset } = useFormState(
     initialValue,
-    rules
+    rules,
   );
 
   const { response, loading, handleVerifyAccess } = useVerifyAccess();
+  const [token, setToken] = useState('');
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await handleVerifyAccess(state);
+    const response = await handleVerifyAccess(state, token);
 
     if (response.status === 200) {
       reset();
@@ -130,6 +138,7 @@ const AccessForm = ({ handleReroute }: { handleReroute: (r: any) => void }) => {
         state={state}
         errors={errors}
         handleChange={handleChange}
+        setToken={setToken}
         className='flex flex-col justify-center space-y-4 text-copy'
       >
         {response && (
@@ -142,7 +151,12 @@ const AccessForm = ({ handleReroute }: { handleReroute: (r: any) => void }) => {
           </span>
         )}
 
-        <CTAButton type='submit' loading={loading} style='primary'>
+        <CTAButton
+          type='submit'
+          loading={loading}
+          style='primary'
+          disabled={!token}
+        >
           Access Collection
         </CTAButton>
       </AccessCollectionForm>

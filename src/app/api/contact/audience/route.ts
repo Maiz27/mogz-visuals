@@ -6,7 +6,15 @@ const audienceId = process.env.RESEND_AUDIENCE_ID!;
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
+    let body;
+    try {
+      body = await req.json();
+    } catch (e) {
+      return NextResponse.json(
+        { message: 'Invalid JSON body' },
+        { status: 400 },
+      );
+    }
     const { email } = body;
 
     const { data, error } = await resend.contacts.create({

@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { BASEURL, ROUTES } from '@/lib/Constants';
+import { BASEURL, LEGAL_ROUTES, ROUTES } from '@/lib/Constants';
 import { fetchSanityData } from '@/lib/sanity/client';
 import { getAllCollectionsForSitemap } from '@/lib/sanity/queries';
 import { COLLECTION } from '@/lib/types';
@@ -33,7 +33,7 @@ export async function GET() {
     lastModified: date,
   }));
 
-  const _routes = ROUTES.map(({ href }) => ({
+  const _routes = [...ROUTES, ...LEGAL_ROUTES].map(({ href }) => ({
     url: `${BASEURL}${href}`,
     lastModified: new Date().toISOString(),
   }));

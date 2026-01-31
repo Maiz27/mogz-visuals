@@ -63,9 +63,9 @@ const ScrollHero = async () => {
 
         <CTAButton
           title='Scroll Down'
-          scrollId='about'
+          scrollId='immersive-about'
           style='ghost'
-          className='text-3xl absolute left-1/2 -translate-x-1/2 -bottom-[18%] md:-bottom-[50%] lg:-bottom-[80%] xl:-bottom-2/3 2xl:-bottom-[50%]'
+          className='text-3xl absolute left-1/2 -translate-x-1/2 -bottom-[18%] md:-bottom-[50%] lg:-bottom-[80%] xl:-bottom-2/3 2xl:-bottom-[50%] animate-bounce'
         >
           <HiOutlineChevronDoubleDown />
         </CTAButton>

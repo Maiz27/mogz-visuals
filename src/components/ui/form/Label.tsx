@@ -2,7 +2,7 @@ import React from 'react';
 
 type LabelProps = {
   id: string;
-  label: string;
+  label: React.ReactNode;
   className?: string;
 };
 

@@ -3,17 +3,22 @@ import Input from '@/components/ui/form/Input';
 import Textarea from '@/components/ui/form/Textarea';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import RadioGroup from '@/components/ui/form/RadioGroup';
+import Checkbox from '@/components/ui/form/Checkbox';
 import { FORMS } from '@/lib/Constants';
 import useFormState from '@/lib/hooks/useFormState';
 import { useToast } from '@/lib/context/ToastContext';
+import TurnstileWidget from '../ui/TurnstileWidget';
+import { useState } from 'react';
 
 const ContactForm = () => {
   const { show } = useToast();
   const { initialValue, fields, rules } = FORMS.contact;
   const { state, errors, loading, handleChange, onSubmit } = useFormState(
     initialValue,
-    rules
+    rules,
   );
+
+  const [token, setToken] = useState('');
 
   const checkRateLimit = async (id: string): Promise<boolean> => {
     const response = await fetch(`/api/rateLimit?id=${id}`, {
@@ -29,6 +34,11 @@ const ContactForm = () => {
   };
 
   const handleSubmit = async () => {
+    if (!token) {
+      show('Please verify you are human', { status: 'error' });
+      return;
+    }
+
     if (!(await checkRateLimit('contact'))) return;
 
     const response = await fetch('/api/contact', {
@@ -36,7 +46,7 @@ const ContactForm = () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(state),
+      body: JSON.stringify({ ...state, token }),
     });
 
     if (response.status === 200) {
@@ -85,6 +95,18 @@ const ContactForm = () => {
           );
         }
 
+        if (field.comp === 'checkbox') {
+          return (
+            <Checkbox
+              key={field.name}
+              state={state}
+              errors={errors}
+              onChange={handleChange}
+              {...field}
+            />
+          );
+        }
+
         return (
           <Input
             key={field.name}
@@ -96,8 +118,14 @@ const ContactForm = () => {
         );
       })}
 
-      <div className='grid place-items-center'>
-        <CTAButton loading={loading} type='submit' className='w-fit'>
+      <div className='grid space-y-4'>
+        <TurnstileWidget onVerify={(t) => setToken(t)} />
+        <CTAButton
+          loading={loading}
+          type='submit'
+          className='w-fit'
+          disabled={!token}
+        >
           Book Session
         </CTAButton>
       </div>

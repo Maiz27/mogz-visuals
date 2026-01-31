@@ -36,6 +36,24 @@ const useFormState = <T extends object>(
       return;
     }
 
+    // checkbox inputs
+    if (type === 'checkbox') {
+      const { checked } = e.target as HTMLInputElement;
+      setState({
+        ...state,
+        [name]: checked,
+      });
+
+      if (rules[name]) {
+        const errorMessage = rules[name](checked);
+        setErrors({
+          ...errors,
+          [name]: errorMessage,
+        });
+      }
+      return;
+    }
+
     // file inputs
     let files;
     if (e.target instanceof HTMLInputElement && 'files' in e.target) {

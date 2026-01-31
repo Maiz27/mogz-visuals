@@ -1,4 +1,4 @@
-import About from '@/components/sections/About';
+import ImmersiveAbout from '@/components/sections/ImmersiveAbout';
 import Contact from '@/components/sections/Contact';
 import Services from '@/components/sections/Services';
 import ScrollHero from '@/components/sections/ScrollHero';
@@ -10,7 +10,7 @@ const Home = () => {
     <main>
       <ScrollHero />
 
-      <About />
+      <ImmersiveAbout />
 
       <Services />
 

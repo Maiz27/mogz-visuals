@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { saveAs } from 'file-saver';
 import * as Comlink from 'comlink';
 import { useToast } from '../context/ToastContext';
@@ -65,14 +66,14 @@ const useDownloadCollection = ({
   const showToast = (
     message: string,
     status: 'success' | 'error',
-    autoClose: boolean = true
+    autoClose: boolean = true,
   ) => {
     show(message, { status, autoClose });
   };
 
   const checkRateLimit = async (
     id: string,
-    collectionId?: string
+    collectionId?: string,
   ): Promise<boolean> => {
     let url = `/api/rateLimit?id=${id}`;
     if (collectionId) {
@@ -105,7 +106,7 @@ const useDownloadCollection = ({
 
   const _zipAndSave = async (images: string[], segmentIndex: number) => {
     const worker = new Worker(
-      new URL('../workers/zip.worker.ts', import.meta.url)
+      new URL('../workers/zip.worker.ts', import.meta.url),
     );
     const workerApi = Comlink.wrap<any>(worker);
 
@@ -116,7 +117,7 @@ const useDownloadCollection = ({
     const content = await workerApi.zipImages(
       images,
       `${folderName}-part-${segmentIndex + 1}`,
-      Comlink.proxy(onProgress)
+      Comlink.proxy(onProgress),
     );
 
     saveAs(content, `${folderName}-part-${segmentIndex + 1}.zip`);
@@ -145,14 +146,17 @@ const useDownloadCollection = ({
         const images: string[] = await fetchSanityData(segmentQuery, params);
 
         await _zipAndSave(images, segmentIndex);
-        showToast(`Part ${segmentIndex + 1} downloaded successfully!`, 'success');
+        showToast(
+          `Part ${segmentIndex + 1} downloaded successfully!`,
+          'success',
+        );
       } catch (err: any) {
         console.error(err);
         showToast(
           `An error occurred while downloading part ${
             segmentIndex + 1
           }! Try again later.`,
-          'error'
+          'error',
         );
       } finally {
         setLoading(false);
@@ -182,10 +186,7 @@ const useDownloadCollection = ({
           const params = isPrivate
             ? { id: uniqueId, start: segment.start, end: segment.end }
             : { slug: slug.current, start: segment.start, end: segment.end };
-          const images: string[] = await fetchSanityData(
-            segmentQuery,
-            params
-          );
+          const images: string[] = await fetchSanityData(segmentQuery, params);
           await _zipAndSave(images, i);
           if (i < segments.length - 1) {
             // Advance only if there are more segments to download
@@ -197,13 +198,113 @@ const useDownloadCollection = ({
         console.error(err);
         showToast(
           `An error occurred during the full collection download! Try again later.`,
-          'error'
+          'error',
         );
       } finally {
         setLoading(false);
         reset();
       }
     }, 0);
+  };
+
+  const downloadStream = async (email: string) => {
+    // 1. PREPARE: Trigger generation or cache check
+    // This allows the UI to show a spinner while the server does the heavy lifting
+    const formData = new FormData();
+    formData.append('email', email);
+
+    formData.append('mode', 'prepare'); // Signal to API to just prepare
+    if (isPrivate && uniqueId) {
+      formData.append('collectionId', uniqueId);
+      formData.append('isPrivate', 'true');
+    } else if (slug?.current) {
+      formData.append('slug', slug.current);
+      formData.append('isPrivate', 'false');
+    }
+
+    try {
+      const res = await fetch('/api/download/stream', {
+        method: 'POST',
+        body: formData,
+        credentials: 'include',
+      });
+
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        // If we get HTML or text, it's likely a server error page (500, 502, 504)
+        throw new Error(
+          `Server Error: Received ${contentType || 'unknown content type'}`,
+        );
+      }
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        showToast('Failed to prepare download. Please try again.', 'error');
+        return;
+      }
+
+      // 2. DOWNLOAD: Fetch with blob to handle errors using same auth logic
+      const downloadFormData = new FormData();
+      downloadFormData.append('email', email);
+
+      // FIX: Do NOT send token in body. Rely strictly on httpOnly cookie.
+      // If cookie is missing, API will reject, which is correct secure behavior.
+
+      if (isPrivate && uniqueId) {
+        downloadFormData.append('collectionId', uniqueId);
+        downloadFormData.append('isPrivate', 'true');
+      } else if (slug?.current) {
+        downloadFormData.append('slug', slug.current);
+        downloadFormData.append('isPrivate', 'false');
+      }
+
+      const downloadRes = await fetch('/api/download/stream', {
+        method: 'POST',
+        body: downloadFormData,
+        credentials: 'include',
+      });
+
+      if (!downloadRes.ok) {
+        throw new Error(
+          downloadRes.status === 401
+            ? 'Unauthorized access'
+            : 'Download failed',
+        );
+      }
+
+      // FIX: Check Content-Type before getting blob to detect server errors (e.g. 500 HTML)
+      const dlContentType = downloadRes.headers.get('content-type');
+      if (
+        dlContentType &&
+        !dlContentType.includes('application/zip') &&
+        !dlContentType.includes('application/octet-stream')
+      ) {
+        throw new Error('Invalid download response type');
+      }
+
+      const blob = await downloadRes.blob();
+      if (blob.type === 'text/html') {
+        throw new Error('Server error - received HTML instead of file');
+      }
+      const contentDisposition = downloadRes.headers.get('Content-Disposition');
+      let fileName = 'download.zip';
+      if (contentDisposition) {
+        const match = contentDisposition.match(/filename="?([^"]+)"?/);
+        if (match && match[1]) fileName = match[1];
+      }
+      saveAs(blob, fileName);
+
+      // FIX: Capture email strictly only after successful file save initiation
+      addEmailToAudience(email).catch(console.error);
+    } catch (e: any) {
+      console.error(e);
+      let errMsg = 'An error occurred. Please try again.';
+      if (typeof e === 'string') errMsg = e;
+      else if (e instanceof Error) errMsg = e.message;
+      else if (e?.message) errMsg = String(e.message);
+
+      showToast(errMsg, 'error');
+    }
   };
 
   return {
@@ -214,6 +315,7 @@ const useDownloadCollection = ({
     total,
     downloadChunk,
     downloadAllChunks,
+    downloadStream,
   };
 };
 

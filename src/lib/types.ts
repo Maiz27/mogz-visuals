@@ -37,6 +37,21 @@ export type VERIFY_ACCESS_RESPONSE_BODY = {
   secret: string;
 };
 
+export type SOCIAL_LINK = {
+  provider: 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'tiktok';
+  url: {
+    href: string;
+  };
+};
+
+export type TEAM_MEMBER = {
+  order: number;
+  name: string;
+  title: string;
+  image: string;
+  socials?: SOCIAL_LINK[];
+};
+
 export type TOAST_STATUS = 'success' | 'error' | 'info' | 'warning';
 
 export type Tag =
@@ -44,6 +59,7 @@ export type Tag =
   | 'div'
   | 'section'
   | 'article'
+  | 'header'
   | 'ul'
   | 'a'
   | 'form'
@@ -60,8 +76,22 @@ export type Tag =
   | 'footer';
 
 export type BaseFormFieldProps = {
-  label?: string;
+  label?: React.ReactNode;
   state?: object;
   errors?: object;
   [x: string]: any;
+};
+
+export type RichText = Array<{
+  _type: string;
+  style: string;
+  children: Array<{
+    _type: string;
+    text: string;
+  }>;
+}>;
+
+export type TermsPrivacy = {
+  lastUpdated: string;
+  content: RichText;
 };

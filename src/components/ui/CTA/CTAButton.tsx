@@ -11,6 +11,7 @@ type ButtonProps = {
   loading?: boolean;
   scrollId?: string;
   className?: string;
+  disabled?: boolean;
 };
 
 const CTAButton = (props: ButtonProps) => {
@@ -22,6 +23,7 @@ const CTAButton = (props: ButtonProps) => {
     type = 'button',
     loading = false,
     style = 'outline',
+    disabled = false,
     onClick,
   } = props;
   const { scrollToSection } = useScroll();
@@ -30,7 +32,7 @@ const CTAButton = (props: ButtonProps) => {
     className: `${getStyles(
       style,
       loading
-    )} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 hover:cursor-pointer ${className}`,
+    )} tracking-wider lg:tracking-widest px-4 h-12 font-black transition-all duration-300 hover:cursor-pointer disabled:cursor-not-allowed disabled:opacity-30 disabled:scale-95 ${className}`,
   };
 
   if (scrollId) {
@@ -43,6 +45,7 @@ const CTAButton = (props: ButtonProps) => {
         title={title}
         type={type}
         onClick={() => handleScroll()}
+        disabled={loading || disabled}
         {...commonProps}
       >
         {children}
@@ -54,7 +57,7 @@ const CTAButton = (props: ButtonProps) => {
     <button
       title={title}
       type={type}
-      disabled={loading}
+      disabled={loading || disabled}
       onClick={onClick}
       {...commonProps}
     >
