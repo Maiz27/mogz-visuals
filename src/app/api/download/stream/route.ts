@@ -55,7 +55,13 @@ function iteratorToStream(iterator: any) {
         controller.error(err);
       }
     },
+    async cancel() {
+      if (iterator.return) {
+        await iterator.return();
+      }
+    },
   });
+}
 }
 
 async function* nodeStreamToIterator(stream: fs.ReadStream, signal?: AbortSignal) {
