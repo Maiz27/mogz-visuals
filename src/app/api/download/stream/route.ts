@@ -196,6 +196,7 @@ export async function POST(req: NextRequest) {
       });
 
       // Start Async Processing (captured in promise)
+      const processingPromise = (async () => {
         try {
           const BATCH_SIZE = 10;
           for (let i = 0; i < items.length; i += BATCH_SIZE) {
