@@ -44,14 +44,19 @@ const cleanupOldFiles = async (dir: string) => {
 function iteratorToStream(iterator: any) {
   return new ReadableStream({
     async pull(controller) {
-      const { value, done } = await iterator.next();
-      if (done) {
-        controller.close();
-      } else {
-        controller.enqueue(value);
+      try {
+        const { value, done } = await iterator.next();
+        if (done) {
+          controller.close();
+        } else {
+          controller.enqueue(value);
+        }
+      } catch (err) {
+        controller.error(err);
       }
     },
   });
+}
 }
 
 async function* nodeStreamToIterator(stream: fs.ReadStream) {
