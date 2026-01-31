@@ -253,7 +253,8 @@ export async function POST(req: NextRequest) {
               const buffers = await Promise.all(
                 batch.map(async (img: any, idx) => {
                   try {
-                    const extension = img.url.split('.').pop();
+                    const urlPath = img.url.split('?')[0]; // Strip query params
+                    const extension = urlPath.split('.').pop();
                     const validExtension =
                       extension &&
                       extension.trim().length > 0 &&
