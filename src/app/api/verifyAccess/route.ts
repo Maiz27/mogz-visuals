@@ -47,7 +47,11 @@ export async function POST(req: NextRequest) {
     { id },
   );
 
-  if (!credentials || credentials.password !== password) {
+  const isPasswordValid = credentials && 
+    Buffer.from(credentials.password).length === Buffer.from(password).length &&
+    crypto.timingSafeEqual(Buffer.from(credentials.password), Buffer.from(password));
+
+  if (!credentials || !isPasswordValid) {
     return NextResponse.json(
       { message: 'Invalid collection ID or password', status: 401 },
       { status: 401 },
