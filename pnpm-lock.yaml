@@ -24,9 +24,6 @@ importers:
       '@sanity/image-url':
         specifier: ^1.0.2
         version: 1.2.0
-      '@types/crypto-js':
-        specifier: ^4.2.2
-        version: 4.2.2
       '@types/locomotive-scroll':
         specifier: ^4.1.3
         version: 4.1.4
@@ -75,6 +72,9 @@ importers:
       react-share:
         specifier: ^5.1.0
         version: 5.2.2(react@19.1.0)
+      react-turnstile:
+        specifier: ^1.1.5
+        version: 1.1.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       resend:
         specifier: ^3.4.0
         version: 3.5.0(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -88,6 +88,9 @@ importers:
       '@types/archiver':
         specifier: ^7.0.0
         version: 7.0.0
+      '@types/crypto-js':
+        specifier: ^4.2.2
+        version: 4.2.2
       '@types/file-saver':
         specifier: ^2.0.7
         version: 2.0.7
@@ -2141,6 +2144,12 @@ packages:
     resolution: {integrity: sha512-z0nbOX6X6vHHWAvXduNkYeJUKTKNpKM5Xpmc5a2BxjJhUWl+sE7AsSEMmYEUj2DuDjZr5m7KFIGF0sQPKcUN6w==}
     peerDependencies:
       react: ^17 || ^18 || ^19
+
+  react-turnstile@1.1.5:
+    resolution: {integrity: sha512-VTL5OeHAatzCEVQxAZox70/TPmhKxEbNgtr++dg+8zm9QrWKuoU9E0+7gqmycOSCDZuJFzvMMLKQb5PVUPLV6w==}
+    peerDependencies:
+      react: '>= 16.13.1'
+      react-dom: '>= 16.13.1'
 
   react@19.1.0:
     resolution: {integrity: sha512-FS+XFBNvn3GTAWq26joslQgWNoFu08F4kl0J4CgdNKADkdSGXQyTCnKteIAJy96Br6YbpEU1LSzV5dYtjMkMDg==}
@@ -4615,6 +4624,11 @@ snapshots:
       react: 19.1.0
     transitivePeerDependencies:
       - supports-color
+
+  react-turnstile@1.1.5(react-dom@19.1.0(react@19.1.0))(react@19.1.0):
+    dependencies:
+      react: 19.1.0
+      react-dom: 19.1.0(react@19.1.0)
 
   react@19.1.0: {}
 
