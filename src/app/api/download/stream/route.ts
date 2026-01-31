@@ -210,7 +210,9 @@ export async function POST(req: NextRequest) {
             .then(() => {
               try {
                 fs.writeFileSync(lockPath, '');
-              } catch {}
+              } catch (lockErr) {
+                console.warn('[Cleanup] Failed to update lock file:', lockErr);
+              }
             })
             .catch(console.error);
         }
