@@ -261,7 +261,7 @@ export async function POST(req: NextRequest) {
         // Start Async Processing (captured in promise)
         const processingPromise = (async () => {
           try {
-            const BATCH_SIZE = 5; // Reduced to 5 to limit concurrent streams and memory usage
+            const BATCH_SIZE = 3; // Reduced to 3 to strictly limit memory buffering with mixed stream speeds
             let successCount = 0;
             const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg']; // Strict whitelist
             for (let i = 0; i < items.length; i += BATCH_SIZE) {
