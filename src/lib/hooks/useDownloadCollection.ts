@@ -228,7 +228,8 @@ const useDownloadCollection = ({
         credentials: 'include',
       });
 
-      if (!res.ok) {
+      const data = await res.json();
+      if (!res.ok || !data.success) {
         showToast('Failed to prepare download. Please try again.', 'error');
         return;
       }

@@ -55,7 +55,7 @@ const DownloadContent = ({ collection }: Props) => {
   const { initialValue, fields, rules } = FORMS.download;
   const { state, errors, handleChange, reset } = useFormState(
     initialValue,
-    rules
+    rules,
   );
 
   const handleEmailSubmit = (e: FormEvent) => {
@@ -69,7 +69,9 @@ const DownloadContent = ({ collection }: Props) => {
     setIsPreparingStream(true);
     await downloadStream(state.email.toLowerCase());
     // Simulate "Preparing" delay or wait for stream to start
-    setIsPreparingStream(false);
+    await downloadStream(state.email.toLowerCase());
+    // Wait for browser to register the download form submission
+    setTimeout(() => setIsPreparingStream(false), 1000);
   };
 
   const handlePartDownload = async (index: number) => {
