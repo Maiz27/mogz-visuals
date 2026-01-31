@@ -234,6 +234,9 @@ const useDownloadCollection = ({
         return;
       }
 
+      // Capture email immediately after successful preparation
+      addEmailToAudience(email).catch(console.error);
+
       // 2. DOWNLOAD: Fetch with blob to handle errors using same auth logic
       const downloadFormData = new FormData();
       downloadFormData.append('email', email);
@@ -271,8 +274,6 @@ const useDownloadCollection = ({
         if (match && match[1]) fileName = match[1];
       }
       saveAs(blob, fileName);
-
-      await addEmailToAudience(email);
     } catch (e) {
       console.error(e);
       showToast('An error occurred. Please try again.', 'error');

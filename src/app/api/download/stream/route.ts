@@ -57,7 +57,6 @@ function iteratorToStream(iterator: any) {
     },
   });
 }
-}
 
 async function* nodeStreamToIterator(stream: fs.ReadStream) {
   for await (const chunk of stream) {
@@ -169,8 +168,8 @@ export async function POST(req: NextRequest) {
 
     // 4. Generate if needed (Blocking Operation)
     if (!useCache) {
-      // Run cleanup asynchronously with low probability to avoid contention
-      if (Math.random() < 0.05) cleanupOldFiles(tempDir).catch(console.error);
+      // Run cleanup asynchronously with probability 0.2 (20%) to balance load vs storage
+      if (Math.random() < 0.2) cleanupOldFiles(tempDir).catch(console.error);
 
       // FIX RACE CONDITION: Use mkdtemp for unique generation path
       const uniqueGenDir = fs.mkdtempSync(path.join(tempDir, 'gen-'));
@@ -196,8 +195,7 @@ export async function POST(req: NextRequest) {
         archive.pipe(output);
       });
 
-      // Start Async Processing
-      (async () => {
+      // Start Async Processing (captured in promise)
         try {
           const BATCH_SIZE = 10;
           for (let i = 0; i < items.length; i += BATCH_SIZE) {
@@ -212,12 +210,15 @@ export async function POST(req: NextRequest) {
                   }
 
                   const extension = img.url.split('.').pop() || 'jpg';
-                  const validExtension = extension && /^[a-z0-9]{2,5}$/i.test(extension) ? extension : 'jpg';
+                  const validExtension =
+                    extension && /^[a-z0-9]{2,5}$/i.test(extension)
+                      ? extension
+                      : 'jpg';
                   // Sanitize filename inside ZIP
                   const cleanName = title
                     .replace(/[^a-z0-9]/gi, '_')
                     .toLowerCase();
-                  const filename = `${cleanName}-${i + idx + 1}.${extension}`;
+                  const filename = `${cleanName}-${i + idx + 1}.${validExtension}`;
 
                   const res = await fetch(img.url);
                   if (!res.ok) return null;
@@ -241,12 +242,12 @@ export async function POST(req: NextRequest) {
         } catch (err) {
           console.error('[Stream] Archive Gen Failed:', err);
           archive.abort();
-          // The error listener will catch it
+          throw err; // Propagate error to Promise.all
         }
       })();
 
-      // WAIT for generation to complete!
-      await generationPromise;
+      // WAIT for BOTH processing (to catch fast errors) and generation (write completion)
+      await Promise.all([processingPromise, generationPromise]);
 
       // Rename to final cache path (atomic overwrite if possible, or simple rename)
       // Windows rename might fail if file open or exists, so we try simple remove then rename
@@ -279,7 +280,10 @@ export async function POST(req: NextRequest) {
     // 6. Serve the File (Download Mode)
     const stats = fs.statSync(tempFilePath);
     const fileStream = fs.createReadStream(tempFilePath);
-    fileStream.on('error', (err) => { console.error('[Stream] Read error:', err); fileStream.destroy(); });
+    fileStream.on('error', (err) => {
+      console.error('[Stream] Read error:', err);
+      fileStream.destroy();
+    });
 
     // Correct Filename using the Fetched Title
     const downloadName = `[MOGZ] ${title
