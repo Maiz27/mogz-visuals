@@ -207,92 +207,115 @@ export async function POST(req: NextRequest) {
       const uniqueGenDir = fs.mkdtempSync(path.join(tempDir, 'gen-'));
       const uniqueGenPath = path.join(uniqueGenDir, 'partial.zip');
 
-      console.log(`[Disk] Generating new ZIP: ${uniqueGenPath}`);
+      try {
+        console.log(`[Disk] Generating new ZIP: ${uniqueGenPath}`);
 
-      const output = fs.createWriteStream(uniqueGenPath);
-      const archive = archiver('zip', {
-        zlib: { level: 0 }, // Store only
-        forceZip64: false,
-      });
+        const output = fs.createWriteStream(uniqueGenPath);
+        const archive = archiver('zip', {
+          zlib: { level: 0 }, // Store only
+          forceZip64: false,
+        });
 
-      // Wrap generation in a Promise we can await
-      const generationPromise = new Promise<void>((resolve, reject) => {
-        output.on('close', resolve);
-        output.on('error', (err) =>
-          reject(new Error(`Write Error: ${err.message}`)),
-        );
-        archive.on('error', (err) =>
-          reject(new Error(`Archive Error: ${err.message}`)),
-        );
-        archive.pipe(output);
-      });
+        // Handle Abort Signal
+        if (req.signal.aborted) {
+          throw new Error('Aborted');
+        }
+        const abortHandler = () => {
+          console.warn('[Stream] Aborted by client');
+          archive.abort();
+        };
+        req.signal.addEventListener('abort', abortHandler);
 
-      // Start Async Processing (captured in promise)
-      const processingPromise = (async () => {
-        try {
-          const BATCH_SIZE = 10;
-          for (let i = 0; i < items.length; i += BATCH_SIZE) {
-            const batch = items.slice(i, i + BATCH_SIZE);
-            const buffers = await Promise.all(
-              batch.map(async (img: any, idx) => {
-                try {
-                  // FIX SSRF: Validate URL origin
-                  if (!img.url.startsWith('https://cdn.sanity.io/')) {
-                    console.warn(`[Skip] Invalid image URL: ${img.url}`);
+        // Wrap generation in a Promise we can await
+        const generationPromise = new Promise<void>((resolve, reject) => {
+          output.on('close', resolve);
+          output.on('error', (err) =>
+            reject(new Error(`Write Error: ${err.message}`)),
+          );
+          archive.on('error', (err) =>
+            reject(new Error(`Archive Error: ${err.message}`)),
+          );
+          archive.pipe(output);
+        });
+
+        // Start Async Processing (captured in promise)
+        const processingPromise = (async () => {
+          try {
+            const BATCH_SIZE = 10;
+            for (let i = 0; i < items.length; i += BATCH_SIZE) {
+              if (req.signal.aborted) throw new Error('Aborted');
+
+              const batch = items.slice(i, i + BATCH_SIZE);
+              const buffers = await Promise.all(
+                batch.map(async (img: any, idx) => {
+                  try {
+                    // FIX SSRF: Validate URL origin
+                    if (!img.url.startsWith('https://cdn.sanity.io/')) {
+                      console.warn(`[Skip] Invalid image URL: ${img.url}`);
+                      return null;
+                    }
+
+                    const extension = img.url.split('.').pop();
+                    const validExtension =
+                      extension &&
+                      extension.trim().length > 0 &&
+                      /^[a-z0-9]{2,5}$/i.test(extension.trim())
+                        ? extension.trim()
+                        : 'jpg';
+                    // Sanitize filename inside ZIP
+                    const cleanName = title
+                      .replace(/[^a-z0-9]/gi, '_')
+                      .toLowerCase();
+                    const filename = `${cleanName}-${i + idx + 1}.${validExtension}`;
+
+                    const res = await fetch(img.url, { signal: req.signal });
+                    if (!res.ok) {
+                      console.warn(
+                        `[Stream] Fetch failed (${res.status}): ${img.url}`,
+                      );
+                      return null;
+                    }
+
+                    // FIX DoS: Handle streams/buffers properly (archiver handles streams but here we need concurrent fetching)
+                    // For now arrayBuffer is okay if we batch. But ideally piping.
+                    // Given the current architecture uses Promise.all for batching, ArrayBuffer is acceptable if BATCH_SIZE is small.
+                    const ab = await res.arrayBuffer();
+                    return { name: filename, buffer: Buffer.from(ab) };
+                  } catch (fetchErr) {
+                    console.error(
+                      `[Stream] URL processing error: ${img.url}`,
+                      fetchErr,
+                    );
                     return null;
                   }
+                }),
+              );
 
-                  const extension = img.url.split('.').pop();
-                  const validExtension =
-                    extension &&
-                    extension.trim() &&
-                    /^[a-z0-9]{2,5}$/i.test(extension.trim())
-                      ? extension.trim()
-                      : 'jpg';
-                  // Sanitize filename inside ZIP
-                  const cleanName = title
-                    .replace(/[^a-z0-9]/gi, '_')
-                    .toLowerCase();
-                  const filename = `${cleanName}-${i + idx + 1}.${validExtension}`;
-
-                  const res = await fetch(img.url);
-                  if (!res.ok) return null;
-
-                  // FIX DoS: Handle streams/buffers properly (archiver handles streams but here we need concurrent fetching)
-                  // For now arrayBuffer is okay if we batch. But ideally piping.
-                  // Given the current architecture uses Promise.all for batching, ArrayBuffer is acceptable if BATCH_SIZE is small.
-                  const ab = await res.arrayBuffer();
-                  return { name: filename, buffer: Buffer.from(ab) };
-                } catch {
-                  return null;
-                }
-              }),
-            );
-
-            for (const file of buffers) {
-              if (file) archive.append(file.buffer, { name: file.name });
+              for (const file of buffers) {
+                if (file) archive.append(file.buffer, { name: file.name });
+              }
             }
+            await archive.finalize();
+          } catch (err) {
+            console.error('[Stream] Archive Gen Failed:', err);
+            archive.abort();
+            throw err; // Propagate error to Promise.all
           }
-          await archive.finalize();
-        } catch (err) {
-          console.error('[Stream] Archive Gen Failed:', err);
-          archive.abort();
-          throw err; // Propagate error to Promise.all
-        }
-      })();
+        })();
 
-      // WAIT for BOTH processing (to catch fast errors) and generation (write completion)
-      await Promise.all([processingPromise, generationPromise]);
+        // WAIT for BOTH processing (to catch fast errors) and generation (write completion)
+        await Promise.all([processingPromise, generationPromise]);
 
-      // Rename to final cache path (atomic overwrite if possible, or simple rename)
-      // Windows rename might fail if file open or exists, so we try simple remove then rename
-      try {
+        req.signal.removeEventListener('abort', abortHandler);
+
+        // Rename to final cache path (atomic overwrite if possible, or simple rename)
+        // Windows rename might fail if file open or exists, so we try simple remove then rename
         if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
         fs.renameSync(uniqueGenPath, tempFilePath);
         fs.rmSync(uniqueGenDir, { recursive: true, force: true }); // cleanup unique dir
       } catch (err) {
-        console.error('[Stream] Rename Failed:', err);
-        // Clean up artifacts if rename failed
+        console.error('[Stream] Generation/Rename Failed:', err);
+        // Guarantee cleanup of unique dir if ANYTHING fails (generation, write, abort, or rename)
         try {
           if (fs.existsSync(uniqueGenPath)) fs.unlinkSync(uniqueGenPath);
           if (fs.existsSync(uniqueGenDir))
