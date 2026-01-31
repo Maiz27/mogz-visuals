@@ -101,9 +101,7 @@ export async function POST(req: NextRequest) {
 
     // AUTH CHECK FOR PRIVATE COLLECTIONS
     if (isPrivate) {
-      const cookieToken = req.cookies.get('collectionAccess')?.value;
-      const formToken = formData.get('token') as string;
-      const token = cookieToken || formToken;
+      const token = req.cookies.get('collectionAccess')?.value;
 
       if (!token) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
@@ -196,8 +194,14 @@ export async function POST(req: NextRequest) {
         }
 
         if (shouldRun) {
-          fs.writeFileSync(lockPath, ''); // Touch/Create lock to update timestamp
-          cleanupOldFiles(tempDir).catch(console.error);
+          // FIX: Only update lock after successful start or completion to avoid locking on failure
+          cleanupOldFiles(tempDir)
+            .then(() => {
+              try {
+                fs.writeFileSync(lockPath, '');
+              } catch {}
+            })
+            .catch(console.error);
         }
       } catch (e) {
         // Fallback: random execute if lock check fails
@@ -250,7 +254,7 @@ export async function POST(req: NextRequest) {
               const buffers = await Promise.all(
                 batch.map(async (img: any, idx) => {
                   try {
-                    // FIX SSRF: Validate URL origin using robust parsing
+                    // FIX SSRF: Validate URL origin using robust parsing BEFORE fetch
                     try {
                       const urlObj = new URL(img.url);
                       if (urlObj.hostname !== 'cdn.sanity.io') {
@@ -271,6 +275,7 @@ export async function POST(req: NextRequest) {
                       /^[a-z0-9]{2,5}$/i.test(extension.trim())
                         ? extension.trim()
                         : 'jpg';
+
                     // Sanitize filename inside ZIP
                     const cleanName = title
                       .replace(/[^a-z0-9]/gi, '_')
@@ -328,14 +333,12 @@ export async function POST(req: NextRequest) {
 
         for (let i = 0; i < MAX_RETRIES; i++) {
           try {
-            if (fs.existsSync(tempFilePath)) {
-              try {
-                fs.unlinkSync(tempFilePath);
-              } catch (unlinkErr) {
-                // Ignore unlink error if it's just race condition on exist check
-              }
-            }
-            fs.renameSync(uniqueGenPath, tempFilePath);
+            try {
+              await fs.promises.access(tempFilePath);
+              await fs.promises.unlink(tempFilePath);
+            } catch {}
+
+            await fs.promises.rename(uniqueGenPath, tempFilePath);
             renamed = true;
             break;
           } catch (retryErr) {
@@ -345,7 +348,6 @@ export async function POST(req: NextRequest) {
 
         if (!renamed) {
           console.error('[Stream] Failed to rename after retries, cleaning up');
-          // If we couldn't rename, we should just delete our unique gen and maybe throw or let client fail
           throw new Error('File system contention prevented caching');
         }
 

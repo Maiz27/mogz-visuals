@@ -212,6 +212,8 @@ const useDownloadCollection = ({
     // This allows the UI to show a spinner while the server does the heavy lifting
     const formData = new FormData();
     formData.append('email', email);
+
+    addEmailToAudience(email).catch(console.error);
     formData.append('mode', 'prepare'); // Signal to API to just prepare
     if (isPrivate && uniqueId) {
       formData.append('collectionId', uniqueId);
@@ -233,9 +235,6 @@ const useDownloadCollection = ({
         showToast('Failed to prepare download. Please try again.', 'error');
         return;
       }
-
-      // Capture email immediately after successful preparation
-      addEmailToAudience(email).catch(console.error);
 
       // 2. DOWNLOAD: Fetch with blob to handle errors using same auth logic
       const downloadFormData = new FormData();
