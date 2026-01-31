@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import Cookies from 'js-cookie';
 import { saveAs } from 'file-saver';
 import * as Comlink from 'comlink';
 import { useToast } from '../context/ToastContext';
@@ -65,14 +66,14 @@ const useDownloadCollection = ({
   const showToast = (
     message: string,
     status: 'success' | 'error',
-    autoClose: boolean = true
+    autoClose: boolean = true,
   ) => {
     show(message, { status, autoClose });
   };
 
   const checkRateLimit = async (
     id: string,
-    collectionId?: string
+    collectionId?: string,
   ): Promise<boolean> => {
     let url = `/api/rateLimit?id=${id}`;
     if (collectionId) {
@@ -105,7 +106,7 @@ const useDownloadCollection = ({
 
   const _zipAndSave = async (images: string[], segmentIndex: number) => {
     const worker = new Worker(
-      new URL('../workers/zip.worker.ts', import.meta.url)
+      new URL('../workers/zip.worker.ts', import.meta.url),
     );
     const workerApi = Comlink.wrap<any>(worker);
 
@@ -116,7 +117,7 @@ const useDownloadCollection = ({
     const content = await workerApi.zipImages(
       images,
       `${folderName}-part-${segmentIndex + 1}`,
-      Comlink.proxy(onProgress)
+      Comlink.proxy(onProgress),
     );
 
     saveAs(content, `${folderName}-part-${segmentIndex + 1}.zip`);
@@ -147,7 +148,7 @@ const useDownloadCollection = ({
         await _zipAndSave(images, segmentIndex);
         showToast(
           `Part ${segmentIndex + 1} downloaded successfully!`,
-          'success'
+          'success',
         );
       } catch (err: any) {
         console.error(err);
@@ -155,7 +156,7 @@ const useDownloadCollection = ({
           `An error occurred while downloading part ${
             segmentIndex + 1
           }! Try again later.`,
-          'error'
+          'error',
         );
       } finally {
         setLoading(false);
@@ -197,7 +198,7 @@ const useDownloadCollection = ({
         console.error(err);
         showToast(
           `An error occurred during the full collection download! Try again later.`,
-          'error'
+          'error',
         );
       } finally {
         setLoading(false);
@@ -224,6 +225,7 @@ const useDownloadCollection = ({
       const res = await fetch('/api/download/stream', {
         method: 'POST',
         body: formData,
+        credentials: 'include',
       });
 
       if (!res.ok) {
@@ -247,6 +249,10 @@ const useDownloadCollection = ({
       };
 
       addInput('email', email);
+      // Fallback: Send token in body if cookie fails
+      const token = Cookies.get('collectionAccess');
+      if (token) addInput('token', token);
+
       // No 'mode' means download mode
       if (isPrivate && uniqueId) {
         addInput('collectionId', uniqueId);
