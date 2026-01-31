@@ -243,9 +243,6 @@ const useDownloadCollection = ({
         return;
       }
 
-      // FIX: Capture email only after successful preparation to avoid capturing failed attempts
-      addEmailToAudience(email).catch(console.error);
-
       // 2. DOWNLOAD: Fetch with blob to handle errors using same auth logic
       const downloadFormData = new FormData();
       downloadFormData.append('email', email);
@@ -296,12 +293,17 @@ const useDownloadCollection = ({
         if (match && match[1]) fileName = match[1];
       }
       saveAs(blob, fileName);
+
+      // FIX: Capture email strictly only after successful file save initiation
+      addEmailToAudience(email).catch(console.error);
     } catch (e: any) {
       console.error(e);
-      showToast(
-        e instanceof Error ? e.message : 'An error occurred. Please try again.',
-        'error',
-      );
+      let errMsg = 'An error occurred. Please try again.';
+      if (typeof e === 'string') errMsg = e;
+      else if (e instanceof Error) errMsg = e.message;
+      else if (e?.message) errMsg = String(e.message);
+
+      showToast(errMsg, 'error');
     }
   };
 

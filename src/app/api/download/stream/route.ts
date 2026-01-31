@@ -157,7 +157,7 @@ export async function POST(req: NextRequest) {
     const contentHash = CryptoJS.MD5(JSON.stringify(items)).toString();
     const safeId = CryptoJS.MD5(collectionId || slug).toString();
 
-    // stable cache key dependent on content version
+    // stable cache key dependent on content version, ensuring safeId is used
     const cacheKey = isPrivate
       ? `priv_${safeId}_${contentHash}`
       : `pub_${safeId}_${contentHash}`;
@@ -202,9 +202,9 @@ export async function POST(req: NextRequest) {
         }
 
         if (shouldRun) {
-          // FIX: Update lock file in finally to ensure we debounce even if cleanup fails
+          // FIX: Update lock file ONLY after successful cleanup to prevent blocking if cleanup fails
           cleanupOldFiles(tempDir)
-            .finally(() => {
+            .then(() => {
               try {
                 fs.writeFileSync(lockPath, '');
               } catch {}
@@ -321,6 +321,8 @@ export async function POST(req: NextRequest) {
               for (const file of buffers) {
                 if (file?.stream) {
                   archive.append(file.stream, { name: file.name });
+                  // Yield to event loop to prevent blocking
+                  await new Promise<void>((resolve) => setImmediate(resolve));
                   successCount++;
                 }
               }
@@ -334,10 +336,11 @@ export async function POST(req: NextRequest) {
 
             await archive.finalize();
 
-            // FIX: Validate final ZIP size to ensure it's not empty/corrupt (just headers ~22 bytes)
-            if (archive.pointer() < 100) {
+            // FIX: Validate final ZIP size (headers + content). Empty zip is ~22 bytes.
+            // Warning if < 500 bytes (very small archive).
+            if (archive.pointer() < 500) {
               console.warn(
-                '[Stream] Generated archive is very small (< 100 bytes), possibly empty.',
+                '[Stream] Generated archive is very small (< 500 bytes), possibly empty.',
               );
             }
           } catch (err) {
@@ -369,8 +372,8 @@ export async function POST(req: NextRequest) {
             renamed = true;
             break;
           } catch (retryErr) {
-            // Exponential backoff: 100ms, 200ms, 400ms...
-            await new Promise((r) => setTimeout(r, 100 * Math.pow(2, i)));
+            // Exponential backoff: 50ms, 100ms, 200ms...
+            await new Promise((r) => setTimeout(r, 50 * Math.pow(2, i)));
           }
         }
 

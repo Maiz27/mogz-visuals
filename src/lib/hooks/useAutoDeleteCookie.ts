@@ -1,4 +1,3 @@
-import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useToast } from '../context/ToastContext';
