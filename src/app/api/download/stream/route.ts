@@ -152,13 +152,19 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Determine Cache Key (Filename)
-    // Use a stable filename so we can reuse the file if it exists!
-    const cacheKey = isPrivate ? `priv_${collectionId}` : `pub_${slug}`;
-    const safeCacheKey = cacheKey.replace(/[^a-z0-9]/gi, '_').toLowerCase();
+    // Use a hash of the content (items) + identifier to ensure invalidation when content changes
+    // This resolves the issue of serving stale zips if Sanity data updates
+    const contentHash = CryptoJS.MD5(JSON.stringify(items)).toString();
+    const safeId = CryptoJS.MD5(collectionId || slug).toString();
+
+    // stable cache key dependent on content version
+    const cacheKey = isPrivate
+      ? `priv_${safeId}_${contentHash}`
+      : `pub_${safeId}_${contentHash}`;
 
     const tempDir = os.tmpdir();
     // NO Date.now() here -> allows caching
-    const tempFilename = `mogz_${safeCacheKey}.zip`;
+    const tempFilename = `mogz_${cacheKey}.zip`; // cacheKey is already hex, so it's safe
     const tempFilePath = path.join(tempDir, tempFilename);
 
     console.log(`[Stream] Request for: ${title} (${tempFilename})`);
@@ -249,6 +255,7 @@ export async function POST(req: NextRequest) {
         const processingPromise = (async () => {
           try {
             const BATCH_SIZE = 10;
+            let successCount = 0;
             for (let i = 0; i < items.length; i += BATCH_SIZE) {
               if (req.signal.aborted) throw new Error('Aborted');
 
@@ -313,9 +320,17 @@ export async function POST(req: NextRequest) {
               for (const file of buffers) {
                 if (file?.stream) {
                   archive.append(file.stream, { name: file.name });
+                  successCount++;
                 }
               }
             }
+
+            if (successCount === 0) {
+              throw new Error(
+                'No valid files could be downloaded for the archive',
+              );
+            }
+
             await archive.finalize();
           } catch (err) {
             console.error('[Stream] Archive Gen Failed:', err);

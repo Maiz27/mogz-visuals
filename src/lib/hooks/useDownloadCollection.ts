@@ -230,6 +230,14 @@ const useDownloadCollection = ({
         credentials: 'include',
       });
 
+      const contentType = res.headers.get('content-type');
+      if (!contentType || !contentType.includes('application/json')) {
+        // If we get HTML or text, it's likely a server error page (500, 502, 504)
+        throw new Error(
+          `Server Error: Received ${contentType || 'unknown content type'}`,
+        );
+      }
+
       const data = await res.json();
       if (!res.ok || !data.success) {
         showToast('Failed to prepare download. Please try again.', 'error');
