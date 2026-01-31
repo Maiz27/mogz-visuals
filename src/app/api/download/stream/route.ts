@@ -245,7 +245,7 @@ export async function POST(req: NextRequest) {
                   const extension = img.url.split('.').pop();
                   const validExtension =
                     extension &&
-                    extension.trim() &&
+                    extension.trim().length > 0 &&
                     /^[a-z0-9]{2,5}$/i.test(extension)
                       ? extension
                       : 'jpg';
@@ -295,7 +295,8 @@ export async function POST(req: NextRequest) {
         // Clean up artifacts if rename failed
         try {
           if (fs.existsSync(uniqueGenPath)) fs.unlinkSync(uniqueGenPath);
-          if (fs.existsSync(uniqueGenDir)) fs.rmdirSync(uniqueGenDir);
+          if (fs.existsSync(uniqueGenDir))
+            fs.rmSync(uniqueGenDir, { recursive: true, force: true });
         } catch {}
 
         return NextResponse.json(
@@ -320,7 +321,7 @@ export async function POST(req: NextRequest) {
     fileStream.on('error', (err) => {
       console.error('[Stream] Read error:', err);
       streamErrorOccurred = true;
-      fileStream.destroy();
+      fileStream.destroy(err); // Propagate error state
     });
 
     // Correct Filename using the Fetched Title
@@ -332,7 +333,9 @@ export async function POST(req: NextRequest) {
 
     // Robust Stream Conversion
     // @ts-ignore - The iterator method is universally compatible with Next.js Response
-    const stream = iteratorToStream(nodeStreamToIterator(fileStream));
+    const stream = iteratorToStream(
+      nodeStreamToIterator(fileStream, req.signal),
+    );
 
     return new NextResponse(stream as any, {
       headers: {

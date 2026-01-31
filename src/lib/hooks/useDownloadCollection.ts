@@ -242,7 +242,7 @@ const useDownloadCollection = ({
       downloadFormData.append('email', email);
       // Fallback: Send token in body if cookie fails
       const token = Cookies.get('collectionAccess');
-      if (token) downloadFormData.append('token', token);
+      if (token && isPrivate) downloadFormData.append('token', token);
 
       if (isPrivate && uniqueId) {
         downloadFormData.append('collectionId', uniqueId);

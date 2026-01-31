@@ -178,9 +178,9 @@ const DownloadContent = ({ collection }: Props) => {
               <div className='h-16 w-16 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 text-3xl'>
                 <HiOutlineCheck />
               </div>
-              <p className='text-lg font-semibold'>Download Started!</p>
+              <p className='text-lg font-semibold'>File Retrieved!</p>
               <p className='text-sm text-gray-500'>
-                Your download should begin automatically.
+                Your download has been prepared and sent to your browser.
               </p>
               <button
                 onClick={() => setStep('download_parts')}
