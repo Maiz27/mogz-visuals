@@ -266,6 +266,9 @@ const useDownloadCollection = ({
       }
 
       const blob = await downloadRes.blob();
+      if (blob.type === 'text/html') {
+        throw new Error('Server error - received HTML instead of file');
+      }
       const contentDisposition = downloadRes.headers.get('Content-Disposition');
       let fileName = 'download.zip';
       if (contentDisposition) {
