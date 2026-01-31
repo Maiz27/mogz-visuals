@@ -327,7 +327,7 @@ export async function POST(req: NextRequest) {
                 if (file?.stream) {
                   archive.append(file.stream, { name: file.name });
                   // Yield to event loop to prevent blocking and allow GC/flushing
-                  await new Promise<void>((resolve) => setTimeout(resolve, 20));
+                  await new Promise<void>((resolve) => setImmediate(resolve));
                   successCount++;
                 }
               }
