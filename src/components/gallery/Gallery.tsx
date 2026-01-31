@@ -53,7 +53,7 @@ const Gallery = ({ collection }: Props) => {
       return randomWidth / randomHeight;
     });
     setAspectRatios((prevRatios) => [...prevRatios, ...newRatios]);
-  }, [images]);
+  }, [images, aspectRatios.length]);
 
   return (
     <LocomotiveScrollSection
@@ -63,7 +63,7 @@ const Gallery = ({ collection }: Props) => {
       <div className='flex justify-between items-center m-2 text-lg lg:text-xl border-b border-white/10 pb-4 mb-4'>
         <div className='flex flex-col md:flex-row text-base gap-1 md:gap-4 md:items-center'>
           <span>{title}</span>
-          <div className='hidden md:block h-4 w-[1px] bg-white/20'></div>
+          <div className='hidden md:block h-4 w-px bg-white/20'></div>
           <span className='text-sm font-bold tracking-wide text-primary'>
             {imageCount ?? 0} Items
           </span>
@@ -77,7 +77,7 @@ const Gallery = ({ collection }: Props) => {
                   collection={collection}
                   onClose={closeDrawer}
                 />,
-                `Download ${collection.title}`
+                `Download ${collection.title}`,
               )
             }
             style='ghost'
@@ -93,7 +93,7 @@ const Gallery = ({ collection }: Props) => {
                     collection={collection}
                     onClose={closeDrawer}
                   />,
-                  `Share ${collection.title}`
+                  `Share ${collection.title}`,
                 )
               }
               style='ghost'
@@ -159,7 +159,7 @@ const Gallery = ({ collection }: Props) => {
           {isLoading && (
             <div className='w-full grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 pt-4'>
               {Array.from({ length: 4 }).map((_, i) => (
-                <Skeleton className='h-[25rem]' key={i} />
+                <Skeleton className='h-100' key={i} />
               ))}
             </div>
           )}
