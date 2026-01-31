@@ -274,9 +274,9 @@ const useDownloadCollection = ({
         if (match && match[1]) fileName = match[1];
       }
       saveAs(blob, fileName);
-    } catch (e) {
+    } catch (e: any) {
       console.error(e);
-      showToast('An error occurred. Please try again.', 'error');
+      showToast(e.message || 'An error occurred. Please try again.', 'error');
     }
   };
 

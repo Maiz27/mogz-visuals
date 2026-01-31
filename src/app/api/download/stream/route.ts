@@ -62,9 +62,11 @@ function iteratorToStream(iterator: any) {
     },
   });
 }
-}
 
-async function* nodeStreamToIterator(stream: fs.ReadStream, signal?: AbortSignal) {
+async function* nodeStreamToIterator(
+  stream: fs.ReadStream,
+  signal?: AbortSignal,
+) {
   try {
     for await (const chunk of stream) {
       if (signal?.aborted) {
@@ -76,7 +78,6 @@ async function* nodeStreamToIterator(stream: fs.ReadStream, signal?: AbortSignal
   } finally {
     if (!stream.destroyed) stream.destroy();
   }
-}
 }
 
 export async function POST(req: NextRequest) {
@@ -183,8 +184,24 @@ export async function POST(req: NextRequest) {
 
     // 4. Generate if needed (Blocking Operation)
     if (!useCache) {
-      // Run cleanup asynchronously with probability 0.2 (20%) to balance load vs storage
-      if (Math.random() < 0.2) cleanupOldFiles(tempDir).catch(console.error);
+      // 🧹 Cleanup Debounce: Check lock file to avoid concurrent scans (throttle to 5 mins)
+      const lockPath = path.join(tempDir, '.cleanup_lock');
+      try {
+        let shouldRun = true;
+        if (fs.existsSync(lockPath)) {
+          const stats = fs.statSync(lockPath);
+          // If lock file is fresh (< 5 mins), skip cleanup
+          if (Date.now() - stats.mtimeMs < 300000) shouldRun = false;
+        }
+
+        if (shouldRun) {
+          fs.writeFileSync(lockPath, ''); // Touch/Create lock to update timestamp
+          cleanupOldFiles(tempDir).catch(console.error);
+        }
+      } catch (e) {
+        // Fallback: random execute if lock check fails
+        if (Math.random() < 0.1) cleanupOldFiles(tempDir).catch(console.error);
+      }
 
       // FIX RACE CONDITION: Use mkdtemp for unique generation path
       const uniqueGenDir = fs.mkdtempSync(path.join(tempDir, 'gen-'));
@@ -227,7 +244,9 @@ export async function POST(req: NextRequest) {
 
                   const extension = img.url.split('.').pop();
                   const validExtension =
-                    extension && extension.trim() && /^[a-z0-9]{2,5}$/i.test(extension)
+                    extension &&
+                    extension.trim() &&
+                    /^[a-z0-9]{2,5}$/i.test(extension)
                       ? extension
                       : 'jpg';
                   // Sanitize filename inside ZIP
@@ -296,7 +315,7 @@ export async function POST(req: NextRequest) {
     // 6. Serve the File (Download Mode)
     const stats = fs.statSync(tempFilePath);
     const fileStream = fs.createReadStream(tempFilePath);
-    
+
     let streamErrorOccurred = false;
     fileStream.on('error', (err) => {
       console.error('[Stream] Read error:', err);
