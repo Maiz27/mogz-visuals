@@ -273,6 +273,8 @@ const useDownloadCollection = ({
         if (match && match[1]) fileName = match[1];
       }
       saveAs(blob, fileName);
+    } catch (e: any) {
+      console.error(e);
       showToast(
         e instanceof Error ? e.message : 'An error occurred. Please try again.',
         'error',

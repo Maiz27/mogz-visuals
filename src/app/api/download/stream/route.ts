@@ -69,6 +69,8 @@ async function* nodeStreamToIterator(
   signal?: AbortSignal,
 ) {
   try {
+    if (signal?.aborted) return;
+
     for await (const chunk of stream) {
       if (signal?.aborted) {
         stream.destroy();
@@ -218,6 +220,7 @@ export async function POST(req: NextRequest) {
         const archive = archiver('zip', {
           zlib: { level: 0 }, // Store only
           forceZip64: false,
+          highWaterMark: 1024 * 1024, // FIX: Apply backpressure limit (1MB) to prevent excessive buffering
         });
 
         // Handle Abort Signal
@@ -385,6 +388,8 @@ export async function POST(req: NextRequest) {
     fileStream.on('error', (err) => {
       console.error('[Stream] Read error:', err);
       streamErrorOccurred = true;
+      // Note: We cannot abort the HTTP response here if headers are already sent.
+      // The client will likely receive a partial/corrupt ZIP file.
       fileStream.destroy(err); // Propagate error state
     });
 
