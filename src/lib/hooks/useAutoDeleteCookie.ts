@@ -29,15 +29,6 @@ export const useAutoDeleteCookie = (id: string, isPrivate: boolean) => {
 
   useEffect(() => {
     if (isPrivate && decrypted) {
-      const CheckInterval = setInterval(async () => {
-        // Periodically check if session is arguably expired based on client time (rough check)
-        // or rely on the API check which we could poll.
-        // For now, we'll stick to a simple timeout if we can trust the initial time,
-        // but with httpOnly cookies we can't read the timestamp.
-        // Better approach: Rely on the cookie's own Max-Age to expire it.
-        // Client-side "auto-delete" is mostly UI feedback now.
-      }, 60000);
-
       const timer = setTimeout(
         () => {
           if (id === decrypted.uniqueId) {
@@ -56,7 +47,6 @@ export const useAutoDeleteCookie = (id: string, isPrivate: boolean) => {
       ); // 1 hour
 
       return () => {
-        clearInterval(CheckInterval);
         clearTimeout(timer);
       };
     }
