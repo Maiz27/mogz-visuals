@@ -206,13 +206,15 @@ export async function POST(req: NextRequest) {
 
         if (shouldRun) {
           // FIX: Update lock file ONLY after successful cleanup to prevent blocking if cleanup fails
-          cleanupOldFiles(tempDir).then(() => {
-            try {
-              fs.writeFileSync(lockPath, '');
-            } catch (lockErr) {
-              console.warn('[Cleanup] Failed to update lock file:', lockErr);
-            }
-          });
+          cleanupOldFiles(tempDir)
+            .then(() => {
+              try {
+                fs.writeFileSync(lockPath, '');
+              } catch (lockErr) {
+                console.warn('[Cleanup] Failed to update lock file:', lockErr);
+              }
+            })
+            .catch(console.error);
         }
       } catch (e) {
         // Fallback: random execute if lock check fails
