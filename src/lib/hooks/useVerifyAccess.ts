@@ -4,13 +4,16 @@ import { VERIFY_ACCESS_RESPONSE_BODY } from '../types';
 const useVerifyAccess = () => {
   const [loading, setLoading] = useState(false);
   const [response, setResponse] = useState<VERIFY_ACCESS_RESPONSE_BODY | null>(
-    null
+    null,
   );
 
-  const handleVerifyAccess = async (state: {
-    id: string;
-    password: string;
-  }) => {
+  const handleVerifyAccess = async (
+    state: {
+      id: string;
+      password: string;
+    },
+    token: string,
+  ) => {
     setLoading(true);
 
     const response = await fetch('/api/verifyAccess', {
@@ -18,7 +21,7 @@ const useVerifyAccess = () => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify(state),
+      body: JSON.stringify({ ...state, token }),
     });
 
     const body: VERIFY_ACCESS_RESPONSE_BODY = await response.json();

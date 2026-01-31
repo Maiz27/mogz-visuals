@@ -38,10 +38,7 @@ const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
     }
   }, [cookie]);
 
-  const isValidCookie =
-    decrypted &&
-    decrypted.uniqueId === collection.uniqueId &&
-    decrypted.password === collection.password;
+  const isValidCookie = decrypted && decrypted.uniqueId === collection.uniqueId;
 
   return (
     <>
@@ -93,7 +90,7 @@ const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
                       onClose={closeDrawer}
                       collection={collection}
                     />,
-                    'Access Collection'
+                    'Access Collection',
                   )
                 }
               >

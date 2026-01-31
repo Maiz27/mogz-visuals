@@ -1,7 +1,8 @@
 'use client';
+
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 import { Logo } from './Header';
 import CTAButton from '../ui/CTA/CTAButton';
 import { ByNilotik } from '../footer/Footer';
@@ -77,7 +78,7 @@ const MobileMenu = () => {
               </div>
             </div>
           </div>,
-          document.body
+          document.body,
         )}
     </div>
   );
@@ -111,14 +112,15 @@ const AccessForm = ({ handleReroute }: { handleReroute: (r: any) => void }) => {
   const { initialValue, rules } = FORMS.browse;
   const { state, errors, handleChange, reset } = useFormState(
     initialValue,
-    rules
+    rules,
   );
 
   const { response, loading, handleVerifyAccess } = useVerifyAccess();
+  const [token, setToken] = useState('');
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await handleVerifyAccess(state);
+    const response = await handleVerifyAccess(state, token);
 
     if (response.status === 200) {
       reset();
@@ -136,6 +138,7 @@ const AccessForm = ({ handleReroute }: { handleReroute: (r: any) => void }) => {
         state={state}
         errors={errors}
         handleChange={handleChange}
+        setToken={setToken}
         className='flex flex-col justify-center space-y-4 text-copy'
       >
         {response && (
@@ -148,7 +151,12 @@ const AccessForm = ({ handleReroute }: { handleReroute: (r: any) => void }) => {
           </span>
         )}
 
-        <CTAButton type='submit' loading={loading} style='primary'>
+        <CTAButton
+          type='submit'
+          loading={loading}
+          style='primary'
+          disabled={!token}
+        >
           Access Collection
         </CTAButton>
       </AccessCollectionForm>

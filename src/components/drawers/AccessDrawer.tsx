@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import AccessCollectionForm from '@/components/forms/AccessCollectionForm';
 import useFormState from '@/lib/hooks/useFormState';
@@ -25,14 +25,15 @@ const AccessContent = ({ onClose, collection }: Props) => {
   const { initialValue, rules } = FORMS.browse;
   const { state, errors, handleChange, reset } = useFormState(
     { ...initialValue, id: id || '' },
-    rules
+    rules,
   );
 
   const { response, loading, handleVerifyAccess } = useVerifyAccess();
+  const [token, setToken] = useState('');
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await handleVerifyAccess(state);
+    const response = await handleVerifyAccess(state, token);
 
     if (response.status === 200) {
       setCollectionAccessCookie(response.secret);
@@ -50,7 +51,7 @@ const AccessContent = ({ onClose, collection }: Props) => {
     <div className='flex flex-col space-y-6'>
       {collection && <CollectionDrawerHeader collection={collection} />}
 
-      <p className='!text-lg'>
+      <p className='text-lg!'>
         Enter the collection ID and password to unlock and view this exclusive
         collection.
       </p>
@@ -60,6 +61,7 @@ const AccessContent = ({ onClose, collection }: Props) => {
         state={state}
         errors={errors}
         handleChange={handleChange}
+        setToken={setToken}
         className='flex flex-col justify-between'
       >
         <div className=''>
@@ -73,7 +75,7 @@ const AccessContent = ({ onClose, collection }: Props) => {
             </span>
           )}
 
-          <CTAButton type='submit' loading={loading}>
+          <CTAButton type='submit' loading={loading} disabled={!token}>
             Access Collection
           </CTAButton>
         </div>
