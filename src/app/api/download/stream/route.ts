@@ -296,8 +296,11 @@ export async function POST(req: NextRequest) {
     // 6. Serve the File (Download Mode)
     const stats = fs.statSync(tempFilePath);
     const fileStream = fs.createReadStream(tempFilePath);
+    
+    let streamErrorOccurred = false;
     fileStream.on('error', (err) => {
       console.error('[Stream] Read error:', err);
+      streamErrorOccurred = true;
       fileStream.destroy();
     });
 
