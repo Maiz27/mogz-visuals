@@ -11,6 +11,7 @@ import os from 'os';
 import CryptoJS from 'crypto-js';
 
 import { Readable } from 'stream';
+import { finished } from 'stream/promises';
 import { ENCRYPTION_KEY } from '@/lib/env';
 
 /**
@@ -323,13 +324,22 @@ export async function POST(req: NextRequest) {
                 }),
               );
 
+              const activeStreams = buffers
+                .map((f) => f?.stream)
+                .filter(Boolean) as Readable[];
+
               for (const file of buffers) {
                 if (file?.stream) {
                   archive.append(file.stream, { name: file.name });
-                  // Yield to event loop to prevent blocking and allow GC/flushing
-                  await new Promise<void>((resolve) => setImmediate(resolve));
                   successCount++;
                 }
+              }
+
+              // Wait for the last stream in batch to be fully consumed (written)
+              // This strictly serializes transmission of batches so we don't buffer next batch in RAM
+              if (activeStreams.length > 0) {
+                const lastStream = activeStreams[activeStreams.length - 1];
+                await finished(lastStream).catch(() => {});
               }
             }
 

@@ -2,8 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { POST } from './route';
 import { NextRequest } from 'next/server';
 import fs from 'fs';
-import path from 'path';
-import os from 'os';
+import { Readable } from 'stream';
 
 // Mocks
 vi.mock('@/lib/sanity/client', () => ({
@@ -18,7 +17,11 @@ vi.mock('archiver', () => {
   return {
     default: vi.fn(() => ({
       pipe: vi.fn(),
-      append: vi.fn(),
+      append: vi.fn((source, name) => {
+        if (source && typeof source.resume === 'function') {
+          source.resume(); // Consume stream so 'finished' resolves
+        }
+      }),
       finalize: vi.fn().mockResolvedValue(undefined),
       abort: vi.fn(),
       pointer: vi.fn().mockReturnValue(1000), // Default safe size
@@ -99,15 +102,13 @@ describe('POST /api/download/stream', () => {
     (fs.promises.readdir as any).mockResolvedValue([]);
     (fs.promises.stat as any).mockResolvedValue({ mtimeMs: Date.now() });
 
+    // Mock Readable.fromWeb to pass through the stream (we'll provide a Node stream)
+    vi.spyOn(Readable, 'fromWeb').mockImplementation((s: any) => s);
+
     // Mock global fetch for image download
     global.fetch = vi.fn().mockResolvedValue({
       ok: true,
-      body: new ReadableStream({
-        start(controller) {
-          controller.enqueue(new Uint8Array(Buffer.from('mock image data')));
-          controller.close();
-        },
-      }),
+      body: Readable.from(Buffer.from('mock image data')),
     } as any);
   });
 
