@@ -16,13 +16,10 @@ import { ENCRYPTION_KEY } from '@/lib/env';
 /**
  * 🧹 Maintenance: Clean up old zip files to free up disk space
  */
-const cleanupOldFiles = async (dir: string, lockPath: string) => {
+const cleanupOldFiles = async (dir: string) => {
   try {
     // Determine strict debounce: unique touch of lock file at START of attempt
     // This ensures that even if readdir fails or process crashes, we don't retry immediately.
-    try {
-      await fs.promises.writeFile(lockPath, '');
-    } catch {}
 
     const files = await fs.promises.readdir(dir);
     const now = Date.now();
@@ -208,13 +205,18 @@ export async function POST(req: NextRequest) {
         }
 
         if (shouldRun) {
-          // FIX: Update lock file inside cleanup logic using the passed path
-          cleanupOldFiles(tempDir, lockPath).catch(console.error);
+          // FIX: Update lock file ONLY after successful cleanup to prevent blocking if cleanup fails
+          cleanupOldFiles(tempDir)
+            .then(() => {
+              try {
+                fs.writeFileSync(lockPath, '');
+              } catch {}
+            })
+            .catch(console.error);
         }
       } catch (e) {
         // Fallback: random execute if lock check fails
-        if (Math.random() < 0.1)
-          cleanupOldFiles(tempDir, lockPath).catch(console.error);
+        if (Math.random() < 0.1) cleanupOldFiles(tempDir).catch(console.error);
       }
 
       // FIX RACE CONDITION: Use mkdtemp for unique generation path
@@ -322,8 +324,8 @@ export async function POST(req: NextRequest) {
               for (const file of buffers) {
                 if (file?.stream) {
                   archive.append(file.stream, { name: file.name });
-                  // Yield to event loop to prevent blocking
-                  await new Promise<void>((resolve) => setImmediate(resolve));
+                  // Yield to event loop to prevent blocking and allow GC/flushing
+                  await new Promise<void>((resolve) => setTimeout(resolve, 20));
                   successCount++;
                 }
               }
@@ -339,9 +341,11 @@ export async function POST(req: NextRequest) {
 
             // FIX: Validate final ZIP size (headers + content). Empty zip is ~22 bytes.
             // Warning if < 500 bytes (very small archive).
-            if (archive.pointer() < 500) {
+            // Warning if < expected min size (headers + ~100 bytes per file).
+            const minExpectedSize = successCount * 100;
+            if (archive.pointer() < minExpectedSize) {
               console.warn(
-                '[Stream] Generated archive is very small (< 500 bytes), possibly empty.',
+                `[Stream] Archive size (${archive.pointer()} bytes) smaller than expected for ${successCount} files.`,
               );
             }
           } catch (err) {
