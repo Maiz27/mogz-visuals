@@ -58,10 +58,19 @@ function iteratorToStream(iterator: any) {
   });
 }
 
-async function* nodeStreamToIterator(stream: fs.ReadStream) {
-  for await (const chunk of stream) {
-    yield chunk;
+async function* nodeStreamToIterator(stream: fs.ReadStream, signal?: AbortSignal) {
+  try {
+    for await (const chunk of stream) {
+      if (signal?.aborted) {
+        stream.destroy();
+        break;
+      }
+      yield chunk;
+    }
+  } finally {
+    if (!stream.destroyed) stream.destroy();
   }
+}
 }
 
 export async function POST(req: NextRequest) {
