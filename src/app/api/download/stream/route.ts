@@ -273,7 +273,7 @@ export async function POST(req: NextRequest) {
     // 6. Serve the File (Download Mode)
     const stats = fs.statSync(tempFilePath);
     const fileStream = fs.createReadStream(tempFilePath);
-    fileStream.on('error', () => fileStream.destroy()); // Ensure closure on error
+    fileStream.on('error', (err) => { console.error('[Stream] Read error:', err); fileStream.destroy(); });
 
     // Correct Filename using the Fetched Title
     const downloadName = `[MOGZ] ${title
