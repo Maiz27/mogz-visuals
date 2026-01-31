@@ -213,7 +213,6 @@ const useDownloadCollection = ({
     const formData = new FormData();
     formData.append('email', email);
 
-    addEmailToAudience(email).catch(console.error);
     formData.append('mode', 'prepare'); // Signal to API to just prepare
     if (isPrivate && uniqueId) {
       formData.append('collectionId', uniqueId);
@@ -244,6 +243,9 @@ const useDownloadCollection = ({
         return;
       }
 
+      // FIX: Capture email only after successful preparation to avoid capturing failed attempts
+      addEmailToAudience(email).catch(console.error);
+
       // 2. DOWNLOAD: Fetch with blob to handle errors using same auth logic
       const downloadFormData = new FormData();
       downloadFormData.append('email', email);
@@ -271,6 +273,16 @@ const useDownloadCollection = ({
             ? 'Unauthorized access'
             : 'Download failed',
         );
+      }
+
+      // FIX: Check Content-Type before getting blob to detect server errors (e.g. 500 HTML)
+      const dlContentType = downloadRes.headers.get('content-type');
+      if (
+        dlContentType &&
+        !dlContentType.includes('application/zip') &&
+        !dlContentType.includes('application/octet-stream')
+      ) {
+        throw new Error('Invalid download response type');
       }
 
       const blob = await downloadRes.blob();

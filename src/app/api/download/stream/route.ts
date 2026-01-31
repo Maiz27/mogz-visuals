@@ -202,13 +202,14 @@ export async function POST(req: NextRequest) {
         }
 
         if (shouldRun) {
-          // FIX: Update lock file BEFORE starting cleanup to prevent race conditions where
-          // cleanup failure would leave the lock file untouched/stale
-          try {
-            fs.writeFileSync(lockPath, '');
-          } catch {}
-
-          cleanupOldFiles(tempDir).catch(console.error);
+          // FIX: Update lock file ONLY after successful cleanup to prevent race conditions
+          cleanupOldFiles(tempDir)
+            .then(() => {
+              try {
+                fs.writeFileSync(lockPath, '');
+              } catch {}
+            })
+            .catch(console.error);
         }
       } catch (e) {
         // Fallback: random execute if lock check fails
@@ -264,7 +265,8 @@ export async function POST(req: NextRequest) {
                 batch.map(async (img: any, idx) => {
                   try {
                     const urlPath = img.url.split('?')[0]; // Strip query params
-                    const extension = urlPath.split('.').pop();
+                    const parts = urlPath.split('.');
+                    const extension = parts.length > 1 ? parts.pop() : '';
                     const validExtension =
                       extension &&
                       extension.trim().length > 0 &&
@@ -332,6 +334,11 @@ export async function POST(req: NextRequest) {
             }
 
             await archive.finalize();
+
+            // FIX: Validate final ZIP size to ensure it's not empty/corrupt (just headers ~22 bytes)
+            if (archive.pointer() < 100) {
+              throw new Error('Generated archive is too small, likely empty');
+            }
           } catch (err) {
             console.error('[Stream] Archive Gen Failed:', err);
             archive.abort();
