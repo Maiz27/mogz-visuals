@@ -289,7 +289,7 @@ export async function POST(req: NextRequest) {
       try {
         if (fs.existsSync(tempFilePath)) fs.unlinkSync(tempFilePath);
         fs.renameSync(uniqueGenPath, tempFilePath);
-        fs.rmdirSync(uniqueGenDir); // cleanup unique dir
+        fs.rmSync(uniqueGenDir, { recursive: true, force: true }); // cleanup unique dir
       } catch (err) {
         console.error('[Stream] Rename Failed:', err);
         // Clean up artifacts if rename failed
