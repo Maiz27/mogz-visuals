@@ -269,7 +269,6 @@ async function handleDownload(req: NextRequest) {
         const BATCH_SIZE = 3;
         let successCount = 0;
         const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
-        const successfulItems: any[] = []; // ⭐ Track what actually gets added
 
         for (let i = 0; i < items.length; i += BATCH_SIZE) {
           if (req.signal.aborted) throw new Error('Aborted');
@@ -337,7 +336,7 @@ async function handleDownload(req: NextRequest) {
           for (const file of buffers) {
             if (file?.stream) {
               archive.append(file.stream, { name: file.name });
-              successfulItems.push(file.item); // ⭐ Track successful items
+
               successCount++;
             }
           }
@@ -354,9 +353,9 @@ async function handleDownload(req: NextRequest) {
         if (successCount === 0) throw new Error('No valid files');
 
         // ⭐ Log discrepancy
-        if (successfulItems.length < items.length) {
+        if (successCount < items.length) {
           console.warn(
-            `[Stream] Only ${successfulItems.length}/${items.length} images added to zip`,
+            `[Stream] Only ${successCount}/${items.length} images added to zip`,
           );
         }
 
@@ -398,7 +397,11 @@ async function handleDownload(req: NextRequest) {
             '[Cache] Failed to cache after all retries - next request will regenerate',
           );
         }
-        if (renamed) fs.rmSync(uniqueGenDir, { recursive: true, force: true });
+
+        // Always cleanup temp dir, even if rename failed
+        if (fs.existsSync(uniqueGenDir)) {
+          fs.rmSync(uniqueGenDir, { recursive: true, force: true });
+        }
       })
       .catch((err) => {
         console.error('[Cache] Background cache write failed:', err);
