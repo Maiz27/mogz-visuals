@@ -343,12 +343,15 @@ async function handleDownload(req: NextRequest) {
             }
           }
 
-          // Wait for last stream in batch
-          if (buffers.length > 0 && buffers[buffers.length - 1]?.stream) {
-            const lastStream = buffers[buffers.length - 1].stream;
-            if (!lastStream.destroyed) {
-              await finished(lastStream).catch(() => {});
-            }
+          // Wait for ALL streams in batch to be consumed to ensure proper backpressure
+          if (buffers.length > 0) {
+            await Promise.all(
+              buffers.map((file) =>
+                file?.stream && !file.stream.destroyed
+                  ? finished(file.stream).catch(() => {})
+                  : Promise.resolve(),
+              ),
+            );
           }
         }
 
