@@ -61,11 +61,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(null, { status: 404 });
     }
 
-    // 2. Calculate Correction Ratio (Sample ~3 images)
+    // 2. Calculate Correction Ratio (Sample ~15 images)
     // Sanity metadata size = Source file size.
     // Sanity CDN URL = Often optimized/compressed (WebP, etc) => Smaller.
     // We fetch HEAD for a few items to get the REAL download size.
-    const sampleSize = Math.min(items.length, 5);
+    const sampleSize = Math.min(items.length, 15);
     const sampleIndices = new Set<number>();
     const availableIndices = Array.from({ length: items.length }, (_, i) => i);
     while (sampleIndices.size < sampleSize) {
@@ -77,7 +77,7 @@ export async function POST(req: NextRequest) {
     let totalSampleSizeReal = 0;
 
     const samples = Array.from(sampleIndices).map((idx) => items[idx]);
-    await Promise.all(
+    const results = await Promise.all(
       samples.map(async (item) => {
         try {
           try {
@@ -87,18 +87,38 @@ export async function POST(req: NextRequest) {
             return;
           }
 
-          const res = await fetch(item.url, { method: 'HEAD' });
-          if (!res.ok) return null;
+          const res = await fetch(item.url, {
+            method: 'HEAD',
+            headers: {
+              'User-Agent':
+                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            },
+          });
+
+          if (!res.ok) {
+            console.warn(
+              `[Info] HEAD failed for ${item.url}: ${res.status} ${res.statusText}`,
+            );
+            return null;
+          }
+
           const cl = res.headers.get('content-length');
           if (cl) {
             return { sanity: item.size, real: parseInt(cl, 10) };
           }
           return null;
-        } catch (e) {
-          console.warn('[Info] HEAD failed for sample:', e);
+        } catch (e: any) {
+          console.warn(`[Info] HEAD error for sample: ${e.message}`);
         }
       }),
     );
+    // Accumulate results
+    results.forEach((result) => {
+      if (result?.sanity && result?.real) {
+        totalSampleSizeSanity += result.sanity;
+        totalSampleSizeReal += result.real;
+      }
+    });
 
     // Default to 1 (no correction) if sampling fails/empty
     const ratio =
