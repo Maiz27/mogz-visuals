@@ -183,7 +183,9 @@ const DownloadContent = ({ collection }: Props) => {
               </div>
               <p className='text-lg font-semibold'>File Retrieved!</p>
               <p className='text-sm text-gray-500'>
-                Your download has been prepared and sent to your browser.
+                Your download{' '}
+                {downloadSize !== null && `(~${formatBytes(downloadSize)}) `}has
+                been prepared and sent to your browser.
               </p>
               <button
                 onClick={() => setStep('download_parts')}
