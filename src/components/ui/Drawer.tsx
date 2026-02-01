@@ -37,7 +37,7 @@ const Drawer = ({ isOpen, onClose, title, children, className }: Props) => {
       gsap.fromTo(
         backdropRef.current,
         { opacity: 0, autoAlpha: 0 },
-        { opacity: 1, autoAlpha: 1, duration: 0.3 }
+        { opacity: 1, autoAlpha: 1, duration: 0.3 },
       );
       gsap.fromTo(drawerRef.current, initialPos, {
         ...targetPos,
@@ -83,7 +83,7 @@ const Drawer = ({ isOpen, onClose, title, children, className }: Props) => {
   if (!isMounted) return null;
 
   return (
-    <div className='fixed inset-0 z-[99999] flex justify-end'>
+    <div className='fixed inset-0 z-99999 flex justify-end'>
       {/* Backdrop */}
       <div
         ref={backdropRef}
@@ -95,7 +95,7 @@ const Drawer = ({ isOpen, onClose, title, children, className }: Props) => {
       {/* Drawer Panel */}
       <div
         ref={drawerRef}
-        className={`relative w-full md:w-[400px] lg:w-[500px] h-[85vh] md:h-full mt-auto md:mt-0 bg-background shadow-2xl flex flex-col items-center ${
+        className={`relative w-full md:w-100 lg:w-125 h-[85dvh] md:h-full mt-auto md:mt-0 bg-background shadow-2xl flex flex-col items-center ${
           className || ''
         } rounded-t-2xl md:rounded-none`}
         role='dialog'
