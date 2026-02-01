@@ -208,102 +208,46 @@ const useDownloadCollection = ({
   };
 
   const downloadStream = async (email: string) => {
-    // 1. PREPARE: Trigger generation or cache check
-    // This allows the UI to show a spinner while the server does the heavy lifting
-    const formData = new FormData();
-    formData.append('email', email);
-
-    formData.append('mode', 'prepare'); // Signal to API to just prepare
-    if (isPrivate && uniqueId) {
-      formData.append('collectionId', uniqueId);
-      formData.append('isPrivate', 'true');
-    } else if (slug?.current) {
-      formData.append('slug', slug.current);
-      formData.append('isPrivate', 'false');
+    // 1. Capture email for audience tracking
+    try {
+      await addEmailToAudience(email);
+    } catch (e) {
+      console.error('Failed to add email to audience:', e);
     }
 
+    // 2. Build URL for direct browser download
+    // Direct navigation is more robust for streams than fetch+blob
+    const params = new URLSearchParams();
+    params.append('email', email);
+
+    if (isPrivate && uniqueId) {
+      params.append('collectionId', uniqueId);
+      params.append('isPrivate', 'true');
+    } else if (slug?.current) {
+      params.append('slug', slug.current);
+      params.append('isPrivate', 'false');
+    }
+
+    const downloadUrl = `/api/download/stream?${params.toString()}`;
+
+    // 3. Trigger Download
+    // Using window.location.assign ensures the browser handles the stream directly
+    // and passing cookies (for auth) automatically.
     try {
-      const res = await fetch('/api/download/stream', {
-        method: 'POST',
-        body: formData,
-        credentials: 'include',
-      });
+      // Create a hidden link to avoid replacing current page history if possible,
+      // though .assign() for a download attachment usually stays on page.
+      // A cleaner way for downloads that doesn't unload the app:
+      const link = document.createElement('a');
+      link.href = downloadUrl;
+      link.download = 'download.zip'; // Hint, server Content-Disposition takes precedence
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-      const contentType = res.headers.get('content-type');
-      if (!contentType || !contentType.includes('application/json')) {
-        // If we get HTML or text, it's likely a server error page (500, 502, 504)
-        throw new Error(
-          `Server Error: Received ${contentType || 'unknown content type'}`,
-        );
-      }
-
-      const data = await res.json();
-      if (!res.ok || !data.success) {
-        showToast('Failed to prepare download. Please try again.', 'error');
-        return;
-      }
-
-      // 2. DOWNLOAD: Fetch with blob to handle errors using same auth logic
-      const downloadFormData = new FormData();
-      downloadFormData.append('email', email);
-
-      // FIX: Do NOT send token in body. Rely strictly on httpOnly cookie.
-      // If cookie is missing, API will reject, which is correct secure behavior.
-
-      if (isPrivate && uniqueId) {
-        downloadFormData.append('collectionId', uniqueId);
-        downloadFormData.append('isPrivate', 'true');
-      } else if (slug?.current) {
-        downloadFormData.append('slug', slug.current);
-        downloadFormData.append('isPrivate', 'false');
-      }
-
-      const downloadRes = await fetch('/api/download/stream', {
-        method: 'POST',
-        body: downloadFormData,
-        credentials: 'include',
-      });
-
-      if (!downloadRes.ok) {
-        throw new Error(
-          downloadRes.status === 401
-            ? 'Unauthorized access'
-            : 'Download failed',
-        );
-      }
-
-      // FIX: Check Content-Type before getting blob to detect server errors (e.g. 500 HTML)
-      const dlContentType = downloadRes.headers.get('content-type');
-      if (
-        dlContentType &&
-        !dlContentType.includes('application/zip') &&
-        !dlContentType.includes('application/octet-stream')
-      ) {
-        throw new Error('Invalid download response type');
-      }
-
-      const blob = await downloadRes.blob();
-      if (blob.type === 'text/html') {
-        throw new Error('Server error - received HTML instead of file');
-      }
-      const contentDisposition = downloadRes.headers.get('Content-Disposition');
-      let fileName = 'download.zip';
-      if (contentDisposition) {
-        const match = contentDisposition.match(/filename="?([^"]+)"?/);
-        if (match && match[1]) fileName = match[1];
-      }
-      saveAs(blob, fileName);
-
-      // FIX: Capture email strictly only after successful file save initiation
-      addEmailToAudience(email).catch(console.error);
-    } catch (e: any) {
+      showToast('Download started...', 'success');
+    } catch (e) {
       console.error(e);
-      let errMsg = 'An error occurred. Please try again.';
-      if (typeof e === 'string') errMsg = e;
-      else if (e instanceof Error) errMsg = e.message;
-      else if (e?.message) errMsg = String(e.message);
-
-      showToast(errMsg, 'error');
+      showToast('Failed to start download.', 'error');
     }
   };
 
