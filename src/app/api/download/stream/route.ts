@@ -358,35 +358,32 @@ async function handleDownload(req: NextRequest) {
 
     // Handle Cache Finalization (after stream ends)
     // We don't await this for the response to start, but we should handle errors.
-    Promise.all([processingPromise, fileWritePromise])
-      .then(async () => {
-        // Rename logic (Windows retry)
-        req.signal.removeEventListener('abort', abortHandler);
-        const MAX_RETRIES = 3;
-        let renamed = false;
-        for (let i = 0; i < MAX_RETRIES; i++) {
-          try {
-            try {
-              await fs.promises.access(tempFilePath);
-              await fs.promises.unlink(tempFilePath);
-            } catch {}
-            await fs.promises.rename(uniqueGenPath, tempFilePath);
-            renamed = true;
-            break;
-          } catch (e) {
-            await new Promise((r) => setTimeout(r, 100 * Math.pow(2, i)));
-          }
-        }
-        if (renamed) fs.rmSync(uniqueGenDir, { recursive: true, force: true });
-      })
-      .catch((err) => {
-        console.error('[Stream] Background cache write failed:', err);
+    Promise.all([processingPromise, fileWritePromise]).then(async () => {
+      req.signal.removeEventListener('abort', abortHandler);
+      const MAX_RETRIES = 3;
+      let renamed = false;
+      for (let i = 0; i < MAX_RETRIES; i++) {
         try {
-          if (fs.existsSync(uniqueGenPath)) fs.unlinkSync(uniqueGenPath);
-          if (fs.existsSync(uniqueGenDir))
-            fs.rmSync(uniqueGenDir, { recursive: true, force: true });
-        } catch {}
-      });
+          try {
+            await fs.promises.access(tempFilePath);
+            await fs.promises.unlink(tempFilePath);
+          } catch {}
+          await fs.promises.rename(uniqueGenPath, tempFilePath);
+          renamed = true;
+          console.log('[Cache] Successfully saved to cache');
+          break;
+        } catch (e) {
+          console.warn(`[Cache] Rename attempt ${i + 1} failed:`, e);
+          await new Promise((r) => setTimeout(r, 100 * Math.pow(2, i)));
+        }
+      }
+      if (!renamed) {
+        console.error(
+          '[Cache] Failed to cache after all retries - next request will regenerate',
+        );
+      }
+      if (renamed) fs.rmSync(uniqueGenDir, { recursive: true, force: true });
+    });
 
     const responseStream = iteratorToStream(
       nodeStreamToIterator(responsePassThrough, req.signal),

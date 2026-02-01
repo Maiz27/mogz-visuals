@@ -88,6 +88,7 @@ export async function POST(req: NextRequest) {
           }
 
           const res = await fetch(item.url, { method: 'HEAD' });
+          if (!res.ok) return;
           const cl = res.headers.get('content-length');
           if (cl) {
             totalSampleSizeSanity += item.size;
