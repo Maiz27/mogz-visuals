@@ -267,9 +267,13 @@ const useDownloadCollection = ({
       // A cleaner way for downloads that doesn't unload the app:
       const link = document.createElement('a');
       link.href = downloadUrl;
+      link.style.display = 'none';
       document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
+      // Ensure DOM update completes before click
+      requestAnimationFrame(() => {
+        link.click();
+        document.body.removeChild(link);
+      });
 
       showToast('Download started...', 'success');
     } catch (e) {

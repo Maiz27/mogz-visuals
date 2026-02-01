@@ -212,7 +212,7 @@ async function handleDownload(req: NextRequest) {
       if (Math.random() < 0.1) cleanupOldFiles(tempDir).catch(console.error);
     } catch {}
 
-    const uniqueGenDir = fs.mkdtempSync(path.join(tempDir, 'gen-'));
+    const uniqueGenDir = await fs.promises.mkdtemp(path.join(tempDir, 'gen-'));
     const uniqueGenPath = path.join(uniqueGenDir, 'partial.zip');
 
     // Create the Archive
@@ -222,7 +222,8 @@ async function handleDownload(req: NextRequest) {
       highWaterMark: 1024 * 1024,
     });
 
-    const responsePassThrough = new PassThrough(); // Dedicated stream for response
+    // Dedicated stream for response with limited buffer to enforce backpressure
+    const responsePassThrough = new PassThrough({ highWaterMark: 1024 * 1024 });
     archive.pipe(responsePassThrough);
 
     // Fork stream: 1 to File (Cache), 1 to Response
@@ -327,9 +328,11 @@ async function handleDownload(req: NextRequest) {
           }
 
           // Wait for last stream in batch
-          if (buffers.length > 0) {
+          if (buffers.length > 0 && buffers[buffers.length - 1]?.stream) {
             const lastStream = buffers[buffers.length - 1].stream;
-            await finished(lastStream).catch(() => {});
+            if (!lastStream.destroyed) {
+              await finished(lastStream).catch(() => {});
+            }
           }
         }
 

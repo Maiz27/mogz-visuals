@@ -67,8 +67,10 @@ export async function POST(req: NextRequest) {
     // We fetch HEAD for a few items to get the REAL download size.
     const sampleSize = Math.min(items.length, 5);
     const sampleIndices = new Set<number>();
+    const availableIndices = Array.from({ length: items.length }, (_, i) => i);
     while (sampleIndices.size < sampleSize) {
-      sampleIndices.add(Math.floor(Math.random() * items.length));
+      const randomIdx = Math.floor(Math.random() * availableIndices.length);
+      sampleIndices.add(availableIndices.splice(randomIdx, 1)[0]);
     }
 
     let totalSampleSizeSanity = 0;
@@ -78,6 +80,13 @@ export async function POST(req: NextRequest) {
     await Promise.all(
       samples.map(async (item) => {
         try {
+          try {
+            const urlObj = new URL(item.url);
+            if (urlObj.hostname !== 'cdn.sanity.io') return;
+          } catch {
+            return;
+          }
+
           const res = await fetch(item.url, { method: 'HEAD' });
           const cl = res.headers.get('content-length');
           if (cl) {

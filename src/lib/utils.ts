@@ -226,6 +226,8 @@ export const setCollectionAccessCookie = (secret: string) => {
   Cookies.set('collectionAccess', secret, {
     secure: isSecure,
     sameSite: 'Lax',
+    path: '/',
+    expires: 1,
   });
 };
 
