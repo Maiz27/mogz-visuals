@@ -63,19 +63,17 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. Calculate Correction Ratio (Sample ~15 images)
-    // Sanity metadata size = Source file size.
-    // Sanity CDN URL = Often optimized/compressed (WebP, etc) => Smaller.
-    // We fetch HEAD for a few items to get the REAL download size.
+    // Fisher-Yates partial shuffle for O(n) sampling
     const sampleSize = Math.min(items.length, 15);
-    const sampleIndices = new Set<number>();
-    while (sampleIndices.size < sampleSize) {
-      const randomIdx = Math.floor(Math.random() * items.length);
-      sampleIndices.add(randomIdx);
+    const samples = [...items];
+    for (let i = 0; i < sampleSize; i++) {
+      const j = i + Math.floor(Math.random() * (samples.length - i));
+      [samples[i], samples[j]] = [samples[j], samples[i]];
     }
+    const selectedSamples = samples.slice(0, sampleSize);
 
-    const samples = Array.from(sampleIndices).map((idx) => items[idx]);
     const results = await Promise.all(
-      samples.map(async (item) => {
+      selectedSamples.map(async (item) => {
         try {
           try {
             const urlObj = new URL(item.url);
@@ -139,10 +137,14 @@ export async function POST(req: NextRequest) {
     const totalSampleSizeReal = real;
 
     // Default to 1 (no correction) if sampling fails/empty
-    const ratio =
-      totalSampleSizeSanity > 0
-        ? totalSampleSizeReal / totalSampleSizeSanity
-        : 1;
+    let ratio = 1;
+    if (totalSampleSizeSanity > 0) {
+      ratio = totalSampleSizeReal / totalSampleSizeSanity;
+    } else if (items.length > 0) {
+      console.warn(
+        '[Info] Ratio fallback to 1.0 due to complete sampling failure',
+      );
+    }
 
     console.log(
       `[Info] Size Correction: Sanity=${totalSampleSizeSanity}, Real=${totalSampleSizeReal}, Ratio=${ratio.toFixed(2)}`,
