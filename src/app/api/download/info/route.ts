@@ -72,9 +72,6 @@ export async function POST(req: NextRequest) {
       sampleIndices.add(randomIdx);
     }
 
-    let totalSampleSizeSanity = 0;
-    let totalSampleSizeReal = 0;
-
     const samples = Array.from(sampleIndices).map((idx) => items[idx]);
     const results = await Promise.all(
       samples.map(async (item) => {
@@ -126,12 +123,18 @@ export async function POST(req: NextRequest) {
       }),
     );
     // Accumulate results
-    results.forEach((result) => {
-      if (result?.sanity && result?.real) {
-        totalSampleSizeSanity += result.sanity;
-        totalSampleSizeReal += result.real;
-      }
-    });
+    const { sanity, real } = results.reduce(
+      (acc: { sanity: number; real: number }, result) => {
+        if (result && result.sanity && result.real) {
+          acc.sanity += result.sanity;
+          acc.real += result.real;
+        }
+        return acc;
+      },
+      { sanity: 0, real: 0 },
+    );
+    const totalSampleSizeSanity = sanity;
+    const totalSampleSizeReal = real;
 
     // Default to 1 (no correction) if sampling fails/empty
     const ratio =
