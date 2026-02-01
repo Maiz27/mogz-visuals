@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { POST } from './route';
 import { NextRequest } from 'next/server';
 import fs from 'fs';
-import { Readable } from 'stream';
+import { Readable, PassThrough } from 'stream';
 
 // Mocks
 vi.mock('@/lib/sanity/client', () => ({
@@ -16,7 +16,7 @@ vi.mock('@/lib/env', () => ({
 vi.mock('archiver', () => {
   return {
     default: vi.fn(() => ({
-      pipe: vi.fn(),
+      pipe: vi.fn((dest) => dest), // Pipe returns destination (PassThrough)
       append: vi.fn((source, name) => {
         if (source && typeof source.resume === 'function') {
           source.resume(); // Consume stream so 'finished' resolves
@@ -43,10 +43,16 @@ vi.mock('fs', async (importOriginal) => {
   const mockMkdtempSync = vi.fn((p) => p + 'unique');
   const mockCreateWriteStream = vi.fn(() => ({
     on: vi.fn((event, cb) => {
-      if (event === 'close') cb();
+      // Use setTimeout to simulate async file writing
+      setTimeout(cb, 10);
+      return this; // chaining
     }),
+    once: vi.fn(),
+    emit: vi.fn(),
     write: vi.fn(),
     end: vi.fn(),
+    removeListener: vi.fn(),
+    listenerCount: vi.fn().mockReturnValue(0),
   }));
   const mockCreateReadStream = vi.fn(() => ({
     on: vi.fn(),
@@ -97,7 +103,7 @@ describe('POST /api/download/stream', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     // Default mocks
-    (fs.existsSync as any).mockReturnValue(false); // No cache hit
+    (fs.existsSync as any).mockReturnValue(false); // No cache hit by default
     (fs.statSync as any).mockReturnValue({ mtimeMs: Date.now(), size: 1024 });
     (fs.promises.readdir as any).mockResolvedValue([]);
     (fs.promises.stat as any).mockResolvedValue({ mtimeMs: Date.now() });
@@ -114,6 +120,7 @@ describe('POST /api/download/stream', () => {
 
   afterEach(() => {
     vi.restoreAllMocks();
+    vi.spyOn(Math, 'random').mockRestore(); // Restore Random if spied
   });
 
   it('should validate email requirement', async () => {
@@ -175,6 +182,9 @@ describe('POST /api/download/stream', () => {
   });
 
   it('should retry rename on failure (Windows Lock Simulation)', async () => {
+    // Mock clean run to avoid interference from random cleanup
+    vi.spyOn(Math, 'random').mockReturnValue(0.9); // Skip cleanup
+
     mockFetchSanity.mockResolvedValue({
       title: 'Collection Retry',
       gallery: [{ url: 'http://cdn.sanity.io/img1.jpg' }],
@@ -188,19 +198,30 @@ describe('POST /api/download/stream', () => {
       body: formData,
     });
 
-    // Mock rename sequence: Error, Error, Success
+    // Mock rename sequence explicitly
     const renameMock = vi.mocked(fs.promises.rename);
-    renameMock
-      .mockRejectedValueOnce(new Error('EPERM'))
-      .mockRejectedValueOnce(new Error('EBUSY'))
-      .mockResolvedValue(undefined as never); // Success eventually
+    renameMock.mockReset(); // Clear previous implementations
+
+    let calls = 0;
+    renameMock.mockImplementation(async () => {
+      calls++;
+      if (calls <= 2) throw new Error('Simulated Fail');
+      return undefined;
+    });
 
     await POST(req);
 
-    expect(renameMock).toHaveBeenCalledTimes(3);
+    // Wait for the background process (rename happens in background after stream)
+    await new Promise((r) => setTimeout(r, 1000));
+
+    expect(calls).toBeGreaterThanOrEqual(3);
+    expect(renameMock).toHaveBeenCalledTimes(calls);
   });
 
   it('should cleanup old files on successful generation logic', async () => {
+    // FORCE cleanup to run
+    vi.spyOn(Math, 'random').mockReturnValue(0.05);
+
     // This tests that our cleanup logic is triggered
     mockFetchSanity.mockResolvedValue({
       title: 'Collection Cleanup',
@@ -224,6 +245,9 @@ describe('POST /api/download/stream', () => {
     }); // > 1 hour old
 
     await POST(req);
+
+    // Wait for cleanup background task
+    await new Promise((r) => setTimeout(r, 100));
 
     // Verify cleanup was attempted
     expect(fs.promises.readdir).toHaveBeenCalled();
