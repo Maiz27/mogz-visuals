@@ -5,6 +5,7 @@ import Input from '@/components/ui/form/Input';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import useFormState from '@/lib/hooks/useFormState';
 import useDownloadCollection from '@/lib/hooks/useDownloadCollection';
+import { formatBytes } from '@/lib/utils';
 import { COLLECTION } from '@/lib/types';
 import { FORMS } from '@/lib/Constants';
 import Progress from '@/components/ui/Progress';
@@ -50,6 +51,7 @@ const DownloadContent = ({ collection }: Props) => {
     total,
     progress,
     downloadStream,
+    downloadSize,
   } = useDownloadCollection(collection);
 
   const { initialValue, fields, rules } = FORMS.download;
@@ -146,7 +148,8 @@ const DownloadContent = ({ collection }: Props) => {
                   onClick={handleFullDownload}
                   className='w-full'
                 >
-                  Download Full Collection (Zip)
+                  Download Full Collection (Zip){' '}
+                  {downloadSize !== null && `(~${formatBytes(downloadSize)})`}
                 </CTAButton>
 
                 <CTAButton
@@ -180,7 +183,9 @@ const DownloadContent = ({ collection }: Props) => {
               </div>
               <p className='text-lg font-semibold'>File Retrieved!</p>
               <p className='text-sm text-gray-500'>
-                Your download has been prepared and sent to your browser.
+                Your download{' '}
+                {downloadSize !== null && `(~${formatBytes(downloadSize)}) `}has
+                been prepared and sent to your browser.
               </p>
               <button
                 onClick={() => setStep('download_parts')}

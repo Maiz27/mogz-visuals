@@ -1,4 +1,4 @@
-import { InputHTMLAttributes } from 'react';
+import { InputHTMLAttributes, useState, useEffect } from 'react';
 import { Label } from './Label';
 import { BaseFormFieldProps } from '@/lib/types';
 import { formatDateTimeForInput, setInputMinDate } from '@/lib/utils';
@@ -14,6 +14,13 @@ const Input = ({ className, ...props }: InputProps) => {
     : ('' as string);
 
   const isDate = dateTypes.includes(type!);
+  const [minDate, setMinDate] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    if (isDate) {
+      setMinDate(setInputMinDate({ addDays: 1 }));
+    }
+  }, [isDate]);
 
   return (
     <div className='w-full flex flex-col space-y-0.5'>
@@ -24,7 +31,12 @@ const Input = ({ className, ...props }: InputProps) => {
         <input
           value={isDate ? formatDateTimeForInput(value) : value}
           className={`w-full text-primary bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
-          min={isDate ? setInputMinDate({ addDays: 1 }) : undefined}
+          min={minDate}
+          onFocus={(e) => {
+            // Scroll to center on mobile when keyboard opens
+            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            props.onFocus?.(e);
+          }}
           {...props}
         />
       </div>
