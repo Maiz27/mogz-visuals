@@ -6,6 +6,7 @@ import {
 } from '@/lib/sanity/queries';
 import CryptoJS from 'crypto-js';
 import { ENCRYPTION_KEY } from '@/lib/env';
+import { Buffer } from 'buffer';
 
 export async function POST(req: NextRequest) {
   try {
@@ -119,6 +120,7 @@ export async function POST(req: NextRequest) {
           return null;
         } catch (e: any) {
           console.warn(`[Info] HEAD error for sample: ${e.message}`);
+          return null;
         }
       }),
     );

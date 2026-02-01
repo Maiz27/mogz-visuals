@@ -240,7 +240,9 @@ async function handleDownload(req: NextRequest) {
 
     // Fork stream: 1 to File (Cache), 1 to Response
     const fileWritePromise = new Promise<void>((resolve, reject) => {
-      const fileOutput = fs.createWriteStream(uniqueGenPath);
+      const fileOutput = fs.createWriteStream(uniqueGenPath, {
+        highWaterMark: 1024 * 1024,
+      });
       fileOutput.on('close', resolve);
       fileOutput.on('error', (err) => {
         archive.abort();
