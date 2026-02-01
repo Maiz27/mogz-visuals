@@ -270,7 +270,9 @@ const useDownloadCollection = ({
       link.style.display = 'none';
       document.body.appendChild(link);
       link.click();
-      document.body.removeChild(link);
+      setTimeout(() => {
+        document.body.removeChild(link);
+      }, 100);
 
       showToast('Download started...', 'success');
     } catch (e) {

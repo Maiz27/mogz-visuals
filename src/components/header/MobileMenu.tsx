@@ -139,7 +139,7 @@ const AccessForm = ({ handleReroute }: { handleReroute: (r: any) => void }) => {
         errors={errors}
         handleChange={handleChange}
         setToken={setToken}
-        className='flex flex-col justify-center space-y-4 text-copy'
+        className='flex flex-col justify-center space-y-4 text-copy pb-8'
       >
         {response && (
           <span

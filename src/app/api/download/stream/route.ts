@@ -23,13 +23,19 @@ const cleanupOldFiles = async (dir: string) => {
     const now = Date.now();
     await Promise.all(
       files.map(async (file) => {
-        if (!file.startsWith('mogz_')) return;
         const filePath = path.join(dir, file);
         try {
           const stat = await fs.promises.stat(filePath);
-          if (now - stat.mtimeMs > 3600000) {
-            await fs.promises.unlink(filePath);
-            console.log(`[Cleanup] Deleted old file: ${file}`);
+          const isOld = now - stat.mtimeMs > 3600000; // 1 hour
+
+          if (isOld) {
+            if (file.startsWith('mogz_')) {
+              await fs.promises.unlink(filePath);
+              console.log(`[Cleanup] Deleted old file: ${file}`);
+            } else if (file.startsWith('gen-') && stat.isDirectory()) {
+              await fs.promises.rm(filePath, { recursive: true, force: true });
+              console.log(`[Cleanup] Deleted old dir: ${file}`);
+            }
           }
         } catch {}
       }),

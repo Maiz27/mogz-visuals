@@ -67,10 +67,9 @@ export async function POST(req: NextRequest) {
     // We fetch HEAD for a few items to get the REAL download size.
     const sampleSize = Math.min(items.length, 15);
     const sampleIndices = new Set<number>();
-    const availableIndices = Array.from({ length: items.length }, (_, i) => i);
     while (sampleIndices.size < sampleSize) {
-      const randomIdx = Math.floor(Math.random() * availableIndices.length);
-      sampleIndices.add(availableIndices.splice(randomIdx, 1)[0]);
+      const randomIdx = Math.floor(Math.random() * items.length);
+      sampleIndices.add(randomIdx);
     }
 
     let totalSampleSizeSanity = 0;
@@ -87,17 +86,31 @@ export async function POST(req: NextRequest) {
             return;
           }
 
-          const res = await fetch(item.url, {
-            method: 'HEAD',
-            headers: {
-              'User-Agent':
-                'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            },
-          });
+          let res;
+          let attempts = 0;
+          while (attempts < 3) {
+            try {
+              res = await fetch(item.url, {
+                method: 'HEAD',
+                headers: {
+                  'User-Agent':
+                    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+                },
+              });
+              if (res.ok) break;
+              if (res.status === 404 || res.status === 403) break; // Don't retry fatal errors
+            } catch (e) {
+              console.warn(
+                `[Info] Attempt ${attempts + 1} failed for ${item.url}`,
+              );
+            }
+            attempts++;
+            await new Promise((r) => setTimeout(r, 200 * attempts));
+          }
 
-          if (!res.ok) {
+          if (!res || !res.ok) {
             console.warn(
-              `[Info] HEAD failed for ${item.url}: ${res.status} ${res.statusText}`,
+              `[Info] HEAD failed for ${item.url} after ${attempts} attempts`,
             );
             return null;
           }
