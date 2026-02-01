@@ -4,6 +4,9 @@
   "private": true,
   "website": "https://www.mogz.studio",
   "packageManager": "pnpm@10.26.0",
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
