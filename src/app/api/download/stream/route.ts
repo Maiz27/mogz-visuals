@@ -1,14 +1,3 @@
-// Suppress unhandled rejections in development
-if (process.env.NODE_ENV === 'development') {
-  process.on('unhandledRejection', (reason: any) => {
-    if (reason?.name === 'AbortError' || reason?.message?.includes('abort')) {
-      // Ignore abort-related rejections
-      return;
-    }
-    console.error('Unhandled Rejection:', reason);
-  });
-}
-
 import { NextRequest, NextResponse } from 'next/server';
 import archiver from 'archiver';
 import { fetchSanityData } from '@/lib/sanity/client';
@@ -89,54 +78,6 @@ async function* nodeStreamToIterator(stream: Readable, signal?: AbortSignal) {
   } finally {
     if (!stream.destroyed) stream.destroy();
   }
-}
-
-// Helper to calculate exact ZIP size for Content-Length
-function calculateZipSize(items: any[], title: string): number {
-  let size = 0;
-  const EOCD_SIZE = 22;
-
-  const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
-
-  items.forEach((item, idx) => {
-    // Replicate filename logic from POST
-    const urlPath = item.url.split('?')[0];
-    const parts = urlPath.split('.');
-    const extension = parts.length > 1 ? parts.pop().toLowerCase() : '';
-    const validExtension = ALLOWED_EXTS.includes(extension) ? extension : 'jpg';
-
-    // Must match POST logic exactly
-    const cleanName = title.replace(/[^a-z0-9]/gi, '_').toLowerCase();
-    const filename = `${cleanName}-${idx + 1}.${validExtension}`;
-    const nameLen = Buffer.byteLength(filename);
-
-    const data = item.size;
-
-    // Overhead for STORE (Level 0) + Streaming (Data Descriptor) + No Extra Fields
-    // Local Header: 30 + name + 0
-    // Data Descriptor: 16
-    // Central Header: 46 + name + 0
-    const overhead = 30 + nameLen + 16 + 46 + nameLen;
-
-    size += overhead + data;
-  });
-
-  return size + EOCD_SIZE;
-}
-
-function createZeroStream(size: number) {
-  let remaining = size;
-  return new Readable({
-    read(this: Readable, n: number) {
-      const chunk = remaining > 65536 ? 65536 : remaining;
-      if (remaining <= 0) {
-        this.push(null);
-      } else {
-        this.push(Buffer.alloc(chunk, 0));
-        remaining -= chunk;
-      }
-    },
-  });
 }
 
 export async function GET(req: NextRequest) {
@@ -281,30 +222,20 @@ async function handleDownload(req: NextRequest) {
       highWaterMark: 1024 * 1024,
     });
 
-    const passThrough = new PassThrough();
-    archive.pipe(passThrough);
+    const responsePassThrough = new PassThrough(); // Dedicated stream for response
+    archive.pipe(responsePassThrough);
 
     // Fork stream: 1 to File (Cache), 1 to Response
     const fileWritePromise = new Promise<void>((resolve, reject) => {
       const fileOutput = fs.createWriteStream(uniqueGenPath);
       fileOutput.on('close', resolve);
       fileOutput.on('error', reject);
-      passThrough.pipe(fileOutput); // Pipe data to file
+      archive.pipe(fileOutput); // Pipe archive directly to file as well
     });
 
     // We also need to handle the response stream.
     // Since PassThrough is a Readable, we can use it for response.
-    // BUT piping to multiple destinations?
-    // PassThrough.pipe(fileOutput) returns fileOutput.
-    // We need another branch.
-    // The standard way is: source.pipe(dest1); source.pipe(dest2);
-    // But in Node streams, piping consumes? No, one readable can pipe to multiple writables.
-    // However, for the Response, we need an Iterator/ReadableStream.
-
-    // Strategy:
-    // archive -> passThrough
-    // passThrough.pipe(fs.createWriteStream(...))
-    // passThrough is also passed to iteratorToStream for Response.
+    // archive is piped to both responsePassThrough and fileOutput independently.
 
     // Note: Request abortion should abort archive to stop processing.
     if (req.signal.aborted) {
@@ -454,11 +385,8 @@ async function handleDownload(req: NextRequest) {
         } catch {}
       });
 
-    // If we MUST provide valid Content-Length for streaming:
-    const calculatedSize = calculateZipSize(items, title);
-
     const responseStream = iteratorToStream(
-      nodeStreamToIterator(passThrough, req.signal),
+      nodeStreamToIterator(responsePassThrough, req.signal),
     );
 
     return new NextResponse(responseStream as any, {

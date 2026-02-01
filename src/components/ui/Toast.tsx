@@ -28,7 +28,7 @@ const Toast = ({
       gsap.fromTo(
         toastRef.current,
         { opacity: 0, y: -20 },
-        { opacity: 1, y: 60, duration: 0.3 }
+        { opacity: 1, y: 60, duration: 0.3 },
       );
 
       if (autoClose) {
@@ -56,7 +56,7 @@ const Toast = ({
   };
 
   return (
-    <div className='flex flex-col gap-1 w-max fixed top-4 left-4 z-50 pointer-events-none'>
+    <div className='flex flex-col gap-1 w-max fixed top-4 left-4 z-100000 pointer-events-none'>
       {show && (
         <div
           ref={toastRef}

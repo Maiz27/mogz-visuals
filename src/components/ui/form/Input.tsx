@@ -32,6 +32,11 @@ const Input = ({ className, ...props }: InputProps) => {
           value={isDate ? formatDateTimeForInput(value) : value}
           className={`w-full text-primary bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
           min={minDate}
+          onFocus={(e) => {
+            // Scroll to center on mobile when keyboard opens
+            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            props.onFocus?.(e);
+          }}
           {...props}
         />
       </div>

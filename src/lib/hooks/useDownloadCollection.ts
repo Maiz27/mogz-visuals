@@ -28,6 +28,7 @@ const useDownloadCollection = ({
 }: COLLECTION) => {
   const [loading, setLoading] = useState(false);
   const [segments, setSegments] = useState<Segment[]>([]);
+  const [downloadSize, setDownloadSize] = useState<number | null>(null);
   const { show } = useToast();
   const { progress, current, total, start, advance, update, reset } =
     useProgress();
@@ -60,7 +61,34 @@ const useDownloadCollection = ({
       setSegments(newSegments);
     };
 
+    const getSize = async () => {
+      if ((isPrivate && !uniqueId) || (!isPrivate && !slug?.current)) return;
+
+      const formData = new FormData();
+      if (isPrivate && uniqueId) {
+        formData.append('collectionId', uniqueId);
+        formData.append('isPrivate', 'true');
+      } else if (slug?.current) {
+        formData.append('slug', slug.current);
+        formData.append('isPrivate', 'false');
+      }
+
+      try {
+        const res = await fetch('/api/download/info', {
+          method: 'POST',
+          body: formData,
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setDownloadSize(data.size);
+        }
+      } catch (e) {
+        console.error('Failed to fetch download size', e);
+      }
+    };
+
     getSegments();
+    getSize();
   }, [uniqueId, slug, isPrivate]);
 
   const showToast = (
@@ -239,7 +267,6 @@ const useDownloadCollection = ({
       // A cleaner way for downloads that doesn't unload the app:
       const link = document.createElement('a');
       link.href = downloadUrl;
-      link.download = 'download.zip'; // Hint, server Content-Disposition takes precedence
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -260,6 +287,7 @@ const useDownloadCollection = ({
     downloadChunk,
     downloadAllChunks,
     downloadStream,
+    downloadSize,
   };
 };
 
