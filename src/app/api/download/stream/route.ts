@@ -80,6 +80,28 @@ async function* nodeStreamToIterator(stream: Readable, signal?: AbortSignal) {
   }
 }
 
+async function extractDownloadParams(req: NextRequest) {
+  let collectionId = '';
+  let slug = '';
+  let email = '';
+  let isPrivate = false;
+
+  if (req.method === 'GET') {
+    const { searchParams } = req.nextUrl;
+    collectionId = searchParams.get('collectionId') || '';
+    slug = searchParams.get('slug') || '';
+    email = searchParams.get('email') || '';
+    isPrivate = searchParams.get('isPrivate') === 'true';
+  } else {
+    const formData = await req.formData();
+    collectionId = formData.get('collectionId') as string;
+    slug = formData.get('slug') as string;
+    email = formData.get('email') as string;
+    isPrivate = formData.get('isPrivate') === 'true';
+  }
+  return { collectionId, slug, email, isPrivate };
+}
+
 export async function GET(req: NextRequest) {
   return handleDownload(req);
 }
@@ -90,24 +112,8 @@ export async function POST(req: NextRequest) {
 
 async function handleDownload(req: NextRequest) {
   try {
-    let collectionId = '';
-    let slug = '';
-    let email = '';
-    let isPrivate = false;
-
-    if (req.method === 'GET') {
-      const { searchParams } = req.nextUrl;
-      collectionId = searchParams.get('collectionId') || '';
-      slug = searchParams.get('slug') || '';
-      email = searchParams.get('email') || '';
-      isPrivate = searchParams.get('isPrivate') === 'true';
-    } else {
-      const formData = await req.formData();
-      collectionId = formData.get('collectionId') as string;
-      slug = formData.get('slug') as string;
-      email = formData.get('email') as string;
-      isPrivate = formData.get('isPrivate') === 'true';
-    }
+    const { collectionId, slug, email, isPrivate } =
+      await extractDownloadParams(req);
 
     // ... Validation Logic ...
     if (!email)
@@ -230,7 +236,10 @@ async function handleDownload(req: NextRequest) {
     const fileWritePromise = new Promise<void>((resolve, reject) => {
       const fileOutput = fs.createWriteStream(uniqueGenPath);
       fileOutput.on('close', resolve);
-      fileOutput.on('error', reject);
+      fileOutput.on('error', (err) => {
+        archive.abort();
+        reject(err);
+      });
       archive.pipe(fileOutput); // Pipe archive directly to file as well
     });
 
@@ -358,32 +367,41 @@ async function handleDownload(req: NextRequest) {
 
     // Handle Cache Finalization (after stream ends)
     // We don't await this for the response to start, but we should handle errors.
-    Promise.all([processingPromise, fileWritePromise]).then(async () => {
-      req.signal.removeEventListener('abort', abortHandler);
-      const MAX_RETRIES = 3;
-      let renamed = false;
-      for (let i = 0; i < MAX_RETRIES; i++) {
-        try {
+    Promise.all([processingPromise, fileWritePromise])
+      .then(async () => {
+        req.signal.removeEventListener('abort', abortHandler);
+        const MAX_RETRIES = 3;
+        let renamed = false;
+        for (let i = 0; i < MAX_RETRIES; i++) {
           try {
-            await fs.promises.access(tempFilePath);
-            await fs.promises.unlink(tempFilePath);
-          } catch {}
-          await fs.promises.rename(uniqueGenPath, tempFilePath);
-          renamed = true;
-          console.log('[Cache] Successfully saved to cache');
-          break;
-        } catch (e) {
-          console.warn(`[Cache] Rename attempt ${i + 1} failed:`, e);
-          await new Promise((r) => setTimeout(r, 100 * Math.pow(2, i)));
+            try {
+              await fs.promises.access(tempFilePath);
+              await fs.promises.unlink(tempFilePath);
+            } catch {}
+            await fs.promises.rename(uniqueGenPath, tempFilePath);
+            renamed = true;
+            console.log('[Cache] Successfully saved to cache');
+            break;
+          } catch (e) {
+            console.warn(`[Cache] Rename attempt ${i + 1} failed:`, e);
+            await new Promise((r) => setTimeout(r, 100 * Math.pow(2, i)));
+          }
         }
-      }
-      if (!renamed) {
-        console.error(
-          '[Cache] Failed to cache after all retries - next request will regenerate',
-        );
-      }
-      if (renamed) fs.rmSync(uniqueGenDir, { recursive: true, force: true });
-    });
+        if (!renamed) {
+          console.error(
+            '[Cache] Failed to cache after all retries - next request will regenerate',
+          );
+        }
+        if (renamed) fs.rmSync(uniqueGenDir, { recursive: true, force: true });
+      })
+      .catch((err) => {
+        console.error('[Cache] Background cache write failed:', err);
+        try {
+          if (fs.existsSync(uniqueGenPath)) fs.unlinkSync(uniqueGenPath);
+          if (fs.existsSync(uniqueGenDir))
+            fs.rmSync(uniqueGenDir, { recursive: true, force: true });
+        } catch {}
+      });
 
     const responseStream = iteratorToStream(
       nodeStreamToIterator(responsePassThrough, req.signal),

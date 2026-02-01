@@ -7,7 +7,8 @@ import { fetchSanityData } from '@/lib/sanity/client';
 import { COLLECTION } from '@/lib/types';
 import PrivateGallery from '@/components/gallery/PrivateGallery';
 
-export const revalidate = 60;
+// export const revalidate = 60;
+export const dynamic = 'force-dynamic';
 
 const page = async (props: { searchParams: Promise<SearchParams> }) => {
   const searchParams = await props.searchParams;
@@ -20,7 +21,7 @@ const page = async (props: { searchParams: Promise<SearchParams> }) => {
     getPrivateCollectionByID,
     {
       id,
-    }
+    },
   );
 
   if (!collection) {

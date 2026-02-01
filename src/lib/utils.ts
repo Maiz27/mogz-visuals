@@ -225,11 +225,11 @@ export const setCollectionAccessCookie = (secret: string) => {
   const isSecure = window.location.protocol === 'https:';
   Cookies.set('collectionAccess', secret, {
     secure: isSecure,
-    sameSite: 'Strict',
+    sameSite: 'Lax',
     path: '/',
   });
   console.log(
-    `[Cookie] Set collectionAccess (Secure: ${isSecure}, SameSite: Strict, Path: /)`,
+    `[Cookie] Set collectionAccess (Secure: ${isSecure}, SameSite: Lax, Path: /)`,
   );
 };
 

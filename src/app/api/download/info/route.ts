@@ -88,12 +88,12 @@ export async function POST(req: NextRequest) {
           }
 
           const res = await fetch(item.url, { method: 'HEAD' });
-          if (!res.ok) return;
+          if (!res.ok) return null;
           const cl = res.headers.get('content-length');
           if (cl) {
-            totalSampleSizeSanity += item.size;
-            totalSampleSizeReal += parseInt(cl, 10);
+            return { sanity: item.size, real: parseInt(cl, 10) };
           }
+          return null;
         } catch (e) {
           console.warn('[Info] HEAD failed for sample:', e);
         }
