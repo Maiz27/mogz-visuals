@@ -69,7 +69,8 @@ vi.mock('fs', async (importOriginal) => {
     unlink: vi.fn(),
     writeFile: vi.fn(),
     rename: vi.fn(),
-    access: vi.fn(),
+    mkdtemp: vi.fn((p) => Promise.resolve(p + 'unique')),
+    rm: vi.fn(),
   };
 
   return {
@@ -242,6 +243,7 @@ describe('POST /api/download/stream', () => {
     ]);
     (fs.promises.stat as any).mockResolvedValue({
       mtimeMs: Date.now() - 4000000,
+      isDirectory: () => false,
     }); // > 1 hour old
 
     await POST(req);
@@ -254,5 +256,80 @@ describe('POST /api/download/stream', () => {
     expect(fs.promises.unlink).toHaveBeenCalledWith(
       expect.stringContaining('mogz_old1.zip'),
     );
+  });
+
+  it('should cleanup old gen- directories', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.05); // Force cleanup
+    mockFetchSanity.mockResolvedValue({
+      title: 'Collection Dir Cleanup',
+      gallery: [{ url: 'http://cdn.sanity.io/img1.jpg' }],
+    });
+    const formData = new FormData();
+    formData.append('slug', 'cleanup-dir-slug');
+    formData.append('email', 'test@test.com');
+    const req = new NextRequest('http://localhost/api', {
+      method: 'POST',
+      body: formData,
+    });
+
+    (fs.promises.readdir as any).mockResolvedValue(['gen-old-dir']);
+    (fs.promises.stat as any).mockResolvedValue({
+      mtimeMs: Date.now() - 4000000,
+      isDirectory: () => true, // It is a directory
+    });
+
+    await POST(req);
+    await new Promise((r) => setTimeout(r, 100));
+
+    expect(fs.promises.rm).toHaveBeenCalledWith(
+      expect.stringContaining('gen-old-dir'),
+      { recursive: true, force: true },
+    );
+  });
+
+  it('should abort archive if file write fails', async () => {
+    vi.spyOn(Math, 'random').mockReturnValue(0.9);
+    const archiver = await import('archiver');
+
+    mockFetchSanity.mockResolvedValue({
+      title: 'Collection Write Fail',
+      gallery: [{ url: 'http://cdn.sanity.io/img1.jpg' }],
+    });
+
+    const formData = new FormData();
+    formData.append('slug', 'write-fail-slug');
+    formData.append('email', 'test@test.com');
+    const req = new NextRequest('http://localhost/api', {
+      method: 'POST',
+      body: formData,
+    });
+
+    // Mock createWriteStream to return a stream that errors
+    const mockStream = {
+      on: vi.fn(),
+      once: vi.fn(),
+      emit: vi.fn(),
+      write: vi.fn(),
+      end: vi.fn(),
+      removeListener: vi.fn(),
+      listenerCount: vi.fn().mockReturnValue(0),
+    };
+    (fs.createWriteStream as any).mockReturnValue(mockStream);
+
+    await POST(req);
+
+    const archiveInstance = (archiver.default as any).mock.results[0].value;
+    const mockAbort = archiveInstance.abort;
+
+    // Simulate error on file output
+    // The implementation binds to 'error' event
+    const calls = (mockStream.on as any).mock.calls;
+    const errorHandler = calls.find((c: any) => c[0] === 'error')?.[1];
+
+    if (errorHandler) {
+      errorHandler(new Error('Disk full'));
+    }
+
+    expect(mockAbort).toHaveBeenCalled();
   });
 });
