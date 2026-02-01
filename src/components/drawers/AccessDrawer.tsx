@@ -37,6 +37,10 @@ const AccessContent = ({ onClose, collection }: Props) => {
 
     if (response.status === 200) {
       setCollectionAccessCookie(response.secret);
+
+      // Small delay to ensure cookie is set before reload
+      await new Promise((resolve) => setTimeout(resolve, 100));
+
       reset();
       onClose(); // Close drawer first
       if (id && pathname === '/private') {

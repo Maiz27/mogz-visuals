@@ -225,11 +225,12 @@ export const setCollectionAccessCookie = (secret: string) => {
   const isSecure = window.location.protocol === 'https:';
   Cookies.set('collectionAccess', secret, {
     secure: isSecure,
-    sameSite: 'Lax',
+    sameSite: 'Strict',
     path: '/',
-    expires: 1, // 1 day
   });
-  console.log(`[Cookie] Set collectionAccess (Secure: ${isSecure})`);
+  console.log(
+    `[Cookie] Set collectionAccess (Secure: ${isSecure}, SameSite: Strict, Path: /)`,
+  );
 };
 
 type MetadataOverwrites = {
