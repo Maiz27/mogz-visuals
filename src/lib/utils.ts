@@ -227,8 +227,9 @@ export const setCollectionAccessCookie = (secret: string) => {
     secure: isSecure,
     sameSite: 'Lax',
     path: '/',
-    expires: 1,
+    expires: 1, // 1 day
   });
+  console.log(`[Cookie] Set collectionAccess (Secure: ${isSecure})`);
 };
 
 type MetadataOverwrites = {
