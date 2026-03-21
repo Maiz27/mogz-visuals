@@ -1,18 +1,15 @@
 import type { Viewport } from 'next';
-import Header from '@/components/header/Header';
-import Footer from '@/components/footer/Footer';
-import ScrollToTop from '@/components/scrollToTop/ScrollToTop';
-import { ScrollProvider } from '@/lib/context/scrollContext';
+import JsonLD from '@/components/SEO/JsonLD';
 import { IsClientCtxProvider } from '@/lib/context/IsClientContext';
 import { ToastProvider } from '@/lib/context/ToastContext';
-import { getPageMetadata } from '@/lib/utils';
-import JsonLD from '@/components/SEO/JsonLD';
-import { DrawerProvider } from '@/lib/context/DrawerContext';
-import GlobalDrawer from '@/components/drawers/GlobalDrawer';
+
 import './globals.css';
 
-export const metadata = getPageMetadata('home');
-
+/**
+ * Root layout — bare HTML shell only.
+ * Shared providers/UI are split between (main) and (booking) group layouts,
+ * so each can have a completely independent experience.
+ */
 export const viewport: Viewport = {
   themeColor: { media: '(prefers-color-scheme: dark)', color: '#fbc681' },
 };
@@ -29,19 +26,7 @@ export default function RootLayout({
       </head>
       <body>
         <IsClientCtxProvider>
-          <ScrollProvider>
-            <ToastProvider>
-              <DrawerProvider>
-                <div data-scroll-container className='relative'>
-                  <Header />
-                  {children}
-                  <GlobalDrawer />
-                  <Footer />
-                  <ScrollToTop />
-                </div>
-              </DrawerProvider>
-            </ToastProvider>
-          </ScrollProvider>
+          <ToastProvider>{children}</ToastProvider>
         </IsClientCtxProvider>
       </body>
     </html>
