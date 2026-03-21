@@ -95,3 +95,46 @@ export type TermsPrivacy = {
   lastUpdated: string;
   content: RichText;
 };
+
+export type BookingAddOn = {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+};
+
+export type BookingPackage = {
+  id: string;
+  name: string;
+  price: number;
+  duration?: string;
+  description?: string;
+  includes: string[];
+  addOns?: BookingAddOn[];
+};
+
+export type BookingCategory = {
+  id: string;
+  name: string;
+  shortName: string;
+  description: string;
+  /** Unsplash/temp image URL for this category */
+  image: string;
+  packages: BookingPackage[];
+  /** Add-ons that apply to the whole category */
+  addOns?: BookingAddOn[];
+};
+
+export type BookingState = {
+  step: number;
+  categoryId: string | null;
+  packageId: string | null;
+  addOnIds: string[];
+  date: string;
+  notes: string;
+  name: string;
+  email: string;
+  phone: string;
+  termsAccepted: boolean;
+  token: string;
+};
