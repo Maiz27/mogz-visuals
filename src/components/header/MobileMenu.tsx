@@ -11,7 +11,7 @@ import useMenu from '@/lib/hooks/useMenu';
 import useFormState from '@/lib/hooks/useFormState';
 import { setCollectionAccessCookie } from '@/lib/utils';
 import useVerifyAccess from '@/lib/hooks/useVerifyAccess';
-import { FORMS, ROUTES } from '@/lib/Constants';
+import { FORMS, ROUTES, BOOK_ROUTE } from '@/lib/Constants';
 import {
   HiArrowSmallRight,
   HiBars3BottomRight,
@@ -58,7 +58,7 @@ const MobileMenu = () => {
               </div>
               <nav>
                 <ul>
-                  {ROUTES.map(({ name, href }, index) => (
+                  {ROUTES.map(({ name, href }) => (
                     <MobileMenuLink
                       key={name}
                       href={href}
@@ -67,6 +67,14 @@ const MobileMenu = () => {
                       {name}
                     </MobileMenuLink>
                   ))}
+                  {/* Book Now CTA */}
+                  <MobileMenuLink
+                    href={BOOK_ROUTE.href}
+                    handleMenuLinkClick={handleMenuLinkClick}
+                    highlight
+                  >
+                    {BOOK_ROUTE.name}
+                  </MobileMenuLink>
                 </ul>
               </nav>
             </div>
@@ -90,16 +98,22 @@ const MobileMenuLink = ({
   href,
   handleMenuLinkClick,
   children,
+  highlight = false,
 }: {
   href: string;
   handleMenuLinkClick: (href: string) => void;
   children: React.ReactNode;
+  highlight?: boolean;
 }) => {
   return (
     <li className='relative text-background'>
       <button
         onClick={() => handleMenuLinkClick(href)}
-        className='flex w-full cursor-pointer items-center justify-between border-b border-neutral-300 py-6 text-start text-2xl font-semibold'
+        className={`flex w-full cursor-pointer items-center justify-between border-b py-6 text-start text-2xl font-semibold ${
+          highlight
+            ? 'border-amber-400/30 text-amber-400 font-black'
+            : 'border-neutral-300'
+        }`}
       >
         <span className='font-bold tracking-wider'>{children}</span>
         <HiArrowSmallRight />
