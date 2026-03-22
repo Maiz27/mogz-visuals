@@ -12,16 +12,9 @@ type Props = {
 
 const SearchContent = ({ onClose }: Props) => {
   const { initialValue, fields, rules } = FORMS.search;
-  const { state, errors, handleChange, reset } = useFormState(
-    initialValue,
-    rules
-  );
+  const { state, errors, handleChange } = useFormState(initialValue, rules);
 
-  const {
-    collections,
-    loading,
-    reset: restCollections,
-  } = useSearchCollection(state.name);
+  const { collections, loading } = useSearchCollection(state.name);
 
   const renderResults = () => {
     if (loading) {

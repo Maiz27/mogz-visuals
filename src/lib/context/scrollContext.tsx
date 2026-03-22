@@ -7,6 +7,7 @@ import {
   useEffect,
   useRef,
   useState,
+  useCallback,
 } from 'react';
 
 type ScrollContextValue = {
@@ -30,26 +31,26 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
     useState<LocomotiveScroll | null>(null);
   const pathname = usePathname();
 
+  const initializeScroll = async () => {
+    if (scrollRef.current) {
+      scrollRef.current.destroy();
+    }
+
+    const LocomotiveScroll = (await import('locomotive-scroll')).default;
+    const scroll = new LocomotiveScroll({
+      el: document.querySelector('[data-scroll-container]') as HTMLElement,
+      lerp: 0.05,
+      smooth: true,
+      reloadOnContextChange: true,
+      smartphone: { smooth: true },
+      touchMultiplier: 3,
+    });
+
+    scrollRef.current = scroll;
+    setScrollInstance(scroll);
+  };
+
   useEffect(() => {
-    const initializeScroll = async () => {
-      if (scrollRef.current) {
-        scrollRef.current.destroy();
-      }
-
-      const LocomotiveScroll = (await import('locomotive-scroll')).default;
-      const scroll = new LocomotiveScroll({
-        el: document.querySelector('[data-scroll-container]') as HTMLElement,
-        lerp: 0.05,
-        smooth: true,
-        reloadOnContextChange: true,
-        smartphone: { smooth: true },
-        touchMultiplier: 3,
-      });
-
-      scrollRef.current = scroll;
-      setScrollInstance(scroll);
-    };
-
     initializeScroll();
 
     return () => {
