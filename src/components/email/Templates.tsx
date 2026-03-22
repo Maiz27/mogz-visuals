@@ -10,20 +10,28 @@ export const Contact = ({ name, email, message }: ContactProps) => {
       <h1 style={{ color: '#fbc681' }}>New Website Enquiry</h1>
       <h2>From: {name}</h2>
 
-      <table style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px' }}>
+      <table
+        style={{ width: '100%', borderCollapse: 'collapse', marginBottom: '16px' }}
+      >
         <tbody>
           <tr>
-            <td style={{ width: '30%' }}><b>Client Name</b></td>
+            <td style={{ width: '30%' }}>
+              <b>Client Name</b>
+            </td>
             <td>{name}</td>
           </tr>
           <tr>
-            <td><b>Email</b></td>
+            <td>
+              <b>Email</b>
+            </td>
             <td>{email}</td>
           </tr>
         </tbody>
       </table>
 
-      <hr style={{ margin: '16px 0', border: 'none', borderTop: '1px solid #ccc' }} />
+      <hr
+        style={{ margin: '16px 0', border: 'none', borderTop: '1px solid #ccc' }}
+      />
 
       {message && (
         <>
@@ -39,10 +47,13 @@ type BookingEmailProps = {
   name: string;
   email: string;
   phone: string;
-  category: string;
-  packageName: string;
-  packagePrice: number;
-  addOns: { name: string; price: number }[];
+  items: {
+    category: string;
+    packageName: string;
+    packagePrice: number;
+    addOns: { name: string; price: number }[];
+    subtotal: number;
+  }[];
   totalPrice: number;
   date: string;
   notes?: string;
@@ -52,10 +63,7 @@ export const BookingEmail = ({
   name,
   email,
   phone,
-  category,
-  packageName,
-  packagePrice,
-  addOns,
+  items,
   totalPrice,
   date,
   notes,
@@ -63,32 +71,68 @@ export const BookingEmail = ({
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: 600 }}>
       <h1 style={{ color: '#fbc681' }}>New Booking Request</h1>
-      <h2>{category}</h2>
+      <h2>
+        {items.length === 1
+          ? items[0]?.category
+          : `${items.length} Combined Services`}
+      </h2>
 
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
         <tbody>
-          <tr><td><b>Client Name</b></td><td>{name}</td></tr>
-          <tr><td><b>Email</b></td><td>{email}</td></tr>
-          <tr><td><b>Phone</b></td><td>{phone}</td></tr>
-          <tr><td><b>Preferred Date</b></td><td>{date}</td></tr>
+          <tr>
+            <td>
+              <b>Client Name</b>
+            </td>
+            <td>{name}</td>
+          </tr>
+          <tr>
+            <td>
+              <b>Email</b>
+            </td>
+            <td>{email}</td>
+          </tr>
+          <tr>
+            <td>
+              <b>Phone</b>
+            </td>
+            <td>{phone}</td>
+          </tr>
+          <tr>
+            <td>
+              <b>Preferred Date</b>
+            </td>
+            <td>{date}</td>
+          </tr>
         </tbody>
       </table>
 
       <hr style={{ margin: '16px 0' }} />
 
-      <h3>Package Selected</h3>
-      <p>{packageName} — <b>${packagePrice}</b></p>
+      {items.map((item, index) => (
+        <div key={index} style={{ marginBottom: 20 }}>
+          <h3>{item.category}</h3>
+          <p>
+            {item.packageName} - <b>${item.packagePrice}</b>
+          </p>
 
-      {addOns.length > 0 && (
-        <>
-          <h3>Add-Ons</h3>
-          <ul>
-            {addOns.map((a, i) => (
-              <li key={i}>{a.name} — ${a.price}</li>
-            ))}
-          </ul>
-        </>
-      )}
+          {item.addOns.length > 0 && (
+            <>
+              <h4>Add-Ons</h4>
+              <ul>
+                {item.addOns.map((addOn, addOnIndex) => (
+                  <li key={addOnIndex}>
+                    {addOn.name} - ${addOn.price}
+                  </li>
+                ))}
+              </ul>
+            </>
+          )}
+
+          <p>
+            <b>Subtotal:</b> ${item.subtotal}
+          </p>
+        </div>
+      ))}
 
       <h2 style={{ color: '#fbc681' }}>Total Estimate: ${totalPrice}</h2>
 

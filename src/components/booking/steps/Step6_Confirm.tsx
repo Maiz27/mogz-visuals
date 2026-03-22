@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useBookingStore } from '@/lib/stores/bookingStore';
 import { useBookingDataStore } from '@/lib/stores/bookingDataStore';
+import { getBookingTotal, resolveBookingSelections } from '@/lib/booking';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/lib/context/ToastContext';
 import {
@@ -14,9 +15,7 @@ import BookingNavigation from '../BookingNavigation';
 import LocomotiveScrollSection from '../../locomotiveScrollSection/LocomotiveScrollSection';
 
 export default function Step6_Confirm() {
-  const categoryId = useBookingStore((s) => s.categoryId);
-  const packageName = useBookingStore((s) => s.packageName);
-  const addOnNames = useBookingStore((s) => s.addOnNames);
+  const selections = useBookingStore((s) => s.selections);
   const date = useBookingStore((s) => s.date);
   const notes = useBookingStore((s) => s.notes);
   const name = useBookingStore((s) => s.name);
@@ -26,17 +25,11 @@ export default function Step6_Confirm() {
   const prevStep = useBookingStore((s) => s.prevStep);
 
   const { categoryDetails, loadingDetail } = useBookingDataStore();
-  const selectedCategory = categoryId ? categoryDetails[categoryId] : null;
-  const isLoadingDetails = categoryId ? !!loadingDetail[categoryId] : false;
-  const selectedPackage =
-    selectedCategory?.packages.find((p) => p.name === packageName) ?? null;
-  const resolvedAddOns = addOnNames
-    .map((n) => selectedCategory?.addOns?.find((a) => a.name === n))
-    .filter(Boolean);
-
-  const totalPrice =
-    (selectedPackage?.price ?? 0) +
-    resolvedAddOns.reduce((sum, a) => sum + (a?.price ?? 0), 0);
+  const resolvedSelections = resolveBookingSelections(selections, categoryDetails);
+  const isLoadingDetails = selections.some(
+    (selection) => !!loadingDetail[selection.categoryId],
+  );
+  const totalPrice = getBookingTotal(selections, categoryDetails);
 
   const router = useRouter();
   const { show } = useToast();
@@ -56,9 +49,11 @@ export default function Step6_Confirm() {
           name,
           email,
           phone,
-          categoryId,
-          packageId: packageName,
-          addOnIds: addOnNames,
+          items: selections.map((selection) => ({
+            categoryId: selection.categoryId,
+            packageId: selection.packageId,
+            addOnIds: selection.addOnIds,
+          })),
           date,
           notes,
           token,
@@ -94,7 +89,6 @@ export default function Step6_Confirm() {
         </p>
         <CTAButton
           onClick={() => {
-            // Navigate home - cleanup is handled by BookingPage unmount
             router.push('/');
           }}
           style='primary'
@@ -111,7 +105,6 @@ export default function Step6_Confirm() {
   return (
     <LocomotiveScrollSection className='pb-32 px-4 sm:px-8 max-w-7xl mx-auto'>
       <div className='w-full'>
-        {/* Editorial Header */}
         <div className='mb-16 mt-4 md:mt-8 flex flex-col md:flex-row md:justify-between md:items-end gap-8'>
           <div className='max-w-2xl'>
             <BookingNavigation
@@ -136,13 +129,12 @@ export default function Step6_Confirm() {
             {isLoadingDetails ? (
               <span className='block w-full h-4 bg-white/10 rounded animate-pulse' />
             ) : (
-              'Verify the components of your luxury session before dispatching your final request to our team.'
+              'Review each selected service, verify pricing, and send one combined booking request to our team.'
             )}
           </div>
         </div>
 
-        <div className='max-w-3xl mb-16 border border-white/5 bg-surface p-6 md:p-10 relative overflow-hidden'>
-          {/* Loading Overlay for Data Restoration */}
+        <div className='max-w-4xl mb-16 border border-white/5 bg-surface p-6 md:p-10 relative overflow-hidden'>
           {isLoadingDetails && (
             <div className='absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center'>
               <div className='flex flex-col items-center gap-4'>
@@ -154,18 +146,39 @@ export default function Step6_Confirm() {
             </div>
           )}
 
-          {/* Category */}
-          <ConfirmRow label='Service' value={selectedCategory?.name ?? '—'} />
-          {/* Package */}
-          <ConfirmRow label='Package' value={selectedPackage?.name ?? '—'} />
-          {/* Add-ons */}
-          {resolvedAddOns.length > 0 && (
-            <ConfirmRow
-              label='Add-Ons'
-              value={resolvedAddOns.map((a) => a!.name).join(', ')}
-            />
-          )}
-          {/* Date */}
+          <div className='space-y-8'>
+            {resolvedSelections.map((item, index) => (
+              <div
+                key={item.selection.categoryId}
+                className='border border-white/5 bg-background/20 p-5 md:p-6'
+              >
+                <p className='text-primary text-[10px] tracking-[0.2em] uppercase font-body font-semibold mb-3'>
+                  Service {String(index + 1).padStart(2, '0')}
+                </p>
+                <ConfirmRow
+                  label='Service'
+                  value={item.category?.name ?? item.selection.categoryId}
+                />
+                <ConfirmRow
+                  label='Package'
+                  value={item.selectedPackage?.name ?? '-'}
+                />
+                {item.resolvedAddOns.length > 0 && (
+                  <ConfirmRow
+                    label='Add-Ons'
+                    value={item.resolvedAddOns.map((addOn) => addOn.name).join(', ')}
+                  />
+                )}
+                <ConfirmRow
+                  label='Subtotal'
+                  value={`$${item.subtotal.toLocaleString()}`}
+                />
+              </div>
+            ))}
+          </div>
+
+          <div className='border-t border-white/5 my-6 md:my-8' />
+
           <ConfirmRow
             label='Preferred Date'
             value={
@@ -178,22 +191,19 @@ export default function Step6_Confirm() {
                     hour: '2-digit',
                     minute: '2-digit',
                   })
-                : '—'
+                : '-'
             }
           />
-          {/* Notes */}
           {notes && <ConfirmRow label='Notes' value={notes} />}
 
           <div className='border-t border-white/5 my-6 md:my-8' />
 
-          {/* Contact */}
           <ConfirmRow label='Name' value={name} />
           <ConfirmRow label='Email' value={email} />
           <ConfirmRow label='Phone' value={phone} />
 
           <div className='border-t border-white/5 my-6 md:my-8' />
 
-          {/* Total */}
           <div className='flex flex-col md:flex-row md:items-end justify-between py-2 gap-4'>
             <span className='text-secondary text-[10px] tracking-[0.2em] font-body uppercase font-semibold'>
               Estimated Total
@@ -213,17 +223,16 @@ export default function Step6_Confirm() {
         </div>
 
         {status === 'error' && (
-          <div className='flex items-start gap-4 mb-8 p-6 bg-red-950/20 border border-red-500/30 text-red-200 text-sm font-body max-w-3xl'>
+          <div className='flex items-start gap-4 mb-8 p-6 bg-red-950/20 border border-red-500/30 text-red-200 text-sm font-body max-w-4xl'>
             <HiOutlineExclamationTriangle className='shrink-0 mt-0.5 text-xl text-red-400' />
             <span className='leading-relaxed'>{errorMsg}</span>
           </div>
         )}
 
-        {/* Submit */}
-        <div className='flex justify-end relative z-50 max-w-3xl'>
+        <div className='flex justify-end relative z-50 max-w-4xl'>
           <CTAButton
             onClick={handleSubmit}
-            disabled={status === 'loading'}
+            disabled={status === 'loading' || isLoadingDetails}
             style='primary'
             className='w-full md:w-auto h-14 px-10 rounded-none! flex items-center justify-center gap-3 shadow-[0_10px_30px_rgba(251,198,129,0.15)]'
           >

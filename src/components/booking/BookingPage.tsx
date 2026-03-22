@@ -23,13 +23,12 @@ const STEPS = [
   Step6_Confirm,
 ];
 
-const STEP_LABELS = ['Service', 'Package', 'Add-Ons', 'Date', 'Details'];
+const STEP_LABELS = ['Services', 'Packages', 'Add-Ons', 'Date', 'Details'];
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function BookingPage() {
   const step = useBookingStore((s) => s.step);
-  const categoryId = useBookingStore((s) => s.categoryId);
-  const packageName = useBookingStore((s) => s.packageName);
+  const selections = useBookingStore((s) => s.selections);
   const date = useBookingStore((s) => s.date);
   const name = useBookingStore((s) => s.name);
   const email = useBookingStore((s) => s.email);
@@ -44,38 +43,35 @@ export default function BookingPage() {
     useBookingDataStore();
   const { scrollInstance } = useScroll();
 
-  // Hydrate state from sessionStorage on first mount
   useEffect(() => {
     hydrateFromStorage();
   }, [hydrateFromStorage]);
 
-  // Fetch the lightweight category list on mount
   useEffect(() => {
     fetchCategoryList();
   }, [fetchCategoryList]);
 
-  // Auto-fetch details if we are deep in the flow and missing data (e.g., after refresh)
   useEffect(() => {
-    if (categoryId && !categoryDetails[categoryId]) {
-      fetchCategoryDetails(categoryId);
+    for (const selection of selections) {
+      if (!categoryDetails[selection.categoryId]) {
+        fetchCategoryDetails(selection.categoryId);
+      }
     }
-  }, [categoryId, categoryDetails, fetchCategoryDetails]);
+  }, [selections, categoryDetails, fetchCategoryDetails]);
 
   const StepComponent = STEPS[step - 1];
   const contentRef = useRef<HTMLDivElement>(null);
 
-  // Synchronize scroll on step change + content resize
   useEffect(() => {
     if (!scrollInstance) return;
 
     let isMounted = true;
 
-    // Centerpiece: Robustly update scroll on ANY content shift (important for Step 1 grid and Step 6 mount)
     const ro = new ResizeObserver(() => {
       if (isMounted && scrollInstance) {
         try {
           scrollInstance.update();
-        } catch (e) {}
+        } catch {}
       }
     });
 
@@ -83,16 +79,14 @@ export default function BookingPage() {
       ro.observe(contentRef.current);
     }
 
-    // Handle the scroll-to-top on step change
     try {
-      // Small delay allows the React DOM swap to settle before Locomotive calculates the Top
       setTimeout(() => {
         if (isMounted && scrollInstance) {
           scrollInstance.scrollTo('top', { duration: 0, disableLerp: true });
-          scrollInstance.update(); // Final update to be sure
+          scrollInstance.update();
         }
       }, 50);
-    } catch (e) {}
+    } catch {}
 
     return () => {
       isMounted = false;
@@ -100,7 +94,6 @@ export default function BookingPage() {
     };
   }, [step, scrollInstance]);
 
-  // Handle flash-free redirect on unmount
   const currentStepRef = useRef(step);
   useEffect(() => {
     currentStepRef.current = step;
@@ -116,9 +109,12 @@ export default function BookingPage() {
   const canProceed = (() => {
     switch (step) {
       case 1:
-        return !!categoryId;
+        return selections.length > 0;
       case 2:
-        return !!packageName;
+        return (
+          selections.length > 0 &&
+          selections.every((selection) => !!selection.packageId)
+        );
       case 3:
         return true;
       case 4:
@@ -138,21 +134,17 @@ export default function BookingPage() {
 
   return (
     <main className='relative bg-background selection:bg-primary/30'>
-      {/* Editorial Grain Overlay */}
       <div className='fixed inset-0 pointer-events-none z-50 opacity-[0.03] mix-blend-overlay bg-[url(/grain.png)]' />
 
       <div className='relative flex flex-col'>
-        {/* Custom Booking Header (Fixed Navbar substitute) */}
         <BookingHeader />
 
-        {/* Global Navbar Spacer - Ensures all steps clear the fixed header consistently */}
         <LocomotiveScrollSection
           id='booking-spacer'
           className='h-20 md:h-32 w-full shrink-0'
           aria-hidden='true'
         />
 
-        {/* Step content swapped dynamically as independent sections */}
         <div
           id='booking-content'
           ref={contentRef}
@@ -163,7 +155,6 @@ export default function BookingPage() {
           </div>
         </div>
 
-        {/* Fixed Bottom Progress Bar */}
         {step < 6 && (
           <div className='fixed md:sticky bottom-0 left-0 right-0 z-60'>
             <BookingProgressBar
