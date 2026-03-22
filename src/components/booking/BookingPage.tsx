@@ -4,6 +4,10 @@ import { useBookingStore } from '@/lib/stores/bookingStore';
 import { useBookingDataStore } from '@/lib/stores/bookingDataStore';
 import { useScroll } from '@/lib/context/scrollContext';
 import { useEffect, useRef } from 'react';
+import {
+  isValidBookingDateTimeLocal,
+  validateBookingContactFields,
+} from '@/lib/bookingValidation';
 import BookingProgressBar from './BookingProgressBar';
 import Step1_Category from './steps/Step1_Category';
 import Step2_Package from './steps/Step2_Package';
@@ -23,7 +27,6 @@ const STEPS = [
 ];
 
 const STEP_LABELS = ['Services', 'Packages', 'Add-Ons', 'Date', 'Details'];
-const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export default function BookingPage() {
   const step = useBookingStore((s) => s.step);
@@ -117,15 +120,18 @@ export default function BookingPage() {
       case 3:
         return true;
       case 4:
-        return !!date;
-      case 5:
-        return (
-          name.length > 2 &&
-          !!email.match(EMAIL_PATTERN) &&
-          phone.length > 4 &&
-          termsAccepted &&
-          !!token
-        );
+        return isValidBookingDateTimeLocal(date);
+      case 5: {
+        const errors = validateBookingContactFields({
+          name,
+          email,
+          phone,
+          termsAccepted,
+          token,
+        });
+
+        return Object.keys(errors).length === 0;
+      }
       default:
         return false;
     }

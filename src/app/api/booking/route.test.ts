@@ -36,9 +36,11 @@ describe('POST /api/booking', () => {
         addOnIds: ['video-addon'],
       },
     ],
-    date: '2025-01-01T10:00:00Z',
+    date: '2025-01-01T10:00',
     notes: 'Hello MGZ',
+    termsAccepted: true,
     token: 'valid-token',
+    timeZone: 'Africa/Juba',
   };
 
   const mockCategories = [
@@ -158,5 +160,48 @@ describe('POST /api/booking', () => {
 
     const response = await POST(req);
     expect(response.status).toBe(500);
+  });
+
+  it('should return 400 if terms are not accepted', async () => {
+    const req = new NextRequest('http://localhost/api/booking', {
+      method: 'POST',
+      body: JSON.stringify({ ...validPayload, termsAccepted: false }),
+    });
+
+    const response = await POST(req);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.message).toBe('You must agree to the terms.');
+  });
+
+  it('should return 400 for invalid contact details', async () => {
+    const req = new NextRequest('http://localhost/api/booking', {
+      method: 'POST',
+      body: JSON.stringify({
+        ...validPayload,
+        email: 'invalid-email',
+        phone: '',
+      }),
+    });
+
+    const response = await POST(req);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.message).toBe('Please enter a valid email address.');
+  });
+
+  it('should return 400 for invalid local date values', async () => {
+    const req = new NextRequest('http://localhost/api/booking', {
+      method: 'POST',
+      body: JSON.stringify({ ...validPayload, date: 'not-a-date' }),
+    });
+
+    const response = await POST(req);
+    const data = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(data.message).toBe('Please select a valid preferred date and time.');
   });
 });

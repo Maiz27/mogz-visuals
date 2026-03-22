@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { useBookingStore } from '@/lib/stores/bookingStore';
 import { useBookingDataStore } from '@/lib/stores/bookingDataStore';
 import { getBookingTotal, resolveBookingSelections } from '@/lib/booking';
+import { formatBookingDateTimeLocal } from '@/lib/bookingValidation';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/lib/context/ToastContext';
 import {
@@ -21,6 +22,7 @@ export default function Step6_Confirm() {
   const name = useBookingStore((s) => s.name);
   const email = useBookingStore((s) => s.email);
   const phone = useBookingStore((s) => s.phone);
+  const termsAccepted = useBookingStore((s) => s.termsAccepted);
   const token = useBookingStore((s) => s.token);
   const prevStep = useBookingStore((s) => s.prevStep);
 
@@ -49,6 +51,7 @@ export default function Step6_Confirm() {
           name,
           email,
           phone,
+          termsAccepted,
           items: selections.map((selection) => ({
             categoryId: selection.categoryId,
             packageId: selection.packageId,
@@ -57,6 +60,7 @@ export default function Step6_Confirm() {
           date,
           notes,
           token,
+          timeZone: Intl.DateTimeFormat().resolvedOptions().timeZone,
         }),
       });
 
@@ -181,18 +185,7 @@ export default function Step6_Confirm() {
 
           <ConfirmRow
             label='Preferred Date'
-            value={
-              date
-                ? new Date(date).toLocaleString('en-US', {
-                    weekday: 'long',
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric',
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : '-'
-            }
+            value={date ? formatBookingDateTimeLocal(date) : '-'}
           />
           {notes && <ConfirmRow label='Notes' value={notes} />}
 

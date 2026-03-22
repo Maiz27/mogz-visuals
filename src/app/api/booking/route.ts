@@ -9,36 +9,51 @@ import {
 import {
   areBookingCategoriesCompatible,
   buildBookingCompatibilityMap,
+  formatBookingDateTimeLocal,
   getBookingTotal,
   toBookingCategoryMap,
+  validateBookingRequest,
 } from '@/lib/booking';
-import type { BookingCategory, BookingCategoryCombination } from '@/lib/types';
+import type {
+  BookingCategory,
+  BookingCategoryCombination,
+  BookingSubmission,
+} from '@/lib/types';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const EMAIL = process.env.EMAIL!;
 
-type BookingRequestItem = {
-  categoryId: string;
-  packageId: string | null;
-  addOnIds: string[];
-};
-
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, items, date, notes, token } = body as {
-      name: string;
-      email: string;
-      phone: string;
-      items: BookingRequestItem[];
-      date: string;
-      notes?: string;
-      token: string;
-    };
+    const {
+      name,
+      email,
+      phone,
+      items,
+      date,
+      notes,
+      token,
+      termsAccepted,
+      timeZone,
+    } = body as BookingSubmission;
 
-    if (!Array.isArray(items) || items.length === 0) {
+    const validationErrors = validateBookingRequest({
+      name,
+      email,
+      phone,
+      items,
+      date,
+      notes,
+      token,
+      termsAccepted,
+      timeZone,
+    });
+
+    const validationMessage = Object.values(validationErrors).find(Boolean);
+    if (validationMessage) {
       return NextResponse.json(
-        { message: 'At least one booking item is required.' },
+        { message: validationMessage },
         { status: 400 },
       );
     }
@@ -152,16 +167,7 @@ export async function POST(req: NextRequest) {
       categoryMap,
     );
 
-    const formattedDate = date
-      ? new Date(date).toLocaleString('en-US', {
-          weekday: 'long',
-          year: 'numeric',
-          month: 'long',
-          day: 'numeric',
-          hour: '2-digit',
-          minute: '2-digit',
-        })
-      : 'Not Selected';
+    const formattedDate = formatBookingDateTimeLocal(date, timeZone);
 
     const serviceSummary =
       emailItems.length === 1
