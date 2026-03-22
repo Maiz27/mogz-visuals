@@ -6,6 +6,16 @@ import type {
   BookingPackage,
   BookingSelection,
 } from '@/lib/types';
+export {
+  formatBookingDateTimeLocal,
+  getBookingResumeStep,
+  isValidBookingDateTimeLocal,
+  isValidBookingEmail,
+  isValidBookingPhone,
+  parseBookingDateTimeLocal,
+  validateBookingContactFields,
+  validateBookingRequest,
+} from '@/lib/bookingValidation';
 
 type BookingCategoryWithCompatibility = {
   id: string;

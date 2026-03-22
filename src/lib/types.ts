@@ -208,3 +208,15 @@ export type BookingState = {
   termsAccepted: boolean;
   token: string;
 };
+
+export type BookingSubmission = {
+  name: string;
+  email: string;
+  phone: string;
+  items: BookingSelection[];
+  date: string;
+  notes?: string;
+  termsAccepted: boolean;
+  token: string;
+  timeZone?: string;
+};
