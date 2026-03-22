@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { BookingEmail } from '@/components/email/Templates';
 import { Resend } from 'resend';
-import { BOOKING_DATA } from '@/lib/Constants';
+import { fetchSanityData } from '@/lib/sanity/client';
+import { getBookingCategoryBySlug } from '@/lib/sanity/queries';
+import type { BookingCategory } from '@/lib/types';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const EMAIL = process.env.EMAIL!;
@@ -11,7 +13,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { name, email, phone, categoryId, packageId, addOnIds, date, notes, token } = body;
 
-    // Verify Turnstile Token
+    // 1. Verify Turnstile Token
     const verifyRes = await fetch(
       'https://challenges.cloudflare.com/turnstile/v0/siteverify',
       {
@@ -32,19 +34,27 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    // Resolve category and package labels
-    const category = BOOKING_DATA.find((c) => c.id === categoryId);
-    const pkg = category?.packages.find((p) => p.id === packageId);
-    const resolvedAddOns = (addOnIds as string[])
-      .map((id) => {
-        const addOn = category?.addOns?.find((a) => a.id === id);
-        return addOn ? { name: addOn.name, price: addOn.price } : null;
-      })
-      .filter(Boolean);
+    // 2. Fetch Category Details from Sanity for Price Resolution
+    const categoryData: BookingCategory | null = await fetchSanityData(getBookingCategoryBySlug, {
+      slug: categoryId,
+    });
 
-    const totalPrice =
-      (pkg?.price ?? 0) +
-      resolvedAddOns.reduce((sum, a) => sum + (a?.price ?? 0), 0);
+    if (!categoryData) {
+      return NextResponse.json(
+        { message: 'Invalid Category ID' },
+        { status: 400 },
+      );
+    }
+
+    // 3. Resolve Package and Add-on Prices
+    const selectedPackage = categoryData.packages?.find((p) => p.name === packageId);
+    const resolvedAddOns = (addOnIds as string[]).map((name) => {
+      const addOn = categoryData.addOns?.find((a) => a.name === name);
+      return { name, price: addOn?.price ?? 0 };
+    });
+
+    const packagePrice = selectedPackage?.price ?? 0;
+    const totalPrice = packagePrice + resolvedAddOns.reduce((sum, a) => sum + a.price, 0);
 
     const formattedDate = date
       ? new Date(date).toLocaleString('en-US', {
@@ -61,15 +71,15 @@ export async function POST(req: NextRequest) {
       from: `Mogz Visuals Booking <website@mogz.studio>`,
       reply_to: email,
       to: [EMAIL!],
-      subject: `New Booking Request from ${name} — ${category?.name ?? categoryId}`,
+      subject: `New Booking Request from ${name} — ${categoryData.name}`,
       react: BookingEmail({
         name,
         email,
         phone,
-        category: category?.name ?? categoryId,
-        packageName: pkg?.name ?? packageId,
-        packagePrice: pkg?.price ?? 0,
-        addOns: resolvedAddOns as { name: string; price: number }[],
+        category: categoryData.name,
+        packageName: packageId,
+        packagePrice: packagePrice,
+        addOns: resolvedAddOns,
         totalPrice,
         date: formattedDate,
         notes,

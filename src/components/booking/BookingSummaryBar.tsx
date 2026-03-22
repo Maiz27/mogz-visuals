@@ -1,8 +1,21 @@
 'use client';
-import { useBooking } from './BookingContext';
+import { useBookingStore } from '@/lib/stores/bookingStore';
+import { useBookingDataStore } from '@/lib/stores/bookingDataStore';
 
 export default function BookingSummaryBar() {
-  const { selectedCategory, selectedPackage, totalPrice } = useBooking();
+  const categoryId = useBookingStore((s) => s.categoryId);
+  const packageName = useBookingStore((s) => s.packageName);
+  const addOnNames = useBookingStore((s) => s.addOnNames);
+  const { categoryDetails } = useBookingDataStore();
+  const selectedCategory = categoryId ? categoryDetails[categoryId] : null;
+  const selectedPackage = selectedCategory?.packages.find(
+    (p) => p.name === packageName
+  ) ?? null;
+  const resolvedAddOnPrice = addOnNames.reduce((sum, n) => {
+    const addOn = selectedCategory?.addOns?.find((a) => a.name === n);
+    return sum + (addOn?.price ?? 0);
+  }, 0);
+  const totalPrice = (selectedPackage?.price ?? 0) + resolvedAddOnPrice;
 
   if (!selectedPackage) return null;
 
