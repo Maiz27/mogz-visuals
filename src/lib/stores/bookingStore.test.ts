@@ -100,7 +100,7 @@ describe('useBookingStore', () => {
     getActions().hydrateFromStorage();
 
     const state = getState();
-    expect(state.step).toBe(4);
+    expect(state.step).toBe(2);
     expect(state.selections).toEqual([
       {
         categoryId: 'real-estate-photography',
@@ -109,6 +109,54 @@ describe('useBookingStore', () => {
       },
     ]);
     expect(state.name).toBe('Persisted User');
+  });
+
+  it('should clear persisted token and clamp resumed step to contact details', () => {
+    const draft = {
+      step: 6,
+      selections: [
+        {
+          categoryId: 'cat-a',
+          packageId: 'pkg-a',
+          addOnIds: [],
+        },
+      ],
+      date: '2026-03-23T10:00',
+      name: 'Persisted User',
+      email: 'persisted@example.com',
+      phone: '+211900000000',
+      termsAccepted: true,
+      token: 'stale-token',
+    };
+
+    (sessionStorage.getItem as any).mockReturnValue(JSON.stringify(draft));
+
+    getActions().hydrateFromStorage();
+
+    const state = getState();
+    expect(state.step).toBe(5);
+    expect(state.token).toBe('');
+  });
+
+  it('should clamp resumed step when required earlier data is missing', () => {
+    const draft = {
+      step: 6,
+      selections: [{ categoryId: 'cat-a', packageId: null, addOnIds: [] }],
+      date: '2026-03-23T10:00',
+      name: 'Persisted User',
+      email: 'persisted@example.com',
+      phone: '+211900000000',
+      termsAccepted: true,
+      token: 'stale-token',
+    };
+
+    (sessionStorage.getItem as any).mockReturnValue(JSON.stringify(draft));
+
+    getActions().hydrateFromStorage();
+
+    const state = getState();
+    expect(state.step).toBe(2);
+    expect(state.token).toBe('');
   });
 
   it('should reset state correctly', () => {

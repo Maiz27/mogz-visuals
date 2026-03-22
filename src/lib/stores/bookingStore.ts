@@ -1,6 +1,7 @@
 'use client';
 import { create } from 'zustand';
 import type { BookingSelection, BookingState } from '@/lib/types';
+import { getBookingResumeStep } from '@/lib/bookingValidation';
 
 const SESSION_KEY =
   process.env.NEXT_PUBLIC_BOOKING_SESSION_KEY || 'mogz_booking_draft';
@@ -82,7 +83,7 @@ function normalizeSelections(
   return [];
 }
 
-export const useBookingStore = create<BookingStore>((set) => ({
+export const useBookingStore = create<BookingStore>((set, get) => ({
   ...DEFAULT_STATE,
 
   setStep: (step) => set((s) => ({ ...s, step })),
@@ -160,17 +161,29 @@ export const useBookingStore = create<BookingStore>((set) => ({
       if (!saved) return;
 
       const parsed = JSON.parse(saved) as LegacyBookingState;
+      const currentState = get();
+      const normalizedSelections = normalizeSelections(parsed);
+      const nextStep = getBookingResumeStep({
+        step: parsed.step ?? currentState.step,
+        selections: normalizedSelections,
+        date: parsed.date ?? currentState.date,
+        name: parsed.name ?? currentState.name,
+        email: parsed.email ?? currentState.email,
+        phone: parsed.phone ?? currentState.phone,
+        termsAccepted: parsed.termsAccepted ?? currentState.termsAccepted,
+      });
+
       set((s) => ({
         ...s,
-        step: parsed.step ?? s.step,
-        selections: normalizeSelections(parsed),
+        step: nextStep,
+        selections: normalizedSelections,
         date: parsed.date ?? s.date,
         notes: parsed.notes ?? s.notes,
         name: parsed.name ?? s.name,
         email: parsed.email ?? s.email,
         phone: parsed.phone ?? s.phone,
         termsAccepted: parsed.termsAccepted ?? s.termsAccepted,
-        token: parsed.token ?? s.token,
+        token: '',
       }));
     } catch {
       /* ignore */
@@ -189,7 +202,6 @@ useBookingStore.subscribe((state) => {
       email,
       phone,
       termsAccepted,
-      token,
     } = state;
     sessionStorage.setItem(
       SESSION_KEY,
@@ -202,7 +214,6 @@ useBookingStore.subscribe((state) => {
         email,
         phone,
         termsAccepted,
-        token,
       }),
     );
   } catch {
