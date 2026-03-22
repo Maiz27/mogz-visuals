@@ -37,6 +37,57 @@ export type VERIFY_ACCESS_RESPONSE_BODY = {
   secret: string;
 };
 
+export type DownloadStep =
+  | 'email'
+  | 'choice'
+  | 'download_parts'
+  | 'download_stream';
+
+export type DownloadStreamStatus =
+  | 'idle'
+  | 'preparing'
+  | 'packing'
+  | 'finalizing'
+  | 'ready'
+  | 'starting'
+  | 'started'
+  | 'failed';
+
+export type DownloadPrepareState =
+  | 'preparing'
+  | 'packing'
+  | 'finalizing'
+  | 'ready'
+  | 'failed';
+
+export type DownloadPrepareProgressEvent = {
+  state: 'preparing' | 'packing' | 'finalizing';
+  totalImages: number;
+  processedImages: number;
+  addedImages: number;
+  packedImages: number;
+  failedImages: number;
+  percent: number;
+};
+
+export type DownloadPrepareReadyEvent = {
+  state: 'ready';
+  downloadUrl: string;
+  filename: string;
+  size: number;
+  cached: boolean;
+};
+
+export type DownloadPrepareFailedEvent = {
+  state: 'failed';
+  message: string;
+};
+
+export type DownloadPrepareEvent =
+  | DownloadPrepareProgressEvent
+  | DownloadPrepareReadyEvent
+  | DownloadPrepareFailedEvent;
+
 export type SOCIAL_LINK = {
   provider: 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'tiktok';
   url: {
