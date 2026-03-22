@@ -59,6 +59,10 @@ export const useSearchStore = create<SearchStore>((set, get) => ({
   search: async (query) => {
     const cached = get().cache[query];
     if (cached) {
+      if (get().query !== query) {
+        return;
+      }
+
       set({ collections: cached, loading: false, timeoutId: null });
       return;
     }
@@ -68,6 +72,10 @@ export const useSearchStore = create<SearchStore>((set, get) => ({
       const list = (await fetchSanityData(getCollectionsByName, {
         name: `${query}*`,
       })) as COLLECTION[];
+
+      if (get().query !== query) {
+        return;
+      }
 
       set((state) => ({
         collections: list,
@@ -79,6 +87,10 @@ export const useSearchStore = create<SearchStore>((set, get) => ({
       }));
     } catch (error) {
       console.error('Failed to search collections', error);
+      if (get().query !== query) {
+        return;
+      }
+
       set({ collections: [], loading: false });
     }
   },

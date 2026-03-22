@@ -4,7 +4,6 @@ import { useBookingStore } from '@/lib/stores/bookingStore';
 import { useBookingDataStore } from '@/lib/stores/bookingDataStore';
 import { useScroll } from '@/lib/context/scrollContext';
 import { useEffect, useRef } from 'react';
-import BookingHeader from './BookingHeader';
 import BookingProgressBar from './BookingProgressBar';
 import Step1_Category from './steps/Step1_Category';
 import Step2_Package from './steps/Step2_Package';
@@ -137,8 +136,6 @@ export default function BookingPage() {
       <div className='fixed inset-0 pointer-events-none z-50 opacity-[0.03] mix-blend-overlay bg-[url(/grain.png)]' />
 
       <div className='relative flex flex-col'>
-        <BookingHeader />
-
         <LocomotiveScrollSection
           id='booking-spacer'
           className='h-20 md:h-32 w-full shrink-0'
