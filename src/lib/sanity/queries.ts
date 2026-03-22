@@ -145,3 +145,43 @@ export const getTeamMembers = `*[_type == "team"]
   "image": image.asset->url,
   socials
 }`;
+
+// ─── Booking Queries ──────────────────────────────────────────────────────────
+
+/**
+ * Lightweight category metadata for Step 1 category grid.
+ * Does NOT include packages or addOns to keep the payload small.
+ */
+export const getBookingCategoryList = `*[_type == "bookingCategory"] | order(name asc) {
+  "id": slug.current,
+  name,
+  shortName,
+  description,
+  "image": image.asset->url,
+  "packageCount": count(packages)
+}`;
+
+/**
+ * Full category data (with packages + addOns) fetched on demand
+ * when a user selects a category in Step 1.
+ * Params: { slug: string }
+ */
+export const getBookingCategoryBySlug = `*[_type == "bookingCategory" && slug.current == $slug][0] {
+  "id": slug.current,
+  name,
+  shortName,
+  description,
+  "image": image.asset->url,
+  packages[] {
+    name,
+    price,
+    duration,
+    description,
+    includes
+  },
+  addOns[] {
+    name,
+    price,
+    description
+  }
+}`;

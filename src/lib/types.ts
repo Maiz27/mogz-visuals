@@ -77,6 +77,7 @@ export type Tag =
 
 export type BaseFormFieldProps = {
   label?: React.ReactNode;
+  description?: React.ReactNode;
   state?: object;
   errors?: object;
   [x: string]: any;
@@ -97,20 +98,30 @@ export type TermsPrivacy = {
 };
 
 export type BookingAddOn = {
-  id: string;
+  /** Used as unique identifier within its parent category */
   name: string;
   price: number;
   description?: string;
 };
 
 export type BookingPackage = {
-  id: string;
+  /** Used as unique identifier within its parent category */
   name: string;
   price: number;
   duration?: string;
   description?: string;
   includes: string[];
-  addOns?: BookingAddOn[];
+};
+
+/** Lightweight category metadata — no packages/addOns. Used for Step 1 category list. */
+export type BookingCategoryMeta = {
+  id: string;
+  name: string;
+  shortName: string;
+  description: string;
+  /** Sanity image URL (may be null if not uploaded yet) */
+  image: string | null;
+  packageCount: number;
 };
 
 export type BookingCategory = {
@@ -118,8 +129,8 @@ export type BookingCategory = {
   name: string;
   shortName: string;
   description: string;
-  /** Unsplash/temp image URL for this category */
-  image: string;
+  /** Sanity image URL (may be null if not uploaded yet) */
+  image: string | null;
   packages: BookingPackage[];
   /** Add-ons that apply to the whole category */
   addOns?: BookingAddOn[];
@@ -128,8 +139,10 @@ export type BookingCategory = {
 export type BookingState = {
   step: number;
   categoryId: string | null;
-  packageId: string | null;
-  addOnIds: string[];
+  /** Stores the package name (used as identifier) */
+  packageName: string | null;
+  /** Stores add-on names (used as identifiers) */
+  addOnNames: string[];
   date: string;
   notes: string;
   name: string;
