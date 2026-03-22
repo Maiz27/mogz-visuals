@@ -1,40 +1,24 @@
-import { useState } from 'react';
-import { VERIFY_ACCESS_RESPONSE_BODY } from '../types';
+'use client';
+
+import { useAccessStore } from '../stores/accessStore';
 
 const useVerifyAccess = () => {
-  const [loading, setLoading] = useState(false);
-  const [response, setResponse] = useState<VERIFY_ACCESS_RESPONSE_BODY | null>(
-    null,
-  );
-
-  const handleVerifyAccess = async (
-    state: {
-      id: string;
-      password: string;
-    },
-    token: string,
-  ) => {
-    setLoading(true);
-
-    const response = await fetch('/api/verifyAccess', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ ...state, token }),
-    });
-
-    const body: VERIFY_ACCESS_RESPONSE_BODY = await response.json();
-
-    setResponse(body);
-    setLoading(false);
-    return body;
-  };
+  const response = useAccessStore((state) => state.response);
+  const loading = useAccessStore((state) => state.loading);
+  const token = useAccessStore((state) => state.token);
+  const setToken = useAccessStore((state) => state.setToken);
+  const handleVerifyAccess = useAccessStore((state) => state.verifyAccess);
+  const reset = useAccessStore((state) => state.reset);
+  const clearResponse = useAccessStore((state) => state.clearResponse);
 
   return {
     response,
     loading,
+    token,
+    setToken,
     handleVerifyAccess,
+    reset,
+    clearResponse,
   };
 };
 

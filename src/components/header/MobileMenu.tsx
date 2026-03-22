@@ -2,7 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect } from 'react';
 import { Logo } from './Header';
 import CTAButton from '../ui/CTA/CTAButton';
 import { ByNilotik } from '../footer/Footer';
@@ -129,15 +129,22 @@ const AccessForm = ({ handleReroute }: { handleReroute: (r: any) => void }) => {
     rules,
   );
 
-  const { response, loading, handleVerifyAccess } = useVerifyAccess();
-  const [token, setToken] = useState('');
+  const { response, loading, token, setToken, handleVerifyAccess, reset: resetAccessStore } =
+    useVerifyAccess();
+
+  useEffect(() => {
+    return () => {
+      resetAccessStore();
+    };
+  }, [resetAccessStore]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await handleVerifyAccess(state, token);
+    const response = await handleVerifyAccess(state);
 
     if (response.status === 200) {
       reset();
+      resetAccessStore();
       handleReroute(response);
     }
   };
