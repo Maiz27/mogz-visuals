@@ -2,22 +2,23 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { useBookingStore } from './bookingStore';
 
 describe('useBookingStore', () => {
-  // Helper to get fresh actions and state
   const getActions = () => useBookingStore.getState();
   const getState = () => useBookingStore.getState();
 
   beforeEach(() => {
-    // Reset store to default before each test
     getState().reset();
     vi.clearAllMocks();
-    
-    // Mock sessionStorage
+
     const mockStorage: Record<string, string> = {};
     global.sessionStorage = {
       getItem: vi.fn((key) => mockStorage[key] || null),
-      setItem: vi.fn((key, value) => { mockStorage[key] = value }),
-      removeItem: vi.fn((key) => { delete mockStorage[key] }),
-      clear: vi.fn(() => { }),
+      setItem: vi.fn((key, value) => {
+        mockStorage[key] = value;
+      }),
+      removeItem: vi.fn((key) => {
+        delete mockStorage[key];
+      }),
+      clear: vi.fn(() => {}),
       length: 0,
       key: vi.fn(),
     } as any;
@@ -30,9 +31,7 @@ describe('useBookingStore', () => {
   it('should initialize with default state', () => {
     const state = getState();
     expect(state.step).toBe(1);
-    expect(state.categoryId).toBeNull();
-    expect(state.packageName).toBeNull();
-    expect(state.addOnNames).toEqual([]);
+    expect(state.selections).toEqual([]);
     expect(state.name).toBe('');
   });
 
@@ -45,69 +44,84 @@ describe('useBookingStore', () => {
     expect(getState().step).toBe(2);
   });
 
-  it('should select category and reset further steps', () => {
-    // Set some deep state
-    useBookingStore.setState({ 
-      step: 3, 
-      packageName: 'Premium', 
-      date: '2023-01-01T10:00:00Z' 
+  it('should toggle categories and reset scheduling fields', () => {
+    useBookingStore.setState({
+      step: 3,
+      selections: [{ categoryId: 'cat-a', packageId: 'pkg-a', addOnIds: [] }],
+      date: '2023-01-01T10:00:00Z',
+      notes: 'Existing note',
     });
-    
-    getActions().selectCategory('id123');
-    
+
+    getActions().toggleCategory('cat-b');
+
     const state = getState();
-    expect(state.categoryId).toBe('id123');
-    expect(state.packageName).toBeNull(); // Reset
-    expect(state.date).toBe(''); // Reset
+    expect(state.selections).toEqual([
+      { categoryId: 'cat-a', packageId: 'pkg-a', addOnIds: [] },
+      { categoryId: 'cat-b', packageId: null, addOnIds: [] },
+    ]);
+    expect(state.date).toBe('');
+    expect(state.notes).toBe('');
   });
 
-  it('should update package and toggle add-ons', () => {
-    getActions().selectPackage('Standard');
-    expect(getState().packageName).toBe('Standard');
-    
-    getActions().toggleAddOn('Video');
-    expect(getState().addOnNames).toContain('Video');
-    getActions().toggleAddOn('Video'); // Toggle off
-    expect(getState().addOnNames).not.toContain('Video');
+  it('should update package and toggle add-ons per category', () => {
+    getActions().toggleCategory('cat-a');
+    getActions().selectPackage('cat-a', 'pkg-standard');
+    expect(getState().selections[0].packageId).toBe('pkg-standard');
+
+    getActions().toggleAddOn('cat-a', 'addon-video');
+    expect(getState().selections[0].addOnIds).toContain('addon-video');
+
+    getActions().toggleAddOn('cat-a', 'addon-video');
+    expect(getState().selections[0].addOnIds).not.toContain('addon-video');
   });
 
   it('should update fields (name, email, date)', () => {
     getActions().updateField('name', 'John Doe');
     getActions().updateField('email', 'john@example.com');
     getActions().updateField('date', '2024-10-10T12:00:00Z');
-    
+
     const state = getState();
     expect(state.name).toBe('John Doe');
     expect(state.email).toBe('john@example.com');
     expect(state.date).toBe('2024-10-10T12:00:00Z');
   });
 
-  it('should persist and hydrate state from storage', () => {
+  it('should hydrate legacy single-category drafts into selections', () => {
     const draft = {
       step: 4,
-      categoryId: 'cat1',
+      categoryId: 'real-estate-photo',
       packageName: 'pack1',
       addOnNames: ['add1'],
-      name: 'Persisted User'
+      name: 'Persisted User',
     };
-    
+
     (sessionStorage.getItem as any).mockReturnValue(JSON.stringify(draft));
-    
+
     getActions().hydrateFromStorage();
-    
+
     const state = getState();
     expect(state.step).toBe(4);
-    expect(state.categoryId).toBe('cat1');
+    expect(state.selections).toEqual([
+      {
+        categoryId: 'real-estate-photography',
+        packageId: null,
+        addOnIds: [],
+      },
+    ]);
     expect(state.name).toBe('Persisted User');
   });
 
   it('should reset state correctly', () => {
-    useBookingStore.setState({ step: 5, categoryId: 'cat1', name: 'User' });
+    useBookingStore.setState({
+      step: 5,
+      selections: [{ categoryId: 'cat1', packageId: 'pack1', addOnIds: [] }],
+      name: 'User',
+    });
     getActions().reset();
-    
+
     const state = getState();
     expect(state.step).toBe(1);
-    expect(state.categoryId).toBeNull();
+    expect(state.selections).toEqual([]);
     expect(state.name).toBe('');
   });
 });

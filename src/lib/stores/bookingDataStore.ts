@@ -3,72 +3,105 @@
 import { create } from 'zustand';
 import { fetchSanityData } from '@/lib/sanity/client';
 import {
+  getBookingCategoryById,
+  getBookingCategoryCombinations,
   getBookingCategoryList,
-  getBookingCategoryBySlug,
 } from '@/lib/sanity/queries';
-import type { BookingCategoryMeta, BookingCategory } from '@/lib/types';
+import {
+  attachCompatibleCategoryIds,
+  buildBookingCompatibilityMap,
+} from '@/lib/booking';
+import type {
+  BookingCategory,
+  BookingCategoryCombination,
+  BookingCategoryMeta,
+} from '@/lib/types';
 
 type BookingDataStore = {
-  // Category list for Step 1 (lightweight metadata)
   categoryList: BookingCategoryMeta[];
   loadingList: boolean;
   listError: string | null;
-
-  // Full category details keyed by slug (fetched on demand)
+  compatibilityMap: Record<string, string[]>;
   categoryDetails: Record<string, BookingCategory>;
   loadingDetail: Record<string, boolean>;
-
-  // Actions
   fetchCategoryList: () => Promise<void>;
-  fetchCategoryDetails: (slug: string) => Promise<void>;
+  fetchCategoryDetails: (id: string) => Promise<void>;
 };
 
 export const useBookingDataStore = create<BookingDataStore>((set, get) => ({
   categoryList: [],
   loadingList: false,
   listError: null,
-
+  compatibilityMap: {},
   categoryDetails: {},
   loadingDetail: {},
 
   fetchCategoryList: async () => {
-    // Don't re-fetch if already loaded or loading
     if (get().categoryList.length > 0 || get().loadingList) return;
 
     set({ loadingList: true, listError: null });
     try {
-      const data = await fetchSanityData(getBookingCategoryList);
-      set({ categoryList: data ?? [], loadingList: false });
+      const [categories, combinations] = await Promise.all([
+        fetchSanityData(getBookingCategoryList),
+        fetchSanityData(getBookingCategoryCombinations),
+      ]);
+      const safeCategories = (categories ?? []) as BookingCategoryMeta[];
+      const safeCombinations =
+        (combinations ?? []) as BookingCategoryCombination[];
+
+      set({
+        categoryList: attachCompatibleCategoryIds(
+          safeCategories,
+          safeCombinations,
+        ),
+        compatibilityMap: buildBookingCompatibilityMap(
+          safeCategories.map((category) => category.id),
+          safeCombinations,
+        ),
+        loadingList: false,
+      });
     } catch (err) {
       console.error('[bookingDataStore] Failed to fetch category list:', err);
       set({ loadingList: false, listError: 'Failed to load categories.' });
     }
   },
 
-  fetchCategoryDetails: async (slug: string) => {
-    // Skip if already cached or already loading this slug
-    if (get().categoryDetails[slug] || get().loadingDetail[slug]) return;
+  fetchCategoryDetails: async (id: string) => {
+    if (get().categoryDetails[id] || get().loadingDetail[id]) return;
 
     set((s) => ({
-      loadingDetail: { ...s.loadingDetail, [slug]: true },
+      loadingDetail: { ...s.loadingDetail, [id]: true },
     }));
 
     try {
-      const data: BookingCategory = await fetchSanityData(
-        getBookingCategoryBySlug,
-        { slug },
+      const data: BookingCategory | null = await fetchSanityData(
+        getBookingCategoryById,
+        { id },
       );
+
       set((s) => ({
-        categoryDetails: { ...s.categoryDetails, [slug]: data },
-        loadingDetail: { ...s.loadingDetail, [slug]: false },
+        categoryDetails: data
+          ? {
+              ...s.categoryDetails,
+              [id]: {
+                ...data,
+                compatibleCategoryIds:
+                  s.compatibilityMap[id] ??
+                  s.categoryList.find((category) => category.id === id)
+                    ?.compatibleCategoryIds ??
+                  [],
+              },
+            }
+          : s.categoryDetails,
+        loadingDetail: { ...s.loadingDetail, [id]: false },
       }));
     } catch (err) {
       console.error(
-        `[bookingDataStore] Failed to fetch details for "${slug}":`,
+        `[bookingDataStore] Failed to fetch details for "${id}":`,
         err,
       );
       set((s) => ({
-        loadingDetail: { ...s.loadingDetail, [slug]: false },
+        loadingDetail: { ...s.loadingDetail, [id]: false },
       }));
     }
   },

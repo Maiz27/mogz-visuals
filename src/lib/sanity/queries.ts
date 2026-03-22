@@ -153,7 +153,7 @@ export const getTeamMembers = `*[_type == "team"]
  * Does NOT include packages or addOns to keep the payload small.
  */
 export const getBookingCategoryList = `*[_type == "bookingCategory"] | order(name asc) {
-  "id": slug.current,
+  id,
   name,
   shortName,
   description,
@@ -161,18 +161,25 @@ export const getBookingCategoryList = `*[_type == "bookingCategory"] | order(nam
   "packageCount": count(packages)
 }`;
 
+export const getBookingCategoryCombinations = `*[_type == "bookingCategoryCombination"] | order(name asc) {
+  id,
+  name,
+  "categoryIds": categories[]->id
+}`;
+
 /**
  * Full category data (with packages + addOns) fetched on demand
  * when a user selects a category in Step 1.
- * Params: { slug: string }
+ * Params: { id: string }
  */
-export const getBookingCategoryBySlug = `*[_type == "bookingCategory" && slug.current == $slug][0] {
-  "id": slug.current,
+export const getBookingCategoryById = `*[_type == "bookingCategory" && id == $id][0] {
+  id,
   name,
   shortName,
   description,
   "image": image.asset->url,
   packages[] {
+    id,
     name,
     price,
     duration,
@@ -180,6 +187,29 @@ export const getBookingCategoryBySlug = `*[_type == "bookingCategory" && slug.cu
     includes
   },
   addOns[] {
+    id,
+    name,
+    price,
+    description
+  }
+}`;
+
+export const getBookingCategoriesByIds = `*[_type == "bookingCategory" && id in $ids] {
+  id,
+  name,
+  shortName,
+  description,
+  "image": image.asset->url,
+  packages[] {
+    id,
+    name,
+    price,
+    duration,
+    description,
+    includes
+  },
+  addOns[] {
+    id,
     name,
     price,
     description

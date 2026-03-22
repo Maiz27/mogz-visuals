@@ -98,14 +98,14 @@ export type TermsPrivacy = {
 };
 
 export type BookingAddOn = {
-  /** Used as unique identifier within its parent category */
+  id: string;
   name: string;
   price: number;
   description?: string;
 };
 
 export type BookingPackage = {
-  /** Used as unique identifier within its parent category */
+  id: string;
   name: string;
   price: number;
   duration?: string;
@@ -113,15 +113,14 @@ export type BookingPackage = {
   includes: string[];
 };
 
-/** Lightweight category metadata — no packages/addOns. Used for Step 1 category list. */
 export type BookingCategoryMeta = {
   id: string;
   name: string;
   shortName: string;
   description: string;
-  /** Sanity image URL (may be null if not uploaded yet) */
   image: string | null;
   packageCount: number;
+  compatibleCategoryIds: string[];
 };
 
 export type BookingCategory = {
@@ -129,20 +128,27 @@ export type BookingCategory = {
   name: string;
   shortName: string;
   description: string;
-  /** Sanity image URL (may be null if not uploaded yet) */
   image: string | null;
+  compatibleCategoryIds: string[];
   packages: BookingPackage[];
-  /** Add-ons that apply to the whole category */
   addOns?: BookingAddOn[];
+};
+
+export type BookingCategoryCombination = {
+  id: string;
+  name: string;
+  categoryIds: string[];
+};
+
+export type BookingSelection = {
+  categoryId: string;
+  packageId: string | null;
+  addOnIds: string[];
 };
 
 export type BookingState = {
   step: number;
-  categoryId: string | null;
-  /** Stores the package name (used as identifier) */
-  packageName: string | null;
-  /** Stores add-on names (used as identifiers) */
-  addOnNames: string[];
+  selections: BookingSelection[];
   date: string;
   notes: string;
   name: string;
