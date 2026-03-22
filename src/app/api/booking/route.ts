@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { BookingEmail } from '@/components/email/Templates';
+import {
+  BookingEmail,
+  getBookingEmailText,
+} from '@/components/email/Templates';
 import { Resend } from 'resend';
 import { fetchSanityData } from '@/lib/sanity/client';
 import {
@@ -180,6 +183,15 @@ export async function POST(req: NextRequest) {
       to: [EMAIL!],
       subject: `New Booking Request from ${name} - ${serviceSummary}`,
       react: BookingEmail({
+        name,
+        email,
+        phone,
+        items: emailItems,
+        totalPrice,
+        date: formattedDate,
+        notes,
+      }),
+      text: getBookingEmailText({
         name,
         email,
         phone,

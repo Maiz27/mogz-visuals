@@ -4,6 +4,25 @@ type ContactProps = {
   message: string;
 };
 
+export const getContactEmailText = ({
+  name,
+  email,
+  message,
+}: ContactProps) => {
+  const sections = [
+    'New Website Enquiry',
+    '',
+    `Client Name: ${name}`,
+    `Email: ${email}`,
+  ];
+
+  if (message) {
+    sections.push('', 'Message', message);
+  }
+
+  return sections.join('\n');
+};
+
 export const Contact = ({ name, email, message }: ContactProps) => {
   return (
     <div style={{ fontFamily: 'sans-serif', maxWidth: 600 }}>
@@ -57,6 +76,52 @@ type BookingEmailProps = {
   totalPrice: number;
   date: string;
   notes?: string;
+};
+
+export const getBookingEmailText = ({
+  name,
+  email,
+  phone,
+  items,
+  totalPrice,
+  date,
+  notes,
+}: BookingEmailProps) => {
+  const lines = [
+    'New Booking Request',
+    '',
+    `Client Name: ${name}`,
+    `Email: ${email}`,
+    `Phone: ${phone}`,
+    `Preferred Date: ${date}`,
+    '',
+    'Services',
+  ];
+
+  items.forEach((item, index) => {
+    lines.push(
+      '',
+      `${index + 1}. ${item.category}`,
+      `Package: ${item.packageName} - $${item.packagePrice}`,
+    );
+
+    if (item.addOns.length > 0) {
+      lines.push('Add-Ons:');
+      item.addOns.forEach((addOn) => {
+        lines.push(`- ${addOn.name} - $${addOn.price}`);
+      });
+    }
+
+    lines.push(`Subtotal: $${item.subtotal}`);
+  });
+
+  lines.push('', `Total Estimate: $${totalPrice}`);
+
+  if (notes) {
+    lines.push('', 'Notes / Special Requests', notes);
+  }
+
+  return lines.join('\n');
 };
 
 export const BookingEmail = ({
