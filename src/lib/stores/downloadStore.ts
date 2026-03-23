@@ -54,6 +54,9 @@ type DownloadStoreState = {
   email: string;
   collection: DownloadCollectionRef | null;
   initializedKey: string | null;
+  sessionId: number;
+  activeStreamRequestId: number | null;
+  streamAbortController: AbortController | null;
 };
 
 type DownloadStoreActions = {
@@ -85,7 +88,13 @@ const DEFAULT_STATE: DownloadStoreState = {
   email: '',
   collection: null,
   initializedKey: null,
+  sessionId: 0,
+  activeStreamRequestId: null,
+  streamAbortController: null,
 };
+
+let nextSessionId = 1;
+let nextStreamRequestId = 1;
 
 const getCollectionKey = (collection: DownloadCollectionRef) =>
   [
@@ -292,6 +301,7 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
       isPrivate: collection.isPrivate,
     };
     const initializedKey = getCollectionKey(collectionRef);
+    const sessionId = nextSessionId++;
 
     if (get().initializedKey === initializedKey) {
       return;
@@ -301,6 +311,7 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
       ...DEFAULT_STATE,
       collection: collectionRef,
       initializedKey,
+      sessionId,
     });
 
     if (
@@ -317,8 +328,14 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
       const { queryParam } = getCollectionParams(collectionRef);
 
       const imageCount: number = await fetchSanityData(countQuery, queryParam);
+      if (get().sessionId !== sessionId) {
+        return;
+      }
       set({ segments: createSegments(imageCount) });
     } catch (error) {
+      if (get().sessionId !== sessionId) {
+        return;
+      }
       console.error('Failed to fetch download segments', error);
       set({ error: 'Failed to load download segments.' });
     }
@@ -338,11 +355,21 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
         body: formData,
       });
 
+      if (get().sessionId !== sessionId) {
+        return;
+      }
+
       if (res.ok) {
         const data = await res.json();
+        if (get().sessionId !== sessionId) {
+          return;
+        }
         set({ downloadSize: data.size });
       }
     } catch (error) {
+      if (get().sessionId !== sessionId) {
+        return;
+      }
       console.error('Failed to fetch download size', error);
     }
   },
@@ -357,9 +384,18 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
   },
 
   setStep: (step) =>
-    set({
-      step,
-      ...(step === 'download_stream' ? {} : resetStreamState()),
+    set((state) => {
+      if (step === 'download_stream') {
+        return { step };
+      }
+
+      state.streamAbortController?.abort();
+      return {
+        step,
+        ...resetStreamState(),
+        activeStreamRequestId: null,
+        streamAbortController: null,
+      };
     }),
 
   goBack: () =>
@@ -372,9 +408,12 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
           };
         case 'download_parts':
         case 'download_stream':
+          state.streamAbortController?.abort();
           return {
             step: 'choice' as DownloadStep,
             ...resetStreamState(),
+            activeStreamRequestId: null,
+            streamAbortController: null,
           };
         default:
           return {};
@@ -505,6 +544,22 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
       return;
     }
 
+    const sessionId = get().sessionId;
+    const previousController = get().streamAbortController;
+    previousController?.abort();
+
+    const streamAbortController = new AbortController();
+    const requestId = nextStreamRequestId++;
+    const isCurrentRequest = () => {
+      const state = get();
+      return (
+        state.sessionId === sessionId &&
+        state.activeStreamRequestId === requestId &&
+        state.streamAbortController === streamAbortController &&
+        !streamAbortController.signal.aborted
+      );
+    };
+
     set({
       step: 'download_stream',
       streamStatus: 'preparing',
@@ -513,6 +568,8 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
       streamProgress: null,
       error: null,
       email,
+      activeStreamRequestId: requestId,
+      streamAbortController,
     });
 
     try {
@@ -534,7 +591,12 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
       const prepareResponse = await fetch('/api/download/stream', {
         method: 'POST',
         body: formData,
+        signal: streamAbortController.signal,
       });
+
+      if (!isCurrentRequest()) {
+        return;
+      }
 
       if (!prepareResponse.ok) {
         throw new Error(
@@ -548,6 +610,10 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
       let preparedDownloadUrl: string | null = null;
 
       await readPrepareStream(prepareResponse, (event) => {
+        if (!isCurrentRequest()) {
+          return;
+        }
+
         if (
           event.state === 'preparing' ||
           event.state === 'packing' ||
@@ -582,12 +648,36 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
 
       await wait(STREAM_READY_DELAY_MS);
 
+      if (!isCurrentRequest()) {
+        return;
+      }
+
       set({ streamStatus: 'starting' });
+
+      if (!isCurrentRequest()) {
+        return;
+      }
+
       triggerBrowserDownload(preparedDownloadUrl);
-      set({ streamStatus: 'started' });
+      set({
+        streamStatus: 'started',
+        activeStreamRequestId: null,
+        streamAbortController: null,
+      });
 
       notify('Download started...', 'success');
     } catch (error) {
+      if (
+        error instanceof DOMException &&
+        error.name === 'AbortError'
+      ) {
+        return;
+      }
+
+      if (!isCurrentRequest()) {
+        return;
+      }
+
       console.error(error);
       const message =
         error instanceof Error ? error.message : 'Failed to prepare download.';
@@ -596,10 +686,18 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
         streamStatus: 'failed',
         streamError: message,
         streamDownloadUrl: null,
+        activeStreamRequestId: null,
+        streamAbortController: null,
       });
       notify(message, 'error');
     }
   },
 
-  reset: () => set(DEFAULT_STATE),
+  reset: () => {
+    get().streamAbortController?.abort();
+    set({
+      ...DEFAULT_STATE,
+      sessionId: nextSessionId++,
+    });
+  },
 }));

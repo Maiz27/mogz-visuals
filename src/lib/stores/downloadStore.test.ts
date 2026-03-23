@@ -427,4 +427,97 @@ describe('useDownloadStore', () => {
       'error',
     );
   });
+
+  it('cancels an in-flight stream prepare when the store resets', async () => {
+    vi.useFakeTimers();
+    await useDownloadStore.getState().initialize(collection);
+
+    let abortSignal: AbortSignal | undefined;
+    let resolvePrepare:
+      | ((value: Response | PromiseLike<Response>) => void)
+      | undefined;
+
+    global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = input.toString();
+      if (url.includes('/api/download/info')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({ size: 2048 }),
+        } as Response);
+      }
+
+      if (url.includes('/api/contact/audience')) {
+        return Promise.resolve({
+          ok: true,
+          json: async () => ({}),
+        } as Response);
+      }
+
+      if (url.includes('/api/download/stream')) {
+        abortSignal = init?.signal as AbortSignal | undefined;
+        return new Promise((resolve) => {
+          resolvePrepare = resolve;
+        });
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({}),
+      } as Response);
+    }) as any;
+
+    const notify = vi.fn();
+    const downloadPromise = useDownloadStore
+      .getState()
+      .downloadStream('john@example.com', notify);
+
+    expect(useDownloadStore.getState().streamStatus).toBe('preparing');
+
+    useDownloadStore.getState().reset();
+
+    expect(abortSignal?.aborted).toBe(true);
+    expect(useDownloadStore.getState().streamStatus).toBe('idle');
+
+    resolvePrepare?.(
+      createPrepareStreamResponse([
+        {
+          state: 'ready',
+          downloadUrl: '/api/download/stream?token=prepared-token',
+          filename: '[MOGZ] test_collection.zip',
+          size: 2048,
+          cached: false,
+        },
+      ]),
+    );
+
+    await Promise.resolve();
+    await vi.runAllTimersAsync();
+    await downloadPromise;
+
+    expect(linkClick).not.toHaveBeenCalled();
+    expect(notify).not.toHaveBeenCalled();
+    expect(useDownloadStore.getState().streamDownloadUrl).toBeNull();
+  });
+
+  it('ignores late initialize results after the store resets', async () => {
+    let resolveCount: ((value: number) => void) | undefined;
+
+    vi.mocked(fetchSanityData).mockImplementationOnce(
+      () =>
+        new Promise<number>((resolve) => {
+          resolveCount = resolve;
+        }) as never,
+    );
+
+    const initializePromise = useDownloadStore.getState().initialize(collection);
+    useDownloadStore.getState().reset();
+
+    resolveCount?.(250);
+    await initializePromise;
+
+    const state = useDownloadStore.getState();
+    expect(state.collection).toBeNull();
+    expect(state.segments).toEqual([]);
+    expect(state.downloadSize).toBeNull();
+  });
 });
