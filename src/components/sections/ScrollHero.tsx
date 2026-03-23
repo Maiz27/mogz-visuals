@@ -39,7 +39,7 @@ const ScrollHero = async () => {
                 title={`[MOGZ] Hero Column (${index + 1}) Image (${
                   imageIdx + 1
                 })`}
-                className='w-full h-[400px] lg:h-[40vmax] bg-cover bg-center opacity-70 m-10'
+                className='w-full h-100 lg:h-[40vmax] bg-cover bg-center opacity-70 m-10'
               />
             ))}
           </div>
@@ -55,7 +55,7 @@ const ScrollHero = async () => {
           visuals that speak volumes.
         </p>
         <div className='flex justify-center items-center gap-4 lg:gap-8 pointer-events-auto pt-4'>
-          <CTAButton scrollId='contact'>Book A Session</CTAButton>
+          <CTALink href='/book'>Book A Session</CTALink>
           <CTALink href='/gallery' style='ghost'>
             Discover Our Work
           </CTALink>

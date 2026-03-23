@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { Contact } from '@/components/email/Templates';
+import { Contact, getContactEmailText } from '@/components/email/Templates';
 import { Resend } from 'resend';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
@@ -40,6 +40,7 @@ export async function POST(req: NextRequest) {
       to: [EMAIL!],
       subject: `Website Message from ${name}`,
       react: Contact({ ...body }),
+      text: getContactEmailText(body),
     });
 
     if (error) {

@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 import {
   HiOutlineMapPin,
@@ -33,6 +33,8 @@ export const ROUTES = [
   { name: 'About', href: '/about' },
   { name: 'Gallery', href: '/gallery' },
 ];
+
+export const BOOK_ROUTE = { name: 'Book Now', href: '/book' };
 
 export const LEGAL_ROUTES = [
   { name: 'Terms of Use', href: '/terms-of-use' },
@@ -98,8 +100,6 @@ export const FORMS = {
     initialValue: {
       name: '',
       email: '',
-      datetime: new Date().toISOString(),
-      session: 'indoor',
       message: '',
       terms: false,
     },
@@ -119,24 +119,6 @@ export const FORMS = {
         label: 'Your Email Address',
         placeholder: 'john@example.com',
         required: true,
-      },
-      {
-        id: 'contact-datetime',
-        name: 'datetime',
-        type: 'datetime-local',
-        label: 'Session Date & Time',
-        placeholder: 'Select a date',
-        required: true,
-      },
-      {
-        comp: 'radio',
-        id: 'contact-session',
-        name: 'session',
-        label: 'Session Type',
-        options: [
-          { label: 'Indoor', value: 'indoor' },
-          { label: 'Outdoor', value: 'outdoor' },
-        ],
       },
       {
         comp: 'textarea',
@@ -171,29 +153,6 @@ export const FORMS = {
         return value.match(EMAIL_PATTERN)
           ? ''
           : 'Please enter a valid email address';
-      },
-      session: (value: string) => {
-        const options = FORMS.contact.fields.find(
-          (field) => field.name === 'session',
-        )!.options!;
-        if (options.find((option) => option.value === value)) {
-          return '';
-        }
-        return 'Please select an option!';
-      },
-      datetime: (value: string) => {
-        const selectedDateTime = new Date(value);
-        const currentDateTime = new Date();
-
-        if (isNaN(selectedDateTime.getTime())) {
-          return 'Please select a valid date and time!';
-        }
-
-        if (selectedDateTime.getTime() < currentDateTime.getTime()) {
-          return 'Date and time must be in the future!';
-        }
-
-        return '';
       },
       message: (value: string) =>
         value.length > 10 ? '' : 'Message must be longer than 10 characters!',
@@ -355,6 +314,18 @@ export const METADATA: Map<string, any> = new Map([
       icon: '/imgs/logo/favicon.ico',
     },
   ],
+  [
+    'book',
+    {
+      title: 'Book a Session - Mogz Visuals',
+      description:
+        'Book your photography or videography session with Mogz Visuals. Choose from studio portraits, weddings, events, corporate coverage, and more.',
+      type: 'website',
+      url: `${BASEURL}/book`,
+      image: `${BASEURL}/imgs/logo/logo.jpg`,
+      icon: '/imgs/logo/favicon.ico',
+    },
+  ],
 ]);
 
 export const EMPTY_STATE = {
@@ -439,3 +410,34 @@ export const SOCIAL_ICONS = {
   whatsapp: SiWhatsapp,
   email: HiOutlineEnvelope,
 };
+
+/**
+ * Fallback images for booking categories when Sanity has no image uploaded.
+ * Keyed by bookingCategory id.
+ * Includes legacy aliases and normalized ids generated from Sanity names.
+ */
+export const BOOKING_FALLBACK_IMAGES: Record<string, string> = {
+  'studio-photography': 'https://images.unsplash.com/photo-1531746020798-e6953c6e8e04?w=800&q=80',
+  'outdoor-photography': 'https://images.unsplash.com/photo-1516035069371-29a1b244cc32?w=800&q=80',
+  'pre-wedding': 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800&q=80',
+  'pre-wedding-engagement': 'https://images.unsplash.com/photo-1583939003579-730e3918a45a?w=800&q=80',
+  'wedding-photography': 'https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80',
+  'wedding-videography': 'https://images.unsplash.com/photo-1465495976277-4387d4b0b4c6?w=800&q=80',
+  'event-photography': 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?w=800&q=80',
+  'corporate': 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
+  'conference-corporate': 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=800&q=80',
+  'real-estate-photography': 'https://images.unsplash.com/photo-1560185007-c5ca9d2c014d?w=800&q=80',
+  'documentary-photography': 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=800&q=80',
+  'social-media-reels': 'https://images.unsplash.com/photo-1611162616475-46b635cb6868?w=800&q=80',
+  'tvc-production': 'https://images.unsplash.com/photo-1574717024653-61fd2cf4d44d?w=800&q=80',
+  'editing-only': 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=800&q=80',
+  'branding': 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80',
+  'branding-photography': 'https://images.unsplash.com/photo-1542744173-8e7e53415bb0?w=800&q=80',
+  'product-photography': 'https://images.unsplash.com/photo-1491553895911-0055eca6402d?w=800&q=80',
+  'traditional-events': 'https://images.unsplash.com/photo-1591604129939-f1efa4d9f7fa?w=800&q=80',
+  'real-estate-videography': 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?w=800&q=80',
+  'documentary-videography': 'https://images.unsplash.com/photo-1478720568477-152d9b164e26?w=800&q=80',
+  'billboard': 'https://images.unsplash.com/photo-1568952433726-3896e3881c65?w=800&q=80',
+  'billboard-photography': 'https://images.unsplash.com/photo-1568952433726-3896e3881c65?w=800&q=80',
+};
+

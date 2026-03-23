@@ -2,6 +2,8 @@ import Heading from '../heading/Heading';
 import ContactForm from '../forms/ContactForm';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { MOGZ } from '@/lib/Constants';
+import Link from 'next/link';
+import { HiArrowRight } from 'react-icons/hi2';
 
 const Contact = () => {
   const { contact } = MOGZ;
@@ -10,7 +12,7 @@ const Contact = () => {
       id='contact'
       className='w-full min-h-screen flex flex-col justify-center items-center my-8'
     >
-      <Heading text='Get in Touch with Us' />
+      <Heading text='Get in Touch' />
 
       <div className='mt-4 px-12 w-full grid place-items-center grid-cols-1 md:grid-cols-2 gap-12'>
         <div
@@ -20,11 +22,20 @@ const Contact = () => {
           className='w-full h-full flex flex-col justify-evenly space-y-8'
         >
           <p className=''>
-            {`We're here to help you capture your moments perfectly. Whether you're interested in booking 
-            a session or have questions about our services, fill out the form or reach out directly. 
-            Our team is eager to connect and discuss how we can bring your vision to life with stunning 
-            visuals and expert craftsmanship.`}
+            {`Have a question, a collaboration in mind, or just want to say hello? 
+            Fill out the form and we'll get back to you shortly. 
+            For bookings and session reservations, use our dedicated booking experience.`}
           </p>
+
+          {/* Book CTA */}
+          <Link
+            href='/book'
+            className='inline-flex items-center gap-2 text-primary font-bold tracking-widest text-sm uppercase hover:gap-4 transition-all duration-300 group'
+          >
+            Book a Session
+            <HiArrowRight className='text-base group-hover:translate-x-1 transition-transform duration-300' />
+          </Link>
+
           <div className='grid grid-cols-1 justify-around 2xl:grid-cols-3 gap-4'>
             {contact.map(({ text, href, icon, title }, i) => {
               const Icon = icon;
@@ -62,3 +73,4 @@ const Contact = () => {
 };
 
 export default Contact;
+

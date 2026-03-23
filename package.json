@@ -3,15 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "website": "https://www.mogz.studio",
-  "packageManager": "pnpm@10.26.0",
-  "engines": {
-    "node": ">=20.0.0"
-  },
   "scripts": {
     "dev": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "vitest"
   },
   "dependencies": {
     "@gsap/react": "^2.1.2",
@@ -36,7 +33,8 @@
     "react-share": "^5.1.0",
     "react-turnstile": "^1.1.5",
     "resend": "^3.4.0",
-    "sharp": "^0.33.4"
+    "sharp": "^0.33.4",
+    "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.1.11",

@@ -145,3 +145,73 @@ export const getTeamMembers = `*[_type == "team"]
   "image": image.asset->url,
   socials
 }`;
+
+// ─── Booking Queries ──────────────────────────────────────────────────────────
+
+/**
+ * Lightweight category metadata for Step 1 category grid.
+ * Does NOT include packages or addOns to keep the payload small.
+ */
+export const getBookingCategoryList = `*[_type == "bookingCategory"] | order(name asc) {
+  id,
+  name,
+  shortName,
+  description,
+  "image": image.asset->url,
+  "packageCount": count(packages)
+}`;
+
+export const getBookingCategoryCombinations = `*[_type == "bookingCategoryCombination"] | order(name asc) {
+  id,
+  name,
+  "categoryIds": categories[]->id
+}`;
+
+/**
+ * Full category data (with packages + addOns) fetched on demand
+ * when a user selects a category in Step 1.
+ * Params: { id: string }
+ */
+export const getBookingCategoryById = `*[_type == "bookingCategory" && id == $id][0] {
+  id,
+  name,
+  shortName,
+  description,
+  "image": image.asset->url,
+  packages[] {
+    id,
+    name,
+    price,
+    duration,
+    description,
+    includes
+  },
+  addOns[] {
+    id,
+    name,
+    price,
+    description
+  }
+}`;
+
+export const getBookingCategoriesByIds = `*[_type == "bookingCategory" && id in $ids] {
+  id,
+  name,
+  shortName,
+  description,
+  "image": image.asset->url,
+  packages[] {
+    id,
+    name,
+    price,
+    duration,
+    description,
+    includes
+  },
+  addOns[] {
+    id,
+    name,
+    price,
+    description
+  }
+}`;

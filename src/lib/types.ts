@@ -37,6 +37,57 @@ export type VERIFY_ACCESS_RESPONSE_BODY = {
   secret: string;
 };
 
+export type DownloadStep =
+  | 'email'
+  | 'choice'
+  | 'download_parts'
+  | 'download_stream';
+
+export type DownloadStreamStatus =
+  | 'idle'
+  | 'preparing'
+  | 'packing'
+  | 'finalizing'
+  | 'ready'
+  | 'starting'
+  | 'started'
+  | 'failed';
+
+export type DownloadPrepareState =
+  | 'preparing'
+  | 'packing'
+  | 'finalizing'
+  | 'ready'
+  | 'failed';
+
+export type DownloadPrepareProgressEvent = {
+  state: 'preparing' | 'packing' | 'finalizing';
+  totalImages: number;
+  processedImages: number;
+  addedImages: number;
+  packedImages: number;
+  failedImages: number;
+  percent: number;
+};
+
+export type DownloadPrepareReadyEvent = {
+  state: 'ready';
+  downloadUrl: string;
+  filename: string;
+  size: number;
+  cached: boolean;
+};
+
+export type DownloadPrepareFailedEvent = {
+  state: 'failed';
+  message: string;
+};
+
+export type DownloadPrepareEvent =
+  | DownloadPrepareProgressEvent
+  | DownloadPrepareReadyEvent
+  | DownloadPrepareFailedEvent;
+
 export type SOCIAL_LINK = {
   provider: 'facebook' | 'instagram' | 'twitter' | 'linkedin' | 'tiktok';
   url: {
@@ -77,6 +128,7 @@ export type Tag =
 
 export type BaseFormFieldProps = {
   label?: React.ReactNode;
+  description?: React.ReactNode;
   state?: object;
   errors?: object;
   [x: string]: any;
@@ -94,4 +146,77 @@ export type RichText = Array<{
 export type TermsPrivacy = {
   lastUpdated: string;
   content: RichText;
+};
+
+export type BookingAddOn = {
+  id: string;
+  name: string;
+  price: number;
+  description?: string;
+};
+
+export type BookingPackage = {
+  id: string;
+  name: string;
+  price: number;
+  duration?: string;
+  description?: string;
+  includes: string[];
+};
+
+export type BookingCategoryMeta = {
+  id: string;
+  name: string;
+  shortName: string;
+  description: string;
+  image: string | null;
+  packageCount: number;
+  compatibleCategoryIds: string[];
+};
+
+export type BookingCategory = {
+  id: string;
+  name: string;
+  shortName: string;
+  description: string;
+  image: string | null;
+  compatibleCategoryIds: string[];
+  packages: BookingPackage[];
+  addOns?: BookingAddOn[];
+};
+
+export type BookingCategoryCombination = {
+  id: string;
+  name: string;
+  categoryIds: string[];
+};
+
+export type BookingSelection = {
+  categoryId: string;
+  packageId: string | null;
+  addOnIds: string[];
+};
+
+export type BookingState = {
+  step: number;
+  selections: BookingSelection[];
+  date: string;
+  notes: string;
+  name: string;
+  email: string;
+  phone: string;
+  termsAccepted: boolean;
+  token: string;
+};
+
+export type BookingSubmission = {
+  name: string;
+  email: string;
+  phone: string;
+  items: BookingSelection[];
+  date: string;
+  notes?: string;
+  termsAccepted: boolean;
+  token: string;
+  timeZone?: string;
 };

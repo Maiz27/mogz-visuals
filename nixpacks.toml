@@ -1,0 +1,3 @@
+# Pin PNPM 10 and avoid version collisions
+[phases.setup]
+nixPkgs = ["bash", "pnpm-10_x", "nodejs_20"]
