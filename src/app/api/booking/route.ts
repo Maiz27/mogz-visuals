@@ -4,7 +4,7 @@ import {
   getBookingEmailText,
 } from '@/components/email/Templates';
 import { Resend } from 'resend';
-import { fetchSanityData } from '@/lib/sanity/client';
+import { fetchSanityDataUncached } from '@/lib/sanity/client';
 import {
   getBookingCategoriesByIds,
   getBookingCategoryCombinations,
@@ -17,6 +17,19 @@ import {
   toBookingCategoryMap,
   validateBookingRequest,
 } from '@/lib/booking';
+import {
+  enforceRateLimitRules,
+  getClientIp,
+  hashRateLimitValue,
+  normalizeRateLimitEmail,
+  normalizeRateLimitPhone,
+  parseRateLimitNumber,
+} from '@/lib/server/rateLimit';
+import {
+  createRateLimitedResponse,
+  isJsonObject,
+  verifyTurnstileToken,
+} from '@/lib/server/request';
 import type {
   BookingCategory,
   BookingCategoryCombination,
@@ -25,10 +38,41 @@ import type {
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const EMAIL = process.env.EMAIL!;
+const BOOKING_IP_LIMIT = parseRateLimitNumber(
+  process.env.BOOKING_RATE_LIMIT_IP,
+  5,
+);
+const BOOKING_IP_WINDOW_MS = parseRateLimitNumber(
+  process.env.BOOKING_RATE_LIMIT_WINDOW,
+  60 * 60 * 1000,
+);
+const BOOKING_IDENTITY_LIMIT = parseRateLimitNumber(
+  process.env.BOOKING_IDENTITY_RATE_LIMIT,
+  3,
+);
+const BOOKING_IDENTITY_WINDOW_MS = parseRateLimitNumber(
+  process.env.BOOKING_IDENTITY_RATE_LIMIT_WINDOW,
+  12 * 60 * 60 * 1000,
+);
+const BOOKING_DUPLICATE_LIMIT = parseRateLimitNumber(
+  process.env.BOOKING_DUPLICATE_RATE_LIMIT,
+  1,
+);
+const BOOKING_DUPLICATE_WINDOW_MS = parseRateLimitNumber(
+  process.env.BOOKING_DUPLICATE_RATE_LIMIT_WINDOW,
+  5 * 60 * 1000,
+);
 
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
+    if (!isJsonObject(body)) {
+      return NextResponse.json(
+        { message: 'Invalid booking payload.' },
+        { status: 400 },
+      );
+    }
+
     const {
       name,
       email,
@@ -61,24 +105,74 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const verifyRes = await fetch(
-      'https://challenges.cloudflare.com/turnstile/v0/siteverify',
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          secret: process.env.TURNSTILE_SECRET_KEY,
-          response: token,
-        }),
-      },
+    const normalizedEmail = normalizeRateLimitEmail(email);
+    const normalizedPhone = normalizeRateLimitPhone(phone);
+    const normalizedItems = [...items]
+      .map((item) => ({
+        categoryId: item.categoryId,
+        packageId: item.packageId,
+        addOnIds: [...item.addOnIds].sort(),
+      }))
+      .sort(
+        (left, right) =>
+          left.categoryId.localeCompare(right.categoryId) ||
+          (left.packageId ?? '').localeCompare(right.packageId ?? ''),
+      );
+    const duplicateSubmissionHash = hashRateLimitValue(
+      JSON.stringify({
+        name: name.trim().toLowerCase(),
+        email: normalizedEmail,
+        phone: normalizedPhone,
+        items: normalizedItems,
+        date: date.trim(),
+        notes: (notes ?? '').trim(),
+        timeZone: (timeZone ?? '').trim(),
+      }),
     );
 
-    const verifyData = await verifyRes.json();
-    if (!verifyData.success) {
+    const ipRateLimitResult = await enforceRateLimitRules([
+      {
+        keyParts: ['booking', 'ip', getClientIp(req)],
+        limit: BOOKING_IP_LIMIT,
+        windowMs: BOOKING_IP_WINDOW_MS,
+        message: 'Too many booking attempts. Please try again later.',
+      },
+    ]);
+
+    if (!ipRateLimitResult.ok) {
+      return createRateLimitedResponse(ipRateLimitResult);
+    }
+
+    if (!(await verifyTurnstileToken(token))) {
       return NextResponse.json(
         { message: 'Invalid Turnstile Token' },
         { status: 400 },
       );
+    }
+
+    const submissionRateLimitResult = await enforceRateLimitRules([
+      {
+        keyParts: [
+          'booking',
+          'identity',
+          hashRateLimitValue(`${normalizedEmail}:${normalizedPhone}`),
+        ],
+        limit: BOOKING_IDENTITY_LIMIT,
+        windowMs: BOOKING_IDENTITY_WINDOW_MS,
+        message:
+          'We recently received several booking attempts with these contact details. Please wait before trying again.',
+      },
+      {
+        keyParts: ['booking', 'duplicate', duplicateSubmissionHash],
+        limit: BOOKING_DUPLICATE_LIMIT,
+        windowMs: BOOKING_DUPLICATE_WINDOW_MS,
+        message:
+          'We already received a similar booking request recently. Please wait a few minutes before sending it again.',
+      },
+    ]);
+
+    if (!submissionRateLimitResult.ok) {
+      return createRateLimitedResponse(submissionRateLimitResult);
     }
 
     const categoryIds = Array.from(
@@ -93,8 +187,8 @@ export async function POST(req: NextRequest) {
     }
 
     const [categories, combinations] = await Promise.all([
-      fetchSanityData(getBookingCategoriesByIds, { ids: categoryIds }),
-      fetchSanityData(getBookingCategoryCombinations),
+      fetchSanityDataUncached(getBookingCategoriesByIds, { ids: categoryIds }),
+      fetchSanityDataUncached(getBookingCategoryCombinations),
     ]);
 
     const safeCategories = (categories ?? []) as BookingCategory[];
@@ -175,13 +269,13 @@ export async function POST(req: NextRequest) {
     const serviceSummary =
       emailItems.length === 1
         ? emailItems[0].category
-        : `${emailItems.length} combined services`;
+        : emailItems.map((item) => item.category).join(' + ');
 
     const { data, error } = await resend.emails.send({
-      from: `Mogz Visuals Booking <website@mogz.studio>`,
+      from: `Mogz Visuals Bookings <website@mogz.studio>`,
       reply_to: email,
       to: [EMAIL!],
-      subject: `New Booking Request from ${name} - ${serviceSummary}`,
+      subject: `Booking enquiry: ${serviceSummary}`,
       react: BookingEmail({
         name,
         email,
