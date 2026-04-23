@@ -44,10 +44,6 @@ const Input = ({ className, variant = 'default', ...props }: InputProps) => {
               value={isDate ? formatDateTimeForInput(value) : value}
               className={`w-full bg-transparent text-white md:text-xl font-heading tracking-wide focus:outline-none placeholder:text-secondary/50 ${isDate ? 'cursor-pointer' : ''} ${className}`}
               min={minDate}
-              onFocus={(e) => {
-                e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                props.onFocus?.(e);
-              }}
               {...props}
             />
             {props.description && (
@@ -78,11 +74,6 @@ const Input = ({ className, variant = 'default', ...props }: InputProps) => {
           value={isDate ? formatDateTimeForInput(value) : value}
           className={`w-full text-primary bg-background border border-copy p-4 py-3 tracking-wider focus:outline-primary focus:border-none transition-all ${className}`}
           min={minDate}
-          onFocus={(e) => {
-            // Scroll to center on mobile when keyboard opens
-            e.target.scrollIntoView({ behavior: 'smooth', block: 'center' });
-            props.onFocus?.(e);
-          }}
           {...props}
         />
       </div>
