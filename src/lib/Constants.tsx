@@ -24,7 +24,7 @@ export const SITE_NAME = 'Mogz Visuals';
 
 export const BASEURL = 'https://www.mogz.studio';
 
-export const EMAIL_PATTERN = /^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$/;
+export const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
 export const PAGE_SIZE = 10;
 
@@ -148,15 +148,18 @@ export const FORMS = {
     ],
     rules: {
       name: (value: string) =>
-        value.length > 2 ? '' : 'Name must be longer than 2 characters!',
+        value.length > 2 ? '' : 'Enter your full name.',
       email: (value: string) => {
         return value.match(EMAIL_PATTERN)
           ? ''
-          : 'Please enter a valid email address';
+          : 'Please enter a valid email address.';
       },
       message: (value: string) =>
-        value.length > 10 ? '' : 'Message must be longer than 10 characters!',
-      terms: (value: boolean) => (value ? '' : 'You must agree to the terms!'),
+        value.length > 10
+          ? ''
+          : 'Tell us a little more so we can help you properly.',
+      terms: (value: boolean) =>
+        value ? '' : 'Please agree to the terms to continue.',
     },
   },
   browse: {
@@ -182,15 +185,15 @@ export const FORMS = {
     rules: {
       id: (value: string) => {
         if (value.length < 6) {
-          return 'ID must be longer than 6 characters!';
+          return 'Enter a valid collection ID.';
         }
         if (/\s/.test(value)) {
-          return 'ID must not contain spaces!';
+          return 'Collection ID cannot contain spaces.';
         }
         return '';
       },
       password: (value: string) =>
-        value.length >= 6 ? '' : 'Password must be longer than 6 characters!',
+        value.length >= 6 ? '' : 'Enter a valid collection password.',
     },
   },
   search: {
@@ -207,7 +210,7 @@ export const FORMS = {
     ],
     rules: {
       name: (value: string) =>
-        value.length > 2 ? '' : 'Name must be longer than 2 characters!',
+        value.length > 2 ? '' : 'Enter at least 3 characters.',
     },
   },
   download: {
@@ -233,7 +236,7 @@ export const FORMS = {
       email: (value: string) => {
         return value.match(EMAIL_PATTERN)
           ? ''
-          : 'Please enter a valid email address!';
+          : 'Please enter a valid email address.';
       },
     },
   },
