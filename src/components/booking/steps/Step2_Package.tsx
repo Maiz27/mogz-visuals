@@ -8,7 +8,7 @@ import LocomotiveScrollSection from '../../locomotiveScrollSection/LocomotiveScr
 export default function Step2_Package() {
   const selections = useBookingStore((s) => s.selections);
   const selectPackage = useBookingStore((s) => s.selectPackage);
-  const prevStep = useBookingStore((s) => s.prevStep);
+  const goBack = useBookingStore((s) => s.goBack);
 
   const { categoryList, categoryDetails, loadingDetail } =
     useBookingDataStore();
@@ -20,7 +20,7 @@ export default function Step2_Package() {
         <div className='mb-16 mt-4 md:mt-8 flex flex-col md:flex-row md:justify-between md:items-end gap-8'>
           <div className='max-w-2xl'>
             <BookingNavigation
-              onBack={prevStep}
+              onBack={goBack}
               backLabel='Return to Services'
             />
 

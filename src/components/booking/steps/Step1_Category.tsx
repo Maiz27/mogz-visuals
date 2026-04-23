@@ -12,6 +12,7 @@ import LocomotiveScrollSection from '../../locomotiveScrollSection/LocomotiveScr
 export default function Step1_Category() {
   const selections = useBookingStore((s) => s.selections);
   const toggleCategory = useBookingStore((s) => s.toggleCategory);
+  const nextStep = useBookingStore((s) => s.nextStep);
   const { categoryList, loadingList, listError, fetchCategoryDetails } =
     useBookingDataStore();
 
@@ -124,6 +125,10 @@ export default function Step1_Category() {
                         toggleCategory(category.id);
                         if (!isSelected) {
                           fetchCategoryDetails(category.id);
+
+                          if (category.compatibleCategoryIds.length === 0) {
+                            nextStep();
+                          }
                         }
                       }}
                       className={`

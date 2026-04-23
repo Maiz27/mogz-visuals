@@ -157,24 +157,13 @@ export const extractYoutubeVideoId = (url: string) => {
 export const formatDateTimeForInput = (timestamp: string) => {
   try {
     if (!timestamp) {
-      const now = new Date();
-      return (
-        now.getFullYear() +
-        '-' +
-        String(now.getMonth() + 1).padStart(2, '0') +
-        '-' +
-        String(now.getDate()).padStart(2, '0') +
-        'T' +
-        String(now.getHours()).padStart(2, '0') +
-        ':' +
-        String(now.getMinutes()).padStart(2, '0')
-      );
+      return '';
     }
 
     const date = new Date(timestamp);
 
     if (isNaN(date.getTime())) {
-      return new Date().toISOString().slice(0, 16);
+      return '';
     }
 
     return (
@@ -187,9 +176,9 @@ export const formatDateTimeForInput = (timestamp: string) => {
       String(date.getHours()).padStart(2, '0') +
       ':' +
       String(date.getMinutes()).padStart(2, '0')
-    );
+      );
   } catch (error) {
-    return new Date().toISOString().slice(0, 16);
+    return '';
   }
 };
 

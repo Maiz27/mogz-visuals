@@ -4,10 +4,9 @@ import { useBookingStore } from '@/lib/stores/bookingStore';
 import { useBookingDataStore } from '@/lib/stores/bookingDataStore';
 import { useScroll } from '@/lib/context/scrollContext';
 import { useEffect, useRef } from 'react';
-import {
-  isValidBookingDateTimeLocal,
-  validateBookingContactFields,
-} from '@/lib/bookingValidation';
+import { useBrowserTimeZone } from '@/lib/hooks/useBrowserTimeZone';
+import { useBookingStepValidation } from '@/lib/hooks/useBookingStepValidation';
+import { useBookingProgressOffset } from '@/lib/hooks/useBookingProgressOffset';
 import BookingProgressBar from './BookingProgressBar';
 import Step1_Category from './steps/Step1_Category';
 import Step2_Package from './steps/Step2_Package';
@@ -63,6 +62,9 @@ export default function BookingPage() {
 
   const StepComponent = STEPS[step - 1];
   const contentRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLDivElement>(null);
+  const { browserTimeZone } = useBrowserTimeZone();
+  const progressBarOffset = useBookingProgressOffset(step, progressBarRef);
 
   useEffect(() => {
     if (!scrollInstance) return;
@@ -108,39 +110,20 @@ export default function BookingPage() {
     };
   }, [reset]);
 
-  const canProceed = (() => {
-    switch (step) {
-      case 1:
-        return selections.length > 0;
-      case 2:
-        return (
-          selections.length > 0 &&
-          selections.every((selection) => !!selection.packageId)
-        );
-      case 3:
-        return true;
-      case 4:
-        return isValidBookingDateTimeLocal(date);
-      case 5: {
-        const errors = validateBookingContactFields({
-          name,
-          email,
-          phone,
-          termsAccepted,
-          token,
-        });
-
-        return Object.keys(errors).length === 0;
-      }
-      default:
-        return false;
-    }
-  })();
+  const { canProceed, validationMessage } = useBookingStepValidation({
+    step,
+    selections,
+    date,
+    name,
+    email,
+    phone,
+    termsAccepted,
+    token,
+    timeZone: browserTimeZone,
+  });
 
   return (
     <main className='relative bg-background selection:bg-primary/30'>
-      <div className='fixed inset-0 pointer-events-none z-50 opacity-[0.03] mix-blend-overlay bg-[url(/grain.png)]' />
-
       <div className='relative flex flex-col'>
         <LocomotiveScrollSection
           id='booking-spacer'
@@ -152,6 +135,9 @@ export default function BookingPage() {
           id='booking-content'
           ref={contentRef}
           className='relative z-10 w-full'
+          style={{
+            paddingBottom: step < 6 ? `${progressBarOffset}px` : undefined,
+          }}
         >
           <div key={step} className='booking-step-enter'>
             <StepComponent />
@@ -161,11 +147,13 @@ export default function BookingPage() {
         {step < 6 && (
           <div className='fixed md:sticky bottom-0 left-0 right-0 z-60'>
             <BookingProgressBar
+              containerRef={progressBarRef}
               currentStep={step}
               labels={STEP_LABELS}
               totalSteps={5}
               onNext={nextStep}
               canProceed={canProceed}
+              validationMessage={validationMessage}
             />
           </div>
         )}

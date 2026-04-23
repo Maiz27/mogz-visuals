@@ -6,6 +6,8 @@ describe('useBookingStore', () => {
   const getState = () => useBookingStore.getState();
 
   beforeEach(() => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date('2026-01-01T00:00:00Z'));
     getState().reset();
     vi.clearAllMocks();
 
@@ -26,6 +28,7 @@ describe('useBookingStore', () => {
 
   afterEach(() => {
     getState().reset();
+    vi.useRealTimers();
   });
 
   it('should initialize with default state', () => {
@@ -42,6 +45,76 @@ describe('useBookingStore', () => {
     expect(getState().step).toBe(3);
     getActions().prevStep();
     expect(getState().step).toBe(2);
+  });
+
+  it('should clear selected services when going back from packages', () => {
+    useBookingStore.setState({
+      step: 2,
+      selections: [{ categoryId: 'cat-a', packageId: 'pkg-a', addOnIds: [] }],
+    });
+
+    getActions().goBack();
+
+    const state = getState();
+    expect(state.step).toBe(1);
+    expect(state.selections).toEqual([]);
+  });
+
+  it('should preserve add-ons when going back from add-ons', () => {
+    useBookingStore.setState({
+      step: 3,
+      selections: [
+        {
+          categoryId: 'cat-a',
+          packageId: 'pkg-a',
+          addOnIds: ['addon-a'],
+        },
+      ],
+    });
+
+    getActions().goBack();
+
+    const state = getState();
+    expect(state.step).toBe(2);
+    expect(state.selections).toEqual([
+      { categoryId: 'cat-a', packageId: 'pkg-a', addOnIds: ['addon-a'] },
+    ]);
+  });
+
+  it('should preserve scheduling fields when going back from scheduling', () => {
+    useBookingStore.setState({
+      step: 4,
+      date: '2026-04-24T10:00',
+      notes: 'Window light only',
+    });
+
+    getActions().goBack();
+
+    const state = getState();
+    expect(state.step).toBe(3);
+    expect(state.date).toBe('2026-04-24T10:00');
+    expect(state.notes).toBe('Window light only');
+  });
+
+  it('should preserve contact fields when going back from contact details', () => {
+    useBookingStore.setState({
+      step: 5,
+      name: 'Jane Doe',
+      email: 'jane@example.com',
+      phone: '+211900000000',
+      termsAccepted: true,
+      token: 'verified-token',
+    });
+
+    getActions().goBack();
+
+    const state = getState();
+    expect(state.step).toBe(4);
+    expect(state.name).toBe('Jane Doe');
+    expect(state.email).toBe('jane@example.com');
+    expect(state.phone).toBe('+211900000000');
+    expect(state.termsAccepted).toBe(true);
+    expect(state.token).toBe('verified-token');
   });
 
   it('should toggle categories and reset scheduling fields', () => {
@@ -121,7 +194,7 @@ describe('useBookingStore', () => {
           addOnIds: [],
         },
       ],
-      date: '2026-03-23T10:00',
+      date: '2099-03-23T10:00',
       name: 'Persisted User',
       email: 'persisted@example.com',
       phone: '+211900000000',
@@ -142,7 +215,7 @@ describe('useBookingStore', () => {
     const draft = {
       step: 6,
       selections: [{ categoryId: 'cat-a', packageId: null, addOnIds: [] }],
-      date: '2026-03-23T10:00',
+      date: '2099-03-23T10:00',
       name: 'Persisted User',
       email: 'persisted@example.com',
       phone: '+211900000000',
@@ -156,6 +229,33 @@ describe('useBookingStore', () => {
 
     const state = getState();
     expect(state.step).toBe(2);
+    expect(state.token).toBe('');
+  });
+
+  it('should clamp resumed step when the stored date is no longer submittable', () => {
+    const draft = {
+      step: 6,
+      selections: [
+        {
+          categoryId: 'cat-a',
+          packageId: 'pkg-a',
+          addOnIds: [],
+        },
+      ],
+      date: '2026-01-01T12:00',
+      name: 'Persisted User',
+      email: 'persisted@example.com',
+      phone: '+211900000000',
+      termsAccepted: true,
+      token: 'stale-token',
+    };
+
+    (sessionStorage.getItem as any).mockReturnValue(JSON.stringify(draft));
+
+    getActions().hydrateFromStorage();
+
+    const state = getState();
+    expect(state.step).toBe(4);
     expect(state.token).toBe('');
   });
 

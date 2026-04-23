@@ -46,6 +46,7 @@ type BookingStore = BookingState & {
   setStep: (step: number) => void;
   nextStep: () => void;
   prevStep: () => void;
+  goBack: () => void;
   toggleCategory: (id: string) => void;
   selectPackage: (categoryId: string, packageId: string) => void;
   toggleAddOn: (categoryId: string, addOnId: string) => void;
@@ -83,6 +84,14 @@ function normalizeSelections(
   return [];
 }
 
+function getBrowserTimeZone() {
+  try {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone ?? '';
+  } catch {
+    return '';
+  }
+}
+
 export const useBookingStore = create<BookingStore>((set, get) => ({
   ...DEFAULT_STATE,
 
@@ -91,6 +100,43 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
   nextStep: () => set((s) => ({ ...s, step: Math.min(s.step + 1, 6) })),
 
   prevStep: () => set((s) => ({ ...s, step: Math.max(s.step - 1, 1) })),
+
+  goBack: () =>
+    set((s) => {
+      switch (s.step) {
+        case 2:
+          return {
+            ...s,
+            step: 1,
+            selections: [],
+          };
+        case 3:
+          return {
+            ...s,
+            step: 2,
+          };
+        case 4:
+          return {
+            ...s,
+            step: 3,
+          };
+        case 5:
+          return {
+            ...s,
+            step: 4,
+          };
+        case 6:
+          return {
+            ...s,
+            step: 5,
+          };
+        default:
+          return {
+            ...s,
+            step: Math.max(s.step - 1, 1),
+          };
+      }
+    }),
 
   toggleCategory: (id) =>
     set((s) => {
@@ -171,6 +217,8 @@ export const useBookingStore = create<BookingStore>((set, get) => ({
         email: parsed.email ?? currentState.email,
         phone: parsed.phone ?? currentState.phone,
         termsAccepted: parsed.termsAccepted ?? currentState.termsAccepted,
+      }, {
+        timeZone: getBrowserTimeZone(),
       });
 
       set((s) => ({

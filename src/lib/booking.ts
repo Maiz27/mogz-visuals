@@ -7,12 +7,16 @@ import type {
   BookingSelection,
 } from '@/lib/types';
 export {
+  BOOKING_MIN_NOTICE_HOURS,
   formatBookingDateTimeLocal,
+  getBookingDateTimeError,
   getBookingResumeStep,
   isValidBookingDateTimeLocal,
   isValidBookingEmail,
   isValidBookingPhone,
+  isValidBookingTimeZone,
   parseBookingDateTimeLocal,
+  resolveBookingDateTimeLocal,
   validateBookingContactFields,
   validateBookingRequest,
 } from '@/lib/bookingValidation';

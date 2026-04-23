@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useBookingStore } from '@/lib/stores/bookingStore';
 import { useBookingDataStore } from '@/lib/stores/bookingDataStore';
 import { getBookingTotal, resolveBookingSelections } from '@/lib/booking';
 import { formatBookingDateTimeLocal } from '@/lib/bookingValidation';
 import { useRouter } from 'next/navigation';
 import { useToast } from '@/lib/context/ToastContext';
+import { useScroll } from '@/lib/context/scrollContext';
 import {
   HiOutlineCheckCircle,
   HiOutlineExclamationTriangle,
@@ -24,7 +25,7 @@ export default function Step6_Confirm() {
   const phone = useBookingStore((s) => s.phone);
   const termsAccepted = useBookingStore((s) => s.termsAccepted);
   const token = useBookingStore((s) => s.token);
-  const prevStep = useBookingStore((s) => s.prevStep);
+  const goBack = useBookingStore((s) => s.goBack);
 
   const { categoryDetails, loadingDetail } = useBookingDataStore();
   const resolvedSelections = resolveBookingSelections(selections, categoryDetails);
@@ -35,11 +36,35 @@ export default function Step6_Confirm() {
 
   const router = useRouter();
   const { show } = useToast();
+  const { scrollInstance } = useScroll();
 
   const [status, setStatus] = useState<
     'idle' | 'loading' | 'success' | 'error'
   >('idle');
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    if (!scrollInstance || status === 'success') {
+      return;
+    }
+
+    const syncToTop = () => {
+      try {
+        scrollInstance.scrollTo('top', { duration: 0, disableLerp: true });
+        scrollInstance.update();
+      } catch {}
+    };
+
+    syncToTop();
+
+    const timeoutId = window.setTimeout(syncToTop, 120);
+    const frameId = window.requestAnimationFrame(syncToTop);
+
+    return () => {
+      window.clearTimeout(timeoutId);
+      window.cancelAnimationFrame(frameId);
+    };
+  }, [scrollInstance, status, isLoadingDetails, resolvedSelections.length]);
 
   const handleSubmit = async () => {
     setStatus('loading');
@@ -80,7 +105,7 @@ export default function Step6_Confirm() {
 
   if (status === 'success') {
     return (
-      <LocomotiveScrollSection className='pb-32 px-4 sm:px-8 max-w-xl text-center mx-auto flex flex-col items-center justify-center'>
+      <LocomotiveScrollSection className='pb-16 md:pb-20 px-4 sm:px-8 max-w-xl text-center mx-auto flex flex-col items-center justify-center'>
         <div className='text-primary text-7xl mb-8'>
           <HiOutlineCheckCircle />
         </div>
@@ -107,12 +132,12 @@ export default function Step6_Confirm() {
   }
 
   return (
-    <LocomotiveScrollSection className='pb-32 px-4 sm:px-8 max-w-7xl mx-auto'>
+    <LocomotiveScrollSection className='pb-16 md:pb-20 px-4 sm:px-8 max-w-7xl mx-auto'>
       <div className='w-full'>
         <div className='mb-16 mt-4 md:mt-8 flex flex-col md:flex-row md:justify-between md:items-end gap-8'>
           <div className='max-w-2xl'>
             <BookingNavigation
-              onBack={prevStep}
+              onBack={goBack}
               backLabel='Return to Contact Details'
               disabled={status === 'loading'}
             />
@@ -138,7 +163,7 @@ export default function Step6_Confirm() {
           </div>
         </div>
 
-        <div className='max-w-4xl mb-16 border border-white/5 bg-surface p-6 md:p-10 relative overflow-hidden'>
+        <div className='max-w-4xl mb-10 md:mb-12 border border-white/5 bg-surface p-6 md:p-10 relative overflow-hidden'>
           {isLoadingDetails && (
             <div className='absolute inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center'>
               <div className='flex flex-col items-center gap-4'>
@@ -216,7 +241,7 @@ export default function Step6_Confirm() {
         </div>
 
         {status === 'error' && (
-          <div className='flex items-start gap-4 mb-8 p-6 bg-red-950/20 border border-red-500/30 text-red-200 text-sm font-body max-w-4xl'>
+          <div className='flex items-start gap-4 mb-6 p-6 bg-red-950/20 border border-red-500/30 text-red-200 text-sm font-body max-w-4xl'>
             <HiOutlineExclamationTriangle className='shrink-0 mt-0.5 text-xl text-red-400' />
             <span className='leading-relaxed'>{errorMsg}</span>
           </div>

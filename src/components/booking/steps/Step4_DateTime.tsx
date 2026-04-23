@@ -1,6 +1,11 @@
 'use client';
 
 import { useBookingStore } from '@/lib/stores/bookingStore';
+import {
+  getBookingDateTimeError,
+  isValidBookingTimeZone,
+} from '@/lib/bookingValidation';
+import { useBrowserTimeZone } from '@/lib/hooks/useBrowserTimeZone';
 import { setInputMinDate } from '@/lib/utils';
 import { useState, useEffect } from 'react';
 import BookingNavigation from '../BookingNavigation';
@@ -12,21 +17,29 @@ export default function Step4_DateTime() {
   const date = useBookingStore((s) => s.date);
   const notes = useBookingStore((s) => s.notes);
   const updateField = useBookingStore((s) => s.updateField);
-  const prevStep = useBookingStore((s) => s.prevStep);
+  const goBack = useBookingStore((s) => s.goBack);
   const [minDate, setMinDate] = useState('');
+  const { browserTimeZone, timeZoneReady } = useBrowserTimeZone();
 
   useEffect(() => {
     setMinDate(setInputMinDate({ addDays: 1 }));
   }, []);
 
+  const timeZoneError =
+    timeZoneReady && !isValidBookingTimeZone(browserTimeZone)
+      ? 'We could not confirm your local time. Refresh the page and try again.'
+      : null;
+  const dateError =
+    date && browserTimeZone ? getBookingDateTimeError(date, browserTimeZone) : null;
+
   return (
-    <LocomotiveScrollSection className='pb-32 px-4 sm:px-8 max-w-7xl mx-auto'>
+    <LocomotiveScrollSection className='pb-8 md:pb-10 px-4 sm:px-8 max-w-7xl mx-auto'>
       <div className='w-full'>
         {/* Editorial Header */}
         <div className='mb-16 mt-4 md:mt-8 flex flex-col md:flex-row md:justify-between md:items-end gap-8'>
           <div className='max-w-2xl'>
             <BookingNavigation
-              onBack={prevStep}
+              onBack={goBack}
               backLabel='Return to Add-ons'
             />
 
@@ -44,13 +57,15 @@ export default function Step4_DateTime() {
           </div>
         </div>
 
-        <div className='grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-32 items-stretch'>
+        <div className='grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8 mb-10 md:mb-12 items-stretch'>
           {/* Date/Time Input */}
           <Input
+            id='booking-date'
             type='datetime-local'
             label='Preferred Date & Time'
             name='date'
             state={{ date }}
+            errors={{ date: dateError ?? undefined }}
             value={date}
             min={minDate}
             variant='premium'
@@ -61,6 +76,7 @@ export default function Step4_DateTime() {
 
           {/* Notes Input */}
           <Textarea
+            id='booking-notes'
             label='Notes / Special Requests'
             name='notes'
             state={{ notes }}
@@ -70,6 +86,14 @@ export default function Step4_DateTime() {
             onChange={(e) => updateField('notes', e.target.value)}
           />
         </div>
+
+        {timeZoneError && (
+          <div className='max-w-3xl -mt-6 mb-8 border border-red-500/30 bg-red-950/20 px-6 py-4'>
+            <p className='text-red-200 text-sm font-body leading-relaxed'>
+              {timeZoneError}
+            </p>
+          </div>
+        )}
       </div>
     </LocomotiveScrollSection>
   );

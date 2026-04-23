@@ -3,6 +3,7 @@ import { HiChevronRight } from 'react-icons/hi2';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import { useBookingStore } from '@/lib/stores/bookingStore';
 import { useBookingDataStore } from '@/lib/stores/bookingDataStore';
+import type { Ref } from 'react';
 import {
   getBookingTotal,
   resolveBookingSelections,
@@ -15,6 +16,8 @@ type Props = {
   labels: string[];
   onNext: () => void;
   canProceed: boolean;
+  validationMessage?: string | null;
+  containerRef?: Ref<HTMLDivElement>;
 };
 
 export default function BookingProgressBar({
@@ -23,18 +26,23 @@ export default function BookingProgressBar({
   labels,
   onNext,
   canProceed,
+  validationMessage,
+  containerRef,
 }: Props) {
   const selections = useBookingStore((s) => s.selections);
   const { categoryList, categoryDetails } = useBookingDataStore();
   const categoryMetaMap = toBookingMetaMap(categoryList);
-  const resolvedSelections = resolveBookingSelections(selections, categoryDetails);
+  const resolvedSelections = resolveBookingSelections(
+    selections,
+    categoryDetails,
+  );
   const totalPrice = getBookingTotal(selections, categoryDetails);
   const nextLabel = currentStep < totalSteps ? labels[currentStep] : '';
   const summaryLabel =
     selections.length === 0
       ? labels[currentStep - 1]
       : selections.length === 1
-        ? categoryMetaMap[selections[0].categoryId]?.shortName ?? 'Service'
+        ? (categoryMetaMap[selections[0].categoryId]?.shortName ?? 'Service')
         : `${selections.length} services`;
   const packageSummary =
     selections.length === 0
@@ -44,7 +52,10 @@ export default function BookingProgressBar({
         : 'Select Packages';
 
   return (
-    <div className='fixed bottom-6 md:bottom-10 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none'>
+    <div
+      ref={containerRef}
+      className='fixed bottom-6 md:bottom-10 left-0 right-0 z-50 flex justify-center px-4 pointer-events-none'
+    >
       <div className='w-full max-w-7xl bg-surface-glass/90 backdrop-blur-2xl border border-white/5 shadow-[0_30px_60px_rgba(0,0,0,0.6)] rounded-none px-5 py-4 md:py-3 md:px-8 flex flex-col md:flex-row items-center justify-between pointer-events-auto gap-6 transition-all duration-700 ease-out'>
         <div className='flex items-center w-full md:w-auto justify-between md:justify-start gap-6 md:gap-10'>
           <div className='shrink-0'>
@@ -99,6 +110,11 @@ export default function BookingProgressBar({
               </span>
               <HiChevronRight className='text-lg shrink-0' />
             </CTAButton>
+            {!canProceed && validationMessage && (
+              <span className='mt-3 block max-w-xs md:max-w-sm text-secondary text-[11px] md:text-xs font-body text-center leading-relaxed'>
+                {validationMessage}
+              </span>
+            )}
           </div>
         )}
       </div>

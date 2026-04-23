@@ -2,6 +2,7 @@
 
 import Link from 'next/link';
 import { useBookingStore } from '@/lib/stores/bookingStore';
+import { validateBookingContactFields } from '@/lib/bookingValidation';
 import TurnstileWidget from '@/components/ui/TurnstileWidget';
 import BookingNavigation from '../BookingNavigation';
 import Input from '@/components/ui/form/Input';
@@ -15,19 +16,41 @@ export default function Step5_Contact() {
   const termsAccepted = useBookingStore((s) => s.termsAccepted);
   const token = useBookingStore((s) => s.token);
   const updateField = useBookingStore((s) => s.updateField);
-  const prevStep = useBookingStore((s) => s.prevStep);
+  const goBack = useBookingStore((s) => s.goBack);
 
-  // Bundle state for existing component compatibility if needed
   const state = { name, email, phone, termsAccepted, token };
+  const contactErrors = validateBookingContactFields({
+    name,
+    email,
+    phone,
+    termsAccepted,
+    token,
+  });
+  const hasTurnstileSiteKey = Boolean(
+    process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+  );
+  const shouldShowTermsError =
+    !termsAccepted && Boolean(name || email || phone || token);
+  const shouldShowTokenHint =
+    hasTurnstileSiteKey &&
+    !token &&
+    Boolean(name || email || phone || termsAccepted);
+  const fieldErrors = {
+    name: name ? contactErrors.name : undefined,
+    email: email ? contactErrors.email : undefined,
+    phone: phone ? contactErrors.phone : undefined,
+    termsAccepted: shouldShowTermsError
+      ? contactErrors.termsAccepted
+      : undefined,
+  };
 
   return (
-    <LocomotiveScrollSection className='pb-32 px-4 sm:px-8 max-w-7xl mx-auto'>
+    <LocomotiveScrollSection className='pb-8 md:pb-10 px-4 sm:px-8 max-w-7xl mx-auto'>
       <div className='w-full'>
-        {/* Editorial Header */}
         <div className='mb-16 mt-4 md:mt-8 flex flex-col md:flex-row md:justify-between md:items-end gap-8'>
           <div className='max-w-2xl'>
             <BookingNavigation
-              onBack={prevStep}
+              onBack={goBack}
               backLabel='Return to Scheduling'
             />
 
@@ -40,17 +63,18 @@ export default function Step5_Contact() {
           </div>
 
           <div className='max-w-md text-secondary font-body text-base xl:text-lg leading-relaxed mb-1 md:mb-2'>
-            Almost there — please provide your contact information so we can
+            Almost there - please provide your contact information so we can
             reserve your booking.
           </div>
         </div>
 
-        <div className='max-w-2xl space-y-6 mb-16'>
-          {/* Name Input */}
+        <div className='max-w-2xl space-y-6 mb-8 md:mb-10'>
           <Input
+            id='booking-name'
             label='Full Name'
             name='name'
             state={state}
+            errors={fieldErrors}
             value={name}
             placeholder='Your full name'
             variant='premium'
@@ -58,12 +82,13 @@ export default function Step5_Contact() {
             required
           />
 
-          {/* Email Input */}
           <Input
+            id='booking-email'
             type='email'
             label='Email Address'
             name='email'
             state={state}
+            errors={fieldErrors}
             value={email}
             placeholder='you@example.com'
             variant='premium'
@@ -71,12 +96,13 @@ export default function Step5_Contact() {
             required
           />
 
-          {/* Phone Input */}
           <Input
+            id='booking-phone'
             type='tel'
             label='Phone Number'
             name='phone'
             state={state}
+            errors={fieldErrors}
             value={phone}
             placeholder='+211 900 000 000'
             variant='premium'
@@ -84,20 +110,19 @@ export default function Step5_Contact() {
             required
           />
 
-          {/* Turnstile */}
           <div className='py-4'>
             <TurnstileWidget
-              onVerify={(t) => {
-                updateField('token', t);
+              onVerify={(nextToken) => {
+                updateField('token', nextToken);
               }}
             />
           </div>
 
-          {/* Terms */}
           <Checkbox
             id='terms'
             name='termsAccepted'
             state={state}
+            errors={fieldErrors}
             variant='premium'
             onChange={(e) => updateField('termsAccepted', e.target.checked)}
             required
@@ -117,6 +142,12 @@ export default function Step5_Contact() {
               </span>
             }
           />
+
+          {shouldShowTokenHint && (
+            <span className='text-red-500/80 text-xs mt-1 ml-1 font-body tracking-wide'>
+              {contactErrors.token}
+            </span>
+          )}
         </div>
       </div>
     </LocomotiveScrollSection>
