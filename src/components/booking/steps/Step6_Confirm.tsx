@@ -44,7 +44,7 @@ export default function Step6_Confirm() {
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
-    if (!scrollInstance || status === 'success') {
+    if (!scrollInstance) {
       return;
     }
 
@@ -64,7 +64,7 @@ export default function Step6_Confirm() {
       window.clearTimeout(timeoutId);
       window.cancelAnimationFrame(frameId);
     };
-  }, [scrollInstance, status, isLoadingDetails, resolvedSelections.length]);
+  }, [scrollInstance, isLoadingDetails, resolvedSelections.length]);
 
   const handleSubmit = async () => {
     setStatus('loading');
