@@ -11,6 +11,12 @@ import os from 'os';
 import CryptoJS from 'crypto-js';
 import { Readable } from 'stream';
 import { ENCRYPTION_KEY } from '@/lib/env';
+import {
+  enforceRateLimitRules,
+  getClientIp,
+  getRateLimitHeaders,
+  parseRateLimitNumber,
+} from '@/lib/server/rateLimit';
 import type {
   DownloadPrepareEvent,
   DownloadPrepareProgressEvent,
@@ -19,6 +25,14 @@ import type {
 const ONE_HOUR = 3600000;
 const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
 const CACHE_VERSION = 'v2';
+const DOWNLOAD_STREAM_RATE_LIMIT = parseRateLimitNumber(
+  process.env.DOWNLOAD_STREAM_RATE_LIMIT,
+  3,
+);
+const DOWNLOAD_STREAM_RATE_LIMIT_WINDOW_MS = parseRateLimitNumber(
+  process.env.DOWNLOAD_STREAM_RATE_LIMIT_WINDOW,
+  ONE_HOUR,
+);
 
 type DownloadItem = {
   url: string;
@@ -840,6 +854,26 @@ async function handlePrepareDownload(req: NextRequest) {
 
     if (isPrivate) {
       await validatePrivateAccess(req, collectionId);
+    }
+
+    const rateLimitResult = await enforceRateLimitRules([
+      {
+        keyParts: ['download', 'stream', 'ip', getClientIp(req)],
+        limit: DOWNLOAD_STREAM_RATE_LIMIT,
+        windowMs: DOWNLOAD_STREAM_RATE_LIMIT_WINDOW_MS,
+        message:
+          'Too many download preparation attempts. Please try again later.',
+      },
+    ]);
+
+    if (!rateLimitResult.ok) {
+      return NextResponse.json(
+        { message: rateLimitResult.message },
+        {
+          status: 429,
+          headers: getRateLimitHeaders(rateLimitResult),
+        },
+      );
     }
 
     const stream = new ReadableStream<Uint8Array>({

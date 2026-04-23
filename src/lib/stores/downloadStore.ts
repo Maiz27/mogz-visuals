@@ -233,7 +233,11 @@ const checkRateLimit = async (
   });
 
   if (!response.ok) {
-    notify('Rate limit exceeded, please try again later.', 'error', false);
+    const message = await getResponseMessage(
+      response,
+      'Rate limit exceeded, please try again later.',
+    );
+    notify(message, 'error', false);
     return false;
   }
 

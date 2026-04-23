@@ -5,12 +5,20 @@ import fs, { type PathLike } from 'fs';
 import { Readable } from 'stream';
 import CryptoJS from 'crypto-js';
 import type { DownloadPrepareEvent } from '@/lib/types';
+import { enforceRateLimitRules } from '@/lib/server/rateLimit';
 
 const existingPaths = new Set<string>();
 const normalizePathKey = (value: PathLike | string) => String(value).toLowerCase();
 
 vi.mock('@/lib/sanity/client', () => ({
   fetchSanityData: vi.fn(),
+}));
+
+vi.mock('@/lib/server/rateLimit', () => ({
+  enforceRateLimitRules: vi.fn(),
+  getClientIp: vi.fn(() => '127.0.0.1'),
+  getRateLimitHeaders: vi.fn(() => ({ 'Retry-After': '60' })),
+  parseRateLimitNumber: vi.fn((_value: string | undefined, fallback: number) => fallback),
 }));
 
 vi.mock('@/lib/env', () => ({
@@ -171,6 +179,10 @@ describe('/api/download/stream prepare flow', () => {
   beforeEach(() => {
     vi.clearAllMocks();
     existingPaths.clear();
+    vi.mocked(enforceRateLimitRules).mockResolvedValue({
+      ok: true,
+      enabled: false,
+    });
 
     vi.spyOn(Readable, 'fromWeb').mockImplementation((stream: any) => stream);
 
@@ -209,6 +221,30 @@ describe('/api/download/stream prepare flow', () => {
     const res = await POST(req);
     expect(res.status).toBe(400);
     await expect(res.json()).resolves.toEqual({ message: 'Email required' });
+  });
+
+  it('returns 429 when download preparation is rate limited', async () => {
+    vi.mocked(enforceRateLimitRules).mockResolvedValue({
+      ok: false,
+      message: 'Too many download preparation attempts. Please try again later.',
+      retryAfterSeconds: 60,
+    });
+
+    const formData = new FormData();
+    formData.append('slug', 'test-slug');
+    formData.append('email', 'test@test.com');
+
+    const res = await POST(
+      new NextRequest('http://localhost/api/download/stream', {
+        method: 'POST',
+        body: formData,
+      }),
+    );
+
+    expect(res.status).toBe(429);
+    await expect(res.json()).resolves.toEqual({
+      message: 'Too many download preparation attempts. Please try again later.',
+    });
   });
 
   it('streams progress and a ready download URL after preparing the archive', async () => {

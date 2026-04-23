@@ -178,7 +178,9 @@ describe('useDownloadStore', () => {
       if (url.includes('/api/rateLimit')) {
         return {
           ok: false,
-          json: async () => ({ message: 'blocked' }),
+          json: async () => ({
+            message: 'Rate limit exceeded, please try again later.',
+          }),
         } as Response;
       }
 
