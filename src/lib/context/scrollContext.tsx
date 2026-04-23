@@ -31,6 +31,14 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
     useState<LocomotiveScroll | null>(null);
   const pathname = usePathname();
 
+  const getLerpForViewport = () => {
+    const width = window.innerWidth;
+
+    if (width < 768) return 0.1;
+    if (width < 1024) return 0.08;
+    return 0.05;
+  };
+
   const initializeScroll = async () => {
     if (scrollRef.current) {
       scrollRef.current.destroy();
@@ -39,9 +47,10 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
     const LocomotiveScroll = (await import('locomotive-scroll')).default;
     const scroll = new LocomotiveScroll({
       el: document.querySelector('[data-scroll-container]') as HTMLElement,
-      lerp: 0.05,
+      lerp: getLerpForViewport(),
       smooth: true,
       reloadOnContextChange: true,
+      tablet: { smooth: true, breakpoint: 1024 },
       smartphone: { smooth: true },
       touchMultiplier: 3,
     });
