@@ -20,7 +20,8 @@
 
 @font-face {
   font-family: 'Raleway';
-  src: url('/fonts/raleway/Raleway-VF-W.ttf') format('truetype'),
+  src:
+    url('/fonts/raleway/Raleway-VF-W.ttf') format('truetype'),
     url('/fonts/raleway/Raleway-Italic-VF-W.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
@@ -28,7 +29,8 @@
 
 @font-face {
   font-family: 'Lora';
-  src: url('/fonts/lora/Lora-VF-W.ttf') format('truetype'),
+  src:
+    url('/fonts/lora/Lora-VF-W.ttf') format('truetype'),
     url('/fonts/lora/Lora-Italic-VF-W.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
@@ -50,6 +52,10 @@
   --color-secondary-content: #0e0e10;
   --color-secondary-dark: #6b6e7f;
   --color-secondary-light: #a1a3af;
+
+  --color-surface: #101010;
+  --color-surface-hover: #141414;
+  --color-surface-glass: #121212;
 }
 
 html {
@@ -127,7 +133,9 @@ html.has-scroll-dragging {
   width: 11px;
   height: 100%;
   transform-origin: center right;
-  transition: transform 0.3s, opacity 0.3s;
+  transition:
+    transform 0.3s,
+    opacity 0.3s;
   opacity: 0;
 }
 .c-scrollbar:hover {

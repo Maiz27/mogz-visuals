@@ -1,18 +1,19 @@
 'use client';
 
-import { FormEvent, useState } from 'react';
+import { FormEvent } from 'react';
 import Input from '@/components/ui/form/Input';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import useFormState from '@/lib/hooks/useFormState';
 import useDownloadCollection from '@/lib/hooks/useDownloadCollection';
 import { formatBytes } from '@/lib/utils';
-import { COLLECTION } from '@/lib/types';
+import { COLLECTION, DownloadStep } from '@/lib/types';
 import { FORMS } from '@/lib/Constants';
 import Progress from '@/components/ui/Progress';
 import {
   HiChevronDoubleLeft,
   HiOutlineArrowDownTray,
   HiOutlineCheck,
+  HiOutlineXCircle,
 } from 'react-icons/hi2';
 import CollectionDrawerHeader from '../gallery/CollectionDrawerHeader';
 
@@ -21,32 +22,18 @@ type Props = {
   collection: COLLECTION;
 };
 
-type Step = 'email' | 'choice' | 'download_parts' | 'download_stream';
-
 const DownloadContent = ({ collection }: Props) => {
-  const [step, setStep] = useState<Step>('email');
-  const [isPreparingStream, setIsPreparingStream] = useState(false);
-
-  const stepNumber = step === 'email' ? 1 : step === 'choice' ? 2 : 3;
-
-  const handleBack = () => {
-    switch (step) {
-      case 'email':
-        break;
-      case 'choice':
-        setStep('email');
-        break;
-      case 'download_parts':
-      case 'download_stream':
-        setStep('choice');
-        break;
-    }
-  };
-
   const {
+    step,
+    streamStatus,
+    streamError,
+    streamProgress,
     loading,
     segments,
     downloadChunk,
+    submitEmail,
+    goBack,
+    setStep,
     current,
     total,
     progress,
@@ -54,26 +41,19 @@ const DownloadContent = ({ collection }: Props) => {
     downloadSize,
   } = useDownloadCollection(collection);
 
+  const stepNumber = step === 'email' ? 1 : step === 'choice' ? 2 : 3;
+
   const { initialValue, fields, rules } = FORMS.download;
-  const { state, errors, handleChange, reset } = useFormState(
-    initialValue,
-    rules,
-  );
+  const { state, errors, handleChange } = useFormState(initialValue, rules);
 
   const handleEmailSubmit = (e: FormEvent) => {
     e.preventDefault();
     if (!state.email || errors.email) return;
-    setStep('choice');
+    submitEmail(state.email.toLowerCase());
   };
 
   const handleFullDownload = async () => {
-    setStep('download_stream');
-    setIsPreparingStream(true);
-    try {
-      await downloadStream(state.email.toLowerCase());
-    } finally {
-      setIsPreparingStream(false);
-    }
+    await downloadStream(state.email.toLowerCase());
   };
 
   const handlePartDownload = async (index: number) => {
@@ -82,6 +62,13 @@ const DownloadContent = ({ collection }: Props) => {
 
   const overallProgress =
     total <= 1 ? progress : ((current - 1) / total) * 100 + progress / total;
+  const isPreparingStream = streamStatus === 'preparing';
+  const isPackingStream = streamStatus === 'packing';
+  const isFinalizingStream = streamStatus === 'finalizing';
+  const isStartingStream =
+    streamStatus === 'ready' || streamStatus === 'starting';
+  const hasStartedStream = streamStatus === 'started';
+  const hasFailedStream = streamStatus === 'failed';
 
   return (
     <div className='flex flex-col h-full gap-4'>
@@ -90,7 +77,7 @@ const DownloadContent = ({ collection }: Props) => {
       {/* Step Navigation */}
       <div className='flex justify-between items-center text-gray-500'>
         <button
-          onClick={handleBack}
+          onClick={goBack}
           className='text-xl hover:text-primary transition-colors hover:cursor-pointer disabled:cursor-not-allowed'
           aria-label='Go back'
           disabled={step === 'email'}
@@ -140,7 +127,9 @@ const DownloadContent = ({ collection }: Props) => {
           ) : (
             <>
               <p className='text-lg!'>
-                Your download is ready! Select an option below to download.
+                Choose how you want to download this collection. Full ZIP
+                downloads are prepared on the server first so the file is ready
+                before your browser starts.
               </p>
               <div className='space-y-2'>
                 <CTAButton
@@ -148,12 +137,12 @@ const DownloadContent = ({ collection }: Props) => {
                   onClick={handleFullDownload}
                   className='w-full'
                 >
-                  Download Full Collection (Zip){' '}
+                  Prepare Full Collection (Zip){' '}
                   {downloadSize !== null && `(~${formatBytes(downloadSize)})`}
                 </CTAButton>
 
                 <CTAButton
-                  onClick={() => setStep('download_parts')}
+                  onClick={() => setStep('download_parts' as DownloadStep)}
                   className='w-full'
                   disabled={segments.length <= 1}
                 >
@@ -167,32 +156,155 @@ const DownloadContent = ({ collection }: Props) => {
 
       {/* Step 3: Stream Flow */}
       {step === 'download_stream' && (
-        <div className='flex flex-col items-center justify-center space-y-6 text-center py-10'>
+        <div className='flex flex-col items-center justify-center gap-5 text-center py-8 min-h-[22rem]'>
           {isPreparingStream ? (
             <>
               <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
-              <p className='text-lg font-semibold'>Processing Request...</p>
-              <p className='text-sm text-gray-500'>
-                This might take a few moments for large collections.
-              </p>
+              <span className='block text-2xl font-semibold leading-tight text-copy'>
+                Preparing your ZIP...
+              </span>
+              {streamProgress && (
+                <div className='w-full max-w-sm space-y-3'>
+                  <Progress value={streamProgress.percent} className='w-full' />
+                  <div className='flex flex-col gap-1 text-[0.95rem] leading-relaxed text-gray-500'>
+                    <span className='block'>
+                      {streamProgress.processedImages} of{' '}
+                      {streamProgress.totalImages} images processed (
+                      {streamProgress.percent}%)
+                    </span>
+                    <span className='block'>
+                      {streamProgress.addedImages} added,{' '}
+                      {streamProgress.failedImages} skipped or failed
+                    </span>
+                  </div>
+                </div>
+              )}
+              <span className='block max-w-sm text-[0.95rem] leading-relaxed text-gray-500'>
+                We&apos;re still pulling files into the archive. Large
+                collections can take a little while before the ZIP is ready to
+                hand off to your browser.
+              </span>
             </>
-          ) : (
+          ) : isPackingStream ? (
+            <>
+              <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
+              <span className='block text-2xl font-semibold leading-tight text-copy'>
+                Packing your ZIP...
+              </span>
+              {streamProgress && (
+                <div className='w-full max-w-sm space-y-3'>
+                  <Progress value={streamProgress.percent} className='w-full' />
+                  <div className='flex flex-col gap-1 text-[0.95rem] leading-relaxed text-gray-500'>
+                    <span className='block'>
+                      {streamProgress.packedImages} of{' '}
+                      {streamProgress.addedImages} files packed into the ZIP (
+                      {streamProgress.percent}%)
+                    </span>
+                    <span className='block'>
+                      {streamProgress.failedImages} skipped or failed during
+                      fetch
+                    </span>
+                  </div>
+                </div>
+              )}
+              <span className='block max-w-sm text-[0.95rem] leading-relaxed text-gray-500'>
+                The files have been fetched. We&apos;re writing them into the ZIP
+                so the finished archive can be validated before download.
+              </span>
+            </>
+          ) : isFinalizingStream ? (
+            <>
+              <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
+              <span className='block text-2xl font-semibold leading-tight text-copy'>
+                Finalizing your ZIP...
+              </span>
+              {streamProgress && (
+                <div className='w-full max-w-sm space-y-3'>
+                  <Progress value={100} className='w-full' />
+                  <div className='flex flex-col gap-1 text-[0.95rem] leading-relaxed text-gray-500'>
+                    <span className='block'>
+                      {streamProgress.addedImages} files added to the archive
+                    </span>
+                    <span className='block'>
+                      Sealing the ZIP and saving the finished file before the
+                      browser download starts.
+                    </span>
+                  </div>
+                </div>
+              )}
+              <span className='block max-w-sm text-[0.95rem] leading-relaxed text-gray-500'>
+                The image streams are already in. We&apos;re closing the archive
+                and making sure the finished ZIP is safe to download.
+              </span>
+            </>
+          ) : isStartingStream ? (
+            <>
+              <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
+              <span className='block text-2xl font-semibold leading-tight text-copy'>
+                ZIP ready. Starting download...
+              </span>
+              <span className='block max-w-sm text-[0.95rem] leading-relaxed text-gray-500'>
+                Your browser download will begin as soon as the prepared file is
+                handed off.
+              </span>
+            </>
+          ) : hasStartedStream ? (
             <>
               <div className='h-16 w-16 bg-green-500/20 rounded-full flex items-center justify-center text-green-500 text-3xl'>
                 <HiOutlineCheck />
               </div>
-              <p className='text-lg font-semibold'>File Retrieved!</p>
-              <p className='text-sm text-gray-500'>
+              <span className='block text-2xl font-semibold leading-tight text-copy'>
+                Download started
+              </span>
+              <span className='block max-w-sm text-[0.95rem] leading-relaxed text-gray-500'>
                 Your download{' '}
                 {downloadSize !== null && `(~${formatBytes(downloadSize)}) `}has
-                been prepared and sent to your browser.
-              </p>
+                been prepared and handed off to your browser.
+              </span>
               <button
-                onClick={() => setStep('download_parts')}
+                onClick={handleFullDownload}
                 className='text-primary hover:underline text-sm mt-4'
               >
-                Having trouble? Download via Browser
+                Start the download again
               </button>
+              <button
+                onClick={() => setStep('download_parts' as DownloadStep)}
+                className='text-primary hover:underline text-sm'
+              >
+                Having trouble? Download in parts instead
+              </button>
+            </>
+          ) : hasFailedStream ? (
+            <>
+              <div className='h-16 w-16 bg-red-500/15 rounded-full flex items-center justify-center text-red-500 text-3xl'>
+                <HiOutlineXCircle />
+              </div>
+              <span className='block text-2xl font-semibold leading-tight text-copy'>
+                Download preparation failed
+              </span>
+              <span className='block max-w-sm text-[0.95rem] leading-relaxed text-gray-500'>
+                {streamError ||
+                  'We could not prepare a valid ZIP for this collection.'}
+              </span>
+              <button
+                onClick={handleFullDownload}
+                className='text-primary hover:underline text-sm mt-4'
+              >
+                Try preparing the ZIP again
+              </button>
+              <button
+                onClick={() => setStep('download_parts' as DownloadStep)}
+                className='text-primary hover:underline text-sm'
+              >
+                Or download in parts
+              </button>
+            </>
+          ) : (
+            <>
+              <div className='animate-spin rounded-full h-12 w-12 border-b-2 border-primary'></div>
+              <span className='block text-2xl font-semibold leading-tight text-copy'>
+                Preparing your ZIP...
+              </span>
             </>
           )}
         </div>
