@@ -34,9 +34,17 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   const getLerpForViewport = () => {
     const width = window.innerWidth;
 
-    if (width < 768) return 0.1;
+    if (width < 768) return 0.14;
     if (width < 1024) return 0.08;
     return 0.05;
+  };
+
+  const getTouchMultiplierForViewport = () => {
+    const width = window.innerWidth;
+
+    if (width < 768) return 4;
+    if (width < 1024) return 3.5;
+    return 3;
   };
 
   const initializeScroll = async () => {
@@ -52,7 +60,7 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
       reloadOnContextChange: true,
       tablet: { smooth: true, breakpoint: 1024 },
       smartphone: { smooth: true },
-      touchMultiplier: 3,
+      touchMultiplier: getTouchMultiplierForViewport(),
     });
 
     scrollRef.current = scroll;
