@@ -42,7 +42,7 @@ export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   const getTouchMultiplierForViewport = () => {
     const width = window.innerWidth;
 
-    if (width < 768) return 4;
+    if (width < 768) return 3.25;
     if (width < 1024) return 3.5;
     return 3;
   };
