@@ -19,26 +19,11 @@ const ContactForm = () => {
 
   const [token, setToken] = useState('');
 
-  const checkRateLimit = async (id: string): Promise<boolean> => {
-    const response = await fetch(`/api/rateLimit?id=${id}`, {
-      method: 'GET',
-    });
-    if (!response.ok) {
-      const { message } = await response.json();
-      console.log('Rate limit status:', response.status, message);
-      show(message, { status: 'error', autoClose: false });
-      return false;
-    }
-    return true;
-  };
-
   const handleSubmit = async () => {
     if (!token) {
-      show('Please verify you are human', { status: 'error' });
+      show('Please complete the quick human check.', { status: 'error' });
       return;
     }
-
-    if (!(await checkRateLimit('contact'))) return;
 
     const response = await fetch('/api/contact', {
       method: 'POST',
@@ -47,15 +32,20 @@ const ContactForm = () => {
       },
       body: JSON.stringify({ ...state, token }),
     });
+    const data = await response.json().catch(() => null);
 
-    if (response.status === 200) {
+    if (response.ok) {
       show('Your Message was delivered successfully!', {
         status: 'success',
       });
     } else {
-      show('An error occurred while delivering your Message!', {
-        status: 'error',
-      });
+      show(
+        data?.message ?? 'An error occurred while delivering your Message!',
+        {
+          status: 'error',
+          autoClose: response.status === 429 ? false : undefined,
+        },
+      );
     }
   };
 
