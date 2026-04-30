@@ -146,6 +146,23 @@ export const getTeamMembers = `*[_type == "team"]
   socials
 }`;
 
+export const getActiveAnnouncementBar = `*[_type == "announcementBar"][0]{
+  enabled,
+  "items": items[
+    enabled == true &&
+    (!defined(startsAt) || dateTime(startsAt) <= dateTime(now())) &&
+    defined(endsAt) &&
+    dateTime(endsAt) > dateTime(now())
+  ][0...3]{
+    _key,
+    message,
+    linkLabel,
+    linkUrl,
+    startsAt,
+    endsAt
+  }
+}`;
+
 // ─── Booking Queries ──────────────────────────────────────────────────────────
 
 /**

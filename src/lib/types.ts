@@ -105,6 +105,20 @@ export type TEAM_MEMBER = {
 
 export type TOAST_STATUS = 'success' | 'error' | 'info' | 'warning';
 
+export type AnnouncementItem = {
+  _key: string;
+  message: string;
+  linkLabel?: string;
+  linkUrl?: string;
+  startsAt?: string;
+  endsAt: string;
+};
+
+export type AnnouncementBarData = {
+  enabled: boolean;
+  items: AnnouncementItem[];
+};
+
 export type Tag =
   | 'main'
   | 'div'
