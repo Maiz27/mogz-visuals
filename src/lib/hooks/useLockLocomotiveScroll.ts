@@ -1,8 +1,9 @@
 import { useEffect } from 'react';
-import { useScroll } from '@/lib/context/scrollContext';
+import { useOptionalScroll } from '@/lib/context/scrollContext';
 
 const useLockLocomotiveScroll = (isLocked: boolean) => {
-  const { scrollInstance } = useScroll();
+  const scroll = useOptionalScroll();
+  const scrollInstance = scroll?.scrollInstance;
 
   useEffect(() => {
     if (scrollInstance) {

@@ -1,5 +1,6 @@
 import type { Viewport } from 'next';
 import JsonLD from '@/components/SEO/JsonLD';
+import AnnouncementBar from '@/components/announcement/AnnouncementBar';
 import { IsClientCtxProvider } from '@/lib/context/IsClientContext';
 import { ToastProvider } from '@/lib/context/ToastContext';
 
@@ -14,6 +15,8 @@ export const viewport: Viewport = {
   themeColor: { media: '(prefers-color-scheme: dark)', color: '#fbc681' },
 };
 
+export const revalidate = 60;
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -25,6 +28,7 @@ export default function RootLayout({
         <JsonLD />
       </head>
       <body>
+        <AnnouncementBar />
         <IsClientCtxProvider>
           <ToastProvider>{children}</ToastProvider>
         </IsClientCtxProvider>

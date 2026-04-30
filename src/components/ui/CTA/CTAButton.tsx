@@ -1,5 +1,5 @@
 'use client';
-import { useScroll } from '@/lib/context/scrollContext';
+import { useOptionalScroll } from '@/lib/context/scrollContext';
 import { MouseEventHandler, ReactNode } from 'react';
 
 type ButtonProps = {
@@ -26,7 +26,7 @@ const CTAButton = (props: ButtonProps) => {
     disabled = false,
     onClick,
   } = props;
-  const { scrollToSection } = useScroll();
+  const scroll = useOptionalScroll();
 
   const commonProps = {
     className: `${getStyles(
@@ -37,7 +37,7 @@ const CTAButton = (props: ButtonProps) => {
 
   if (scrollId) {
     const handleScroll = () => {
-      scrollToSection(`#${scrollId}`);
+      scroll?.scrollToSection(`#${scrollId}`);
     };
 
     return (

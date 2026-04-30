@@ -67,6 +67,37 @@ body {
   @apply bg-background text-copy;
 }
 
+@keyframes announcement-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.announcement-marquee {
+  animation: announcement-marquee 38s linear infinite;
+}
+
+.announcement-marquee:hover,
+.announcement-marquee:focus-within {
+  animation-play-state: paused;
+}
+
+@media (max-width: 767px) {
+  .announcement-marquee {
+    animation-duration: 46s;
+  }
+}
+
+/* @media (prefers-reduced-motion: reduce) {
+  .announcement-marquee {
+    animation: none;
+    transform: none;
+  }
+} */
+
 h1,
 h2,
 h3,

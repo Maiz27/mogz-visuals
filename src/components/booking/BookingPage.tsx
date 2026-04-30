@@ -127,7 +127,7 @@ export default function BookingPage() {
       <div className='relative flex flex-col'>
         <LocomotiveScrollSection
           id='booking-spacer'
-          className='h-20 md:h-32 w-full shrink-0'
+          className='h-[calc(5rem+var(--announcement-height,0px))] md:h-[calc(8rem+var(--announcement-height,0px))] w-full shrink-0'
           aria-hidden='true'
         />
 

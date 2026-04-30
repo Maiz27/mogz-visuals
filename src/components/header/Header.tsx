@@ -8,7 +8,10 @@ const Header = () => {
   return (
     <>
       <LocomotiveScrollSection id='top' />
-      <LocomotiveScrollSection Tag='header' className='w-full fixed top-0 z-99'>
+      <LocomotiveScrollSection
+        Tag='header'
+        className='w-full fixed top-[var(--announcement-height,0px)] z-99'
+      >
         <div className='bg-transparent p-4 flex items-center justify-between'>
           <Logo />
 

@@ -7,7 +7,6 @@ import {
   useEffect,
   useRef,
   useState,
-  useCallback,
 } from 'react';
 
 type ScrollContextValue = {
@@ -23,6 +22,10 @@ export const useScroll = (): ScrollContextValue => {
     throw new Error('useScroll must be used within a ScrollProvider');
   }
   return context;
+};
+
+export const useOptionalScroll = (): ScrollContextValue | null => {
+  return useContext(ScrollContext);
 };
 
 export const ScrollProvider = ({ children }: { children: ReactNode }) => {
