@@ -24,32 +24,53 @@ export const useScroll = (): ScrollContextValue => {
   return context;
 };
 
+export const useOptionalScroll = (): ScrollContextValue | null => {
+  return useContext(ScrollContext);
+};
+
 export const ScrollProvider = ({ children }: { children: ReactNode }) => {
   const scrollRef = useRef<LocomotiveScroll | null>(null);
   const [scrollInstance, setScrollInstance] =
     useState<LocomotiveScroll | null>(null);
   const pathname = usePathname();
 
+  const getLerpForViewport = () => {
+    const width = window.innerWidth;
+
+    if (width < 768) return 0.14;
+    if (width < 1024) return 0.08;
+    return 0.05;
+  };
+
+  const getTouchMultiplierForViewport = () => {
+    const width = window.innerWidth;
+
+    if (width < 768) return 3.25;
+    if (width < 1024) return 3.5;
+    return 3;
+  };
+
+  const initializeScroll = async () => {
+    if (scrollRef.current) {
+      scrollRef.current.destroy();
+    }
+
+    const LocomotiveScroll = (await import('locomotive-scroll')).default;
+    const scroll = new LocomotiveScroll({
+      el: document.querySelector('[data-scroll-container]') as HTMLElement,
+      lerp: getLerpForViewport(),
+      smooth: true,
+      reloadOnContextChange: true,
+      tablet: { smooth: true, breakpoint: 1024 },
+      smartphone: { smooth: true },
+      touchMultiplier: getTouchMultiplierForViewport(),
+    });
+
+    scrollRef.current = scroll;
+    setScrollInstance(scroll);
+  };
+
   useEffect(() => {
-    const initializeScroll = async () => {
-      if (scrollRef.current) {
-        scrollRef.current.destroy();
-      }
-
-      const LocomotiveScroll = (await import('locomotive-scroll')).default;
-      const scroll = new LocomotiveScroll({
-        el: document.querySelector('[data-scroll-container]') as HTMLElement,
-        lerp: 0.05,
-        smooth: true,
-        reloadOnContextChange: true,
-        smartphone: { smooth: true },
-        touchMultiplier: 3,
-      });
-
-      scrollRef.current = scroll;
-      setScrollInstance(scroll);
-    };
-
     initializeScroll();
 
     return () => {

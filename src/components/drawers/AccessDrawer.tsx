@@ -1,7 +1,7 @@
 'use client';
 
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { FormEvent, useState } from 'react';
+import { FormEvent, useEffect } from 'react';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import AccessCollectionForm from '@/components/forms/AccessCollectionForm';
 import useFormState from '@/lib/hooks/useFormState';
@@ -28,12 +28,18 @@ const AccessContent = ({ onClose, collection }: Props) => {
     rules,
   );
 
-  const { response, loading, handleVerifyAccess } = useVerifyAccess();
-  const [token, setToken] = useState('');
+  const { response, loading, token, setToken, handleVerifyAccess, reset: resetAccessStore } =
+    useVerifyAccess();
+
+  useEffect(() => {
+    return () => {
+      resetAccessStore();
+    };
+  }, [resetAccessStore]);
 
   const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    const response = await handleVerifyAccess(state, token);
+    const response = await handleVerifyAccess(state);
 
     if (response.status === 200) {
       setCollectionAccessCookie(response.secret);
@@ -42,6 +48,7 @@ const AccessContent = ({ onClose, collection }: Props) => {
       await new Promise((resolve) => setTimeout(resolve, 100));
 
       reset();
+      resetAccessStore();
       onClose(); // Close drawer first
       if (id && pathname === '/private') {
         window.location.reload();

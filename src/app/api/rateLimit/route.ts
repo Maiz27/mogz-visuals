@@ -1,87 +1,75 @@
-import Redis from 'ioredis';
 import { NextRequest, NextResponse } from 'next/server';
+import {
+  enforceRateLimitRules,
+  getClientIp,
+  parseRateLimitNumber,
+} from '@/lib/server/rateLimit';
+import { createRateLimitedResponse } from '@/lib/server/request';
 
-let redisClient: Redis | null = null;
-
-if (
-  process.env.NODE_ENV !== 'development' &&
-  process.env.REDIS_ENABLED === 'true'
-) {
-  redisClient = new Redis(process.env.REDIS_URL!);
-}
-
-const limitFull = parseInt(process.env.RATE_LIMIT!) || 5;
-const limitPartialPerCollection =
-  parseInt(process.env.RATE_LIMIT_PARTIAL_PER_COLLECTION!) || 15;
-const windowMs =
-  parseInt(process.env.RATE_LIMIT_WINDOW!) || 60 * 60 * 1000 * 2; // 2 hours
+const DOWNLOAD_ALL_LIMIT = parseRateLimitNumber(
+  process.env.DOWNLOAD_ALL_RATE_LIMIT ?? process.env.RATE_LIMIT,
+  5,
+);
+const DOWNLOAD_PART_LIMIT = parseRateLimitNumber(
+  process.env.DOWNLOAD_PART_RATE_LIMIT_PER_COLLECTION ??
+    process.env.RATE_LIMIT_PARTIAL_PER_COLLECTION,
+  15,
+);
+const DOWNLOAD_WINDOW_MS = parseRateLimitNumber(
+  process.env.DOWNLOAD_LEGACY_RATE_LIMIT_WINDOW ??
+    process.env.RATE_LIMIT_WINDOW,
+  2 * 60 * 60 * 1000,
+);
 
 export async function GET(req: NextRequest) {
-  if (req.method !== 'GET') {
-    return NextResponse.json(
-      { message: 'Method not allowed', status: 405 },
-      { status: 405 }
-    );
-  }
+  const id = req.nextUrl.searchParams.get('id');
+  const collectionId = req.nextUrl.searchParams.get('collectionId');
+  const ipAddress = getClientIp(req);
 
-  if (!redisClient) {
+  const rule =
+    id === 'download-all'
+      ? {
+          keyParts: ['download', 'all', 'ip', ipAddress],
+          limit: DOWNLOAD_ALL_LIMIT,
+          windowMs: DOWNLOAD_WINDOW_MS,
+          message:
+            'Too many full collection download attempts. Please try again later.',
+        }
+      : id === 'download-part' && collectionId
+        ? {
+            keyParts: ['download', 'part', collectionId, 'ip', ipAddress],
+            limit: DOWNLOAD_PART_LIMIT,
+            windowMs: DOWNLOAD_WINDOW_MS,
+            message:
+              'Too many part download attempts for this collection. Please try again later.',
+          }
+        : null;
+
+  if (!rule) {
     return NextResponse.json(
-      { message: 'Success (Redis not enabled)', status: 200 },
-      { status: 200 }
+      { message: 'Invalid request parameters', status: 400 },
+      { status: 400 },
     );
   }
 
   try {
-    const id = req.nextUrl.searchParams.get('id');
-    const collectionId = req.nextUrl.searchParams.get('collectionId');
-    let limit: number;
-    let keyParts: (string | null)[];
-
-    if (id === 'download-all') {
-      limit = limitFull;
-      keyParts = [id];
-    } else if (id === 'download-part' && collectionId) {
-      limit = limitPartialPerCollection;
-      keyParts = [id, collectionId];
-    } else {
-      return NextResponse.json(
-        { message: 'Invalid request parameters', status: 400 },
-        { status: 400 }
-      );
+    const result = await enforceRateLimitRules([rule]);
+    if (!result.ok) {
+      return createRateLimitedResponse(result);
     }
 
-    const { message, status } = await rateLimit(req, keyParts, limit);
-    return NextResponse.json({ message, status }, { status });
+    return NextResponse.json(
+      { message: 'Success', status: 200 },
+      { status: 200 },
+    );
   } catch (error) {
     console.error('Rate limiting error:', error);
-    return NextResponse.json({
-      message: 'Internal server error',
-      status: 500,
-    });
+    return NextResponse.json(
+      {
+        message: 'Internal server error',
+        status: 500,
+      },
+      { status: 500 },
+    );
   }
 }
-
-const rateLimit = async (
-  req: NextRequest,
-  keyParts: (string | null)[],
-  limit: number
-) => {
-  const ipAddress = req.headers.get('x-forwarded-for') || '127.0.0.1';
-  const key = `rateLimit:${keyParts.join(':')}:${ipAddress}`;
-
-  if (!redisClient) {
-    return { message: 'Success (Redis not configured)', status: 200 };
-  }
-  const currentCount = await redisClient.get(key);
-
-  if (currentCount && parseInt(currentCount) >= limit) {
-    return { message: 'Rate limit exceeded', status: 429 };
-  }
-
-  const pipeline = redisClient.pipeline();
-  pipeline.incr(key);
-  pipeline.pexpire(key, windowMs); // pexpire takes milliseconds
-  await pipeline.exec();
-
-  return { message: 'Success', status: 200 };
-};
