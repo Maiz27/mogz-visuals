@@ -137,6 +137,16 @@ export default function Step5_Contact() {
                 >
                   Terms &amp; Conditions
                 </Link>{' '}
+                and{' '}
+                <Link
+                  href='/privacy-policy'
+                  target='_blank'
+                  className='text-white border-b border-white/20 pb-0.5 hover:text-primary hover:border-primary transition-colors'
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  Privacy Policy
+                </Link>
+                ,{' '}
                 and understand the deposit policy (50% required to confirm
                 booking).
               </span>
