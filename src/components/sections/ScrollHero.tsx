@@ -45,7 +45,7 @@ const ScrollHero = async () => {
           </div>
         ))}
       </div>
-      <div className='w-full px-4 z-20 flex flex-col items-center space-y-8 absolute left-1/2 top-[30%] lg:top-[20%] 2xl:top-[15%] -translate-x-1/2 -translate-y-1/2 text-center'>
+      <div className='w-full h-dvh px-4 pt-[calc(var(--announcement-height,0px)+5rem)] pb-20 z-20 flex flex-col justify-center items-center space-y-8 absolute left-0 top-0 text-center'>
         <h1 className='text-4xl xl:text-5xl 2xl:text-6xl font-black'>{`Capturing Life's Moments, Frame by Frame`}</h1>
         <p className=' max-w-4xl text-center'>
           At <span className='text-primary font-black'>Mogz Visuals</span>, we
@@ -65,7 +65,7 @@ const ScrollHero = async () => {
           title='Scroll Down'
           scrollId='immersive-about'
           style='ghost'
-          className='text-3xl absolute left-1/2 -translate-x-1/2 -bottom-[18%] md:-bottom-[50%] lg:-bottom-[80%] xl:-bottom-2/3 2xl:-bottom-[50%] animate-bounce'
+          className='text-3xl absolute left-1/2 -translate-x-1/2 bottom-6 animate-bounce'
         >
           <HiOutlineChevronDoubleDown />
         </CTAButton>
