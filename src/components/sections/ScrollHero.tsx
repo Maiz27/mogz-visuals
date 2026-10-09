@@ -19,7 +19,7 @@ const ScrollHero = async () => {
       className='w-full h-[180vmax] relative overflow-hidden'
       id='heroGrid'
     >
-      <div className='w-[150%] pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[22.5deg] flex justify-center items-center'>
+      <div className='hero-grid w-[150%] pointer-events-none absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 -rotate-[22.5deg] flex justify-center items-center'>
         {arrays.map((list, index) => (
           <div
             key={index}
