@@ -260,8 +260,9 @@ export const TransitionProvider = ({ children }: { children: ReactNode }) => {
       }
       if (!kind || busy.current || prefersReducedMotion()) {
         // A newer navigation wins: an in-flight transition must not push its
-        // older destination afterwards (e.g. two keyboard activations).
-        if (busy.current) generation.current += 1;
+        // older destination afterwards (e.g. two keyboard activations), and
+        // must reveal now even if this route doesn't change the pathname.
+        if (busy.current) supersede();
         router.push(href);
         return;
       }
@@ -276,7 +277,7 @@ export const TransitionProvider = ({ children }: { children: ReactNode }) => {
       }
       void runCover(href);
     },
-    [router, runMorph, runCover],
+    [router, runMorph, runCover, supersede],
   );
 
   return (
