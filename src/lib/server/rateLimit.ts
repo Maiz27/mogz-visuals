@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { isIP } from 'net';
 import type { NextRequest } from 'next/server';
 import Redis from 'ioredis';
 
@@ -68,8 +69,11 @@ export const parseRateLimitNumber = (
 };
 
 export const getClientIp = (req: Pick<NextRequest, 'headers'>) => {
+  // Cloudflare sets this and overwrites any value the visitor sent, so it is
+  // trustworthy only while the origin is reachable through Cloudflare alone.
+  // A value that isn't an IP address was not set by Cloudflare: ignore it.
   const cfConnectingIp = req.headers.get('cf-connecting-ip')?.trim();
-  if (cfConnectingIp) {
+  if (cfConnectingIp && isIP(cfConnectingIp)) {
     return cfConnectingIp;
   }
 
