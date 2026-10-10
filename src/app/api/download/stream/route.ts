@@ -7,7 +7,7 @@ import {
 import {
   getDownloadGalleryBySlug,
   getDownloadGalleryById,
-  isPublicCollectionBySlug,
+  isPublicCollectionById,
 } from '@/lib/sanity/queries';
 import fs from 'fs';
 import path from 'path';
@@ -63,6 +63,8 @@ type ArchiveCleanup = {
 
 type PreparedArchive = {
   cacheKey: string;
+  // The Sanity document a public archive was built from; null when private.
+  documentId: string | null;
   downloadName: string;
   responsePath: string;
   size: number;
@@ -80,6 +82,8 @@ type PreparedDownloadTokenPayload = {
   collectionId: string;
   slug: string;
   isPrivate: boolean;
+  // Public archives only: the exact document whose visibility is rechecked.
+  documentId?: string;
   expiresAt: number;
 };
 
@@ -622,6 +626,7 @@ const getCollectionDownloadData = async ({
 }: Pick<DownloadParams, 'collectionId' | 'slug' | 'isPrivate'>) => {
   let title = 'Collection';
   let items: DownloadItem[] = [];
+  let documentId: string | null = null;
 
   if (isPrivate) {
     const data = await fetchSanityData(getDownloadGalleryById, {
@@ -636,6 +641,7 @@ const getCollectionDownloadData = async ({
     if (data) {
       items = data.gallery || [];
       title = data.title || 'Collection';
+      documentId = data._id || null;
     }
   }
 
@@ -643,7 +649,7 @@ const getCollectionDownloadData = async ({
     throw new DownloadHttpError(404, 'Collection not found or empty');
   }
 
-  return { title, items };
+  return { title, items, documentId };
 };
 
 const maybeScheduleCleanup = (dir: string) => {
@@ -667,7 +673,7 @@ const prepareArchive = async ({
   onProgress?: PrepareProgressReporter;
 }): Promise<PreparedArchive> => {
   validateIdentifiers({ collectionId, slug, isPrivate });
-  const { title, items } = await getCollectionDownloadData({
+  const { title, items, documentId } = await getCollectionDownloadData({
     collectionId,
     slug,
     isPrivate,
@@ -694,6 +700,7 @@ const prepareArchive = async ({
       );
       return {
         cacheKey,
+        documentId,
         downloadName,
         responsePath: tempFilePath,
         size: stats.size,
@@ -727,6 +734,7 @@ const prepareArchive = async ({
       const stats = fs.statSync(tempFilePath);
       return {
         cacheKey,
+        documentId,
         downloadName,
         responsePath: tempFilePath,
         size: stats.size,
@@ -743,6 +751,7 @@ const prepareArchive = async ({
     deferredCleanup = true;
     return {
       cacheKey,
+      documentId,
       downloadName,
       responsePath: uniqueGenPath,
       size: stats.size,
@@ -770,6 +779,7 @@ const createPrepareReadyPayload = (
     collectionId: params.collectionId,
     slug: params.slug,
     isPrivate: params.isPrivate,
+    ...(archive.documentId ? { documentId: archive.documentId } : {}),
     expiresAt: Date.now() + ONE_HOUR,
   });
 
@@ -954,10 +964,16 @@ async function handlePreparedTokenDownload(req: NextRequest, token: string) {
   } else {
     // The token records visibility at preparation time. If the collection has
     // since been made private, a cached public archive must not be served.
-    const stillPublic = await fetchSanityDataUncached(
-      isPublicCollectionBySlug,
-      { slug: payload.slug },
-    );
+    // Checked by document ID: the slug may now belong to another collection.
+    if (!payload.documentId) {
+      throw new DownloadHttpError(
+        410,
+        'Prepared download is no longer available. Please prepare it again.',
+      );
+    }
+    const stillPublic = await fetchSanityDataUncached(isPublicCollectionById, {
+      documentId: payload.documentId,
+    });
     if (stillPublic !== true) {
       throw new DownloadHttpError(404, 'Collection not found.');
     }
@@ -975,6 +991,16 @@ async function handlePreparedTokenDownload(req: NextRequest, token: string) {
     signal: req.signal,
     requirePersistentFile: false,
   });
+  // Rebuilt by slug: refuse if the slug now resolves to a different collection.
+  if (!payload.isPrivate && archive.documentId !== payload.documentId) {
+    if (archive.cleanup) {
+      await cleanupGeneratedArchive(
+        archive.cleanup.filePath,
+        archive.cleanup.dirPath,
+      );
+    }
+    throw new DownloadHttpError(404, 'Collection not found.');
+  }
 
   return createZipResponse(
     archive.responsePath,

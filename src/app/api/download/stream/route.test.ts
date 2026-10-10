@@ -411,6 +411,7 @@ describe('/api/download/stream prepare flow', () => {
 
   it('serves the prepared token download from cache without refetching collection data', async () => {
     mockFetchSanity.mockResolvedValue({
+      _id: 'doc-prepared',
       title: 'Prepared Collection',
       gallery: [{ url: 'http://cdn.sanity.io/img1.jpg', size: 100 }],
     });
@@ -441,6 +442,7 @@ describe('/api/download/stream prepare flow', () => {
 
   it('stops serving a cached public archive once the collection is made private', async () => {
     mockFetchSanity.mockResolvedValue({
+      _id: 'doc-soon-private',
       title: 'Soon Private',
       gallery: [{ url: 'http://cdn.sanity.io/img1.jpg', size: 100 }],
     });
@@ -467,6 +469,49 @@ describe('/api/download/stream prepare flow', () => {
 
     expect(downloadRes.status).toBe(404);
     expect(downloadRes.headers.get('content-type')).not.toBe('application/zip');
+    // Rechecked by the exact document, not by a slug that could be reassigned.
+    expect(fetchSanityDataUncached).toHaveBeenLastCalledWith(expect.any(String), {
+      documentId: 'doc-soon-private',
+    });
+  });
+
+  it('refuses to rebuild a public archive once its slug belongs to another collection', async () => {
+    mockFetchSanity.mockResolvedValue({
+      _id: 'doc-a',
+      title: 'Collection A',
+      gallery: [{ url: 'http://cdn.sanity.io/a.jpg', size: 100 }],
+    });
+
+    const formData = new FormData();
+    formData.append('slug', 'shared-slug');
+    const ready = (
+      await readPrepareEvents(
+        await POST(
+          new NextRequest('http://localhost/api/download/stream', {
+            method: 'POST',
+            body: formData,
+          }),
+        ),
+      )
+    ).find((event) => event.state === 'ready');
+    expect(ready?.state).toBe('ready');
+
+    // The cached file is gone, and the slug now resolves to collection B.
+    existingPaths.clear();
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      body: Readable.from(Buffer.from('collection b image')),
+    } as any);
+    mockFetchSanity.mockResolvedValue({
+      _id: 'doc-b',
+      title: 'Collection B',
+      gallery: [{ url: 'http://cdn.sanity.io/b.jpg', size: 100 }],
+    });
+
+    const downloadRes = await GET(
+      new NextRequest(`http://localhost${ready?.downloadUrl}`),
+    );
+    expect(downloadRes.status).toBe(404);
   });
 
   it('keeps prepared private downloads behind auth', async () => {
