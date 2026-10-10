@@ -10,7 +10,8 @@ import path from 'path';
 import os from 'os';
 import CryptoJS from 'crypto-js';
 import { Readable } from 'stream';
-import { ENCRYPTION_KEY } from '@/lib/env';
+import { readCollectionAccess } from '@/lib/server/collectionAccess';
+import { signToken, verifyToken } from '@/lib/server/signedToken';
 import {
   enforceRateLimitRules,
   getClientIp,
@@ -25,6 +26,7 @@ import type {
 const ONE_HOUR = 3600000;
 const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
 const CACHE_VERSION = 'v2';
+const PREPARED_DOWNLOAD_TOKEN_PURPOSE = 'download-prepared';
 const DOWNLOAD_STREAM_RATE_LIMIT = parseRateLimitNumber(
   process.env.DOWNLOAD_STREAM_RATE_LIMIT,
   3,
@@ -39,10 +41,13 @@ type DownloadItem = {
   size: number;
 };
 
+/**
+ * Downloads are gated on collection access, never on an email address — the
+ * endpoint neither requires nor accepts one.
+ */
 type DownloadParams = {
   collectionId: string;
   slug: string;
-  email: string;
   isPrivate: boolean;
   token: string;
 };
@@ -190,7 +195,6 @@ const waitForReadableToFinish = (stream: Readable) =>
 async function extractDownloadParams(req: NextRequest) {
   let collectionId = '';
   let slug = '';
-  let email = '';
   let isPrivate = false;
   let token = '';
 
@@ -198,18 +202,16 @@ async function extractDownloadParams(req: NextRequest) {
     const { searchParams } = req.nextUrl;
     collectionId = searchParams.get('collectionId') || '';
     slug = searchParams.get('slug') || '';
-    email = searchParams.get('email') || '';
     isPrivate = searchParams.get('isPrivate') === 'true';
     token = searchParams.get('token') || '';
   } else {
     const formData = await req.formData();
-    collectionId = formData.get('collectionId') as string;
-    slug = formData.get('slug') as string;
-    email = formData.get('email') as string;
+    collectionId = (formData.get('collectionId') as string) || '';
+    slug = (formData.get('slug') as string) || '';
     isPrivate = formData.get('isPrivate') === 'true';
   }
 
-  return { collectionId, slug, email, isPrivate, token } satisfies DownloadParams;
+  return { collectionId, slug, isPrivate, token } satisfies DownloadParams;
 }
 
 const sanitizeFilename = (title: string) =>
@@ -584,40 +586,29 @@ const validateIdentifiers = ({
 };
 
 const validatePrivateAccess = async (req: NextRequest, collectionId: string) => {
-  const token = req.cookies.get('collectionAccess')?.value;
-  if (!token) {
-    throw new DownloadHttpError(401, 'Unauthorized');
-  }
-
-  try {
-    const bytes = CryptoJS.AES.decrypt(token, ENCRYPTION_KEY);
-    const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-    if (decryptedData.uniqueId !== collectionId) {
-      throw new Error('Invalid token');
-    }
-  } catch {
+  if (!readCollectionAccess(req, collectionId).ok) {
     throw new DownloadHttpError(401, 'Unauthorized');
   }
 };
 
 const buildPreparedDownloadToken = (payload: PreparedDownloadTokenPayload) =>
-  CryptoJS.AES.encrypt(JSON.stringify(payload), ENCRYPTION_KEY).toString();
+  signToken(
+    PREPARED_DOWNLOAD_TOKEN_PURPOSE,
+    payload,
+    payload.expiresAt,
+  );
 
 const readPreparedDownloadToken = (token: string) => {
-  try {
-    const bytes = CryptoJS.AES.decrypt(token, ENCRYPTION_KEY);
-    const payload = JSON.parse(
-      bytes.toString(CryptoJS.enc.Utf8),
-    ) as PreparedDownloadTokenPayload;
+  const result = verifyToken<PreparedDownloadTokenPayload>(
+    PREPARED_DOWNLOAD_TOKEN_PURPOSE,
+    token,
+  );
 
-    if (!payload.cacheKey || !payload.downloadName || payload.expiresAt < Date.now()) {
-      return null;
-    }
-
-    return payload;
-  } catch {
+  if (!result.ok || !result.payload.cacheKey || !result.payload.downloadName) {
     return null;
   }
+
+  return result.payload;
 };
 
 const getCollectionDownloadData = async ({
@@ -843,12 +834,7 @@ const toErrorResponse = (error: any) => {
 
 async function handlePrepareDownload(req: NextRequest) {
   try {
-    const { collectionId, slug, email, isPrivate } =
-      await extractDownloadParams(req);
-
-    if (!email) {
-      throw new DownloadHttpError(400, 'Email required');
-    }
+    const { collectionId, slug, isPrivate } = await extractDownloadParams(req);
 
     validateIdentifiers({ collectionId, slug, isPrivate });
 
@@ -986,15 +972,11 @@ async function handlePreparedTokenDownload(req: NextRequest, token: string) {
 
 async function handleGetDownload(req: NextRequest) {
   try {
-    const { collectionId, slug, email, isPrivate, token } =
+    const { collectionId, slug, isPrivate, token } =
       await extractDownloadParams(req);
 
     if (token) {
       return await handlePreparedTokenDownload(req, token);
-    }
-
-    if (!email) {
-      throw new DownloadHttpError(400, 'Email required');
     }
 
     validateIdentifiers({ collectionId, slug, isPrivate });

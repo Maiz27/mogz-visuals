@@ -3,9 +3,9 @@ import { GET, POST } from './route';
 import { NextRequest } from 'next/server';
 import fs, { type PathLike } from 'fs';
 import { Readable } from 'stream';
-import CryptoJS from 'crypto-js';
 import type { DownloadPrepareEvent } from '@/lib/types';
 import { enforceRateLimitRules } from '@/lib/server/rateLimit';
+import { issueCollectionAccessToken } from '@/lib/server/collectionAccess';
 
 const existingPaths = new Set<string>();
 const normalizePathKey = (value: PathLike | string) => String(value).toLowerCase();
@@ -209,7 +209,12 @@ describe('/api/download/stream prepare flow', () => {
     vi.restoreAllMocks();
   });
 
-  it('validates the email requirement during prepare', async () => {
+  it('prepares a download with no email address at all', async () => {
+    mockFetchSanity.mockResolvedValue({
+      title: 'Collection A',
+      gallery: [{ url: 'http://cdn.sanity.io/img1.jpg', size: 100 }],
+    });
+
     const formData = new FormData();
     formData.append('slug', 'test-slug');
 
@@ -219,8 +224,22 @@ describe('/api/download/stream prepare flow', () => {
     });
 
     const res = await POST(req);
+
+    expect(res.status).toBe(200);
+    const events = await readPrepareEvents(res);
+    expect(events.at(-1)).toMatchObject({ state: 'ready' });
+  });
+
+  it('still requires a collection identifier', async () => {
+    const res = await POST(
+      new NextRequest('http://localhost/api/download/stream', {
+        method: 'POST',
+        body: new FormData(),
+      }),
+    );
+
     expect(res.status).toBe(400);
-    await expect(res.json()).resolves.toEqual({ message: 'Email required' });
+    await expect(res.json()).resolves.toEqual({ message: 'Missing identifier' });
   });
 
   it('returns 429 when download preparation is rate limited', async () => {
@@ -232,7 +251,6 @@ describe('/api/download/stream prepare flow', () => {
 
     const formData = new FormData();
     formData.append('slug', 'test-slug');
-    formData.append('email', 'test@test.com');
 
     const res = await POST(
       new NextRequest('http://localhost/api/download/stream', {
@@ -260,7 +278,6 @@ describe('/api/download/stream prepare flow', () => {
 
     const formData = new FormData();
     formData.append('slug', 'test-slug');
-    formData.append('email', 'test@test.com');
 
     const res = await POST(
       new NextRequest('http://localhost/api/download/stream', {
@@ -312,7 +329,6 @@ describe('/api/download/stream prepare flow', () => {
 
     const formData = new FormData();
     formData.append('slug', 'test-slug');
-    formData.append('email', 'test@test.com');
 
     const firstResponse = await POST(
       new NextRequest('http://localhost/api/download/stream', {
@@ -350,7 +366,6 @@ describe('/api/download/stream prepare flow', () => {
   it('generates different cache filenames for different content versions', async () => {
     const formData = new FormData();
     formData.append('slug', 'test-slug');
-    formData.append('email', 'test@test.com');
 
     mockFetchSanity.mockResolvedValueOnce({
       title: 'Collection A',
@@ -397,7 +412,6 @@ describe('/api/download/stream prepare flow', () => {
 
     const formData = new FormData();
     formData.append('slug', 'prepared-slug');
-    formData.append('email', 'test@test.com');
 
     const prepareRes = await POST(
       new NextRequest('http://localhost/api/download/stream', {
@@ -421,10 +435,7 @@ describe('/api/download/stream prepare flow', () => {
   });
 
   it('keeps prepared private downloads behind auth', async () => {
-    const accessToken = CryptoJS.AES.encrypt(
-      JSON.stringify({ uniqueId: 'private-1' }),
-      'test-key',
-    ).toString();
+    const { token: accessToken } = issueCollectionAccessToken('private-1');
 
     mockFetchSanity.mockResolvedValue({
       title: 'Private Collection',
@@ -433,7 +444,6 @@ describe('/api/download/stream prepare flow', () => {
 
     const formData = new FormData();
     formData.append('collectionId', 'private-1');
-    formData.append('email', 'test@test.com');
     formData.append('isPrivate', 'true');
 
     const prepareRes = await POST(
@@ -456,6 +466,57 @@ describe('/api/download/stream prepare flow', () => {
     await expect(unauthenticatedDownload.json()).resolves.toEqual({
       message: 'Unauthorized',
     });
+
+    const authenticatedDownload = await GET(
+      new NextRequest(`http://localhost${prepareBody?.downloadUrl}`, {
+        headers: { cookie: `collectionAccess=${accessToken}` },
+      }),
+    );
+
+    expect(authenticatedDownload.status).toBe(200);
+  });
+
+  it('refuses to prepare a private download without a scoped token', async () => {
+    mockFetchSanity.mockResolvedValue({
+      title: 'Private Collection',
+      gallery: [{ url: 'http://cdn.sanity.io/private.jpg', size: 100 }],
+    });
+
+    const formData = new FormData();
+    formData.append('collectionId', 'private-1');
+    formData.append('isPrivate', 'true');
+
+    const missing = await POST(
+      new NextRequest('http://localhost/api/download/stream', {
+        method: 'POST',
+        body: formData,
+      }),
+    );
+
+    expect(missing.status).toBe(401);
+
+    const wrongCollection = await POST(
+      new NextRequest('http://localhost/api/download/stream', {
+        method: 'POST',
+        body: formData,
+        headers: {
+          cookie: `collectionAccess=${issueCollectionAccessToken('private-2').token}`,
+        },
+      }),
+    );
+
+    expect(wrongCollection.status).toBe(401);
+    expect(mockFetchSanity).not.toHaveBeenCalled();
+  });
+
+  it('rejects a forged prepared download token', async () => {
+    const forged = await GET(
+      new NextRequest(
+        'http://localhost/api/download/stream?token=v1.eyJjYWNoZUtleSI6ImZha2UifQ.bm90LWEtc2lnbmF0dXJl',
+      ),
+    );
+
+    expect(forged.status).toBe(410);
   });
 
   it('retries cache promotion and still returns a ready response', async () => {
@@ -479,7 +540,6 @@ describe('/api/download/stream prepare flow', () => {
 
     const formData = new FormData();
     formData.append('slug', 'retry-slug');
-    formData.append('email', 'test@test.com');
 
     const res = await POST(
       new NextRequest('http://localhost/api/download/stream', {
@@ -504,7 +564,6 @@ describe('/api/download/stream prepare flow', () => {
 
     const formData = new FormData();
     formData.append('slug', 'broken-slug');
-    formData.append('email', 'test@test.com');
 
     const res = await POST(
       new NextRequest('http://localhost/api/download/stream', {
