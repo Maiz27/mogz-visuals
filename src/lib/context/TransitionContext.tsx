@@ -225,8 +225,11 @@ export const TransitionProvider = ({ children }: { children: ReactNode }) => {
 
       const transition = document.startViewTransition(async () => {
         sharedImage.style.viewTransitionName = '';
+        // Runs asynchronously: a newer navigation may already have taken over,
+        // and nothing would then end a wait for this route.
+        if (generation.current !== mine) return;
         const routed = waitForRoute(MORPH_ROUTE_TIMEOUT_MS, 'reject');
-        if (generation.current === mine) router.push(href);
+        router.push(href);
         // A slow route rejects here, which cancels the morph instead of
         // animating onto the page we're leaving; the route then lands as a cut.
         await routed;
