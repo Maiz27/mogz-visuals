@@ -12,6 +12,8 @@ const normalizePathKey = (value: PathLike | string) => String(value).toLowerCase
 
 vi.mock('@/lib/sanity/client', () => ({
   fetchSanityData: vi.fn(),
+  // Current visibility check for cached public archives: still public by default.
+  fetchSanityDataUncached: vi.fn(async () => true),
 }));
 
 vi.mock('@/lib/server/rateLimit', () => ({
@@ -154,7 +156,10 @@ vi.mock('fs', async (importOriginal) => {
   };
 });
 
-import { fetchSanityData } from '@/lib/sanity/client';
+import {
+  fetchSanityData,
+  fetchSanityDataUncached,
+} from '@/lib/sanity/client';
 
 const readPrepareEvents = async (
   response: Response,
@@ -432,6 +437,36 @@ describe('/api/download/stream prepare flow', () => {
     expect(downloadRes.status).toBe(200);
     expect(downloadRes.headers.get('content-type')).toBe('application/zip');
     expect(mockFetchSanity).not.toHaveBeenCalled();
+  });
+
+  it('stops serving a cached public archive once the collection is made private', async () => {
+    mockFetchSanity.mockResolvedValue({
+      title: 'Soon Private',
+      gallery: [{ url: 'http://cdn.sanity.io/img1.jpg', size: 100 }],
+    });
+
+    const formData = new FormData();
+    formData.append('slug', 'soon-private');
+    const prepareEvents = await readPrepareEvents(
+      await POST(
+        new NextRequest('http://localhost/api/download/stream', {
+          method: 'POST',
+          body: formData,
+        }),
+      ),
+    );
+    const ready = prepareEvents.find((event) => event.state === 'ready');
+    expect(ready?.state).toBe('ready');
+
+    // An editor marks the collection private after the archive was prepared.
+    vi.mocked(fetchSanityDataUncached).mockResolvedValueOnce(false);
+
+    const downloadRes = await GET(
+      new NextRequest(`http://localhost${ready?.downloadUrl}`),
+    );
+
+    expect(downloadRes.status).toBe(404);
+    expect(downloadRes.headers.get('content-type')).not.toBe('application/zip');
   });
 
   it('keeps prepared private downloads behind auth', async () => {

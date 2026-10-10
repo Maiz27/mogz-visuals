@@ -101,6 +101,9 @@ export const getPrivateCollectionInitialGallery = `*[_type == "collection" && un
   "gallery": gallery[0...20].asset->url,
 }[0]`;
 
+// Current visibility, checked before serving a cached public archive.
+export const isPublicCollectionBySlug = `count(*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]) > 0`;
+
 export const getDownloadGalleryBySlug = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
   "gallery": gallery[].asset->{
     "url": url,

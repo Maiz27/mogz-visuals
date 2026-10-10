@@ -1,9 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import archiver from 'archiver';
-import { fetchSanityData } from '@/lib/sanity/client';
+import {
+  fetchSanityData,
+  fetchSanityDataUncached,
+} from '@/lib/sanity/client';
 import {
   getDownloadGalleryBySlug,
   getDownloadGalleryById,
+  isPublicCollectionBySlug,
 } from '@/lib/sanity/queries';
 import fs from 'fs';
 import path from 'path';
@@ -947,6 +951,16 @@ async function handlePreparedTokenDownload(req: NextRequest, token: string) {
 
   if (payload.isPrivate) {
     await validatePrivateAccess(req, payload.collectionId);
+  } else {
+    // The token records visibility at preparation time. If the collection has
+    // since been made private, a cached public archive must not be served.
+    const stillPublic = await fetchSanityDataUncached(
+      isPublicCollectionBySlug,
+      { slug: payload.slug },
+    );
+    if (stillPublic !== true) {
+      throw new DownloadHttpError(404, 'Collection not found.');
+    }
   }
 
   const cachedPath = path.join(os.tmpdir(), `mogz_${payload.cacheKey}.zip`);
