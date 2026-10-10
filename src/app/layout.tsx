@@ -3,6 +3,7 @@ import JsonLD from '@/components/SEO/JsonLD';
 import AnnouncementBar from '@/components/announcement/AnnouncementBar';
 import { IsClientCtxProvider } from '@/lib/context/IsClientContext';
 import { ToastProvider } from '@/lib/context/ToastContext';
+import { TransitionProvider } from '@/lib/context/TransitionContext';
 
 import './globals.css';
 
@@ -30,7 +31,9 @@ export default function RootLayout({
       <body>
         <AnnouncementBar />
         <IsClientCtxProvider>
-          <ToastProvider>{children}</ToastProvider>
+          <TransitionProvider>
+            <ToastProvider>{children}</ToastProvider>
+          </TransitionProvider>
         </IsClientCtxProvider>
       </body>
     </html>

@@ -224,3 +224,70 @@ html.has-scroll-dragging {
 html.has-scroll-smooth::-webkit-scrollbar {
   display: none;
 }
+
+/*
+  Collection morph (View Transitions API). TransitionContext sets
+  html[data-vt='morph'] for the length of one morph. The focus pull on other routes
+  is its own overlay (components/transitions/RouteCover.tsx), so it can wait out a
+  slow route.
+*/
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* Only the morph lifts the collection photo out of the page. */
+html:not([data-vt='morph']) [data-vt-hero] {
+  view-transition-name: none !important;
+}
+
+/* Morph: the header holds still. */
+html[data-vt='morph']::view-transition-group(site-header),
+html[data-vt='morph']::view-transition-new(site-header) {
+  animation: none;
+}
+
+html[data-vt='morph']::view-transition-old(site-header) {
+  display: none;
+}
+
+/*
+  Morph: the card photo grows into the collection header, then the page fades in.
+  Same settle curve as the focus pull racking in (RouteCover RACK_IN_*), so both
+  read as one lens.
+*/
+html[data-vt='morph']::view-transition-group(collection-hero) {
+  animation-duration: 600ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-vt='morph']::view-transition-old(collection-hero),
+html[data-vt='morph']::view-transition-new(collection-hero) {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation-duration: 600ms;
+}
+
+html[data-vt='morph']::view-transition-old(root) {
+  animation: vt-fade-out 300ms ease-in both;
+}
+
+html[data-vt='morph']::view-transition-new(root) {
+  animation: vt-fade-in 400ms 350ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
