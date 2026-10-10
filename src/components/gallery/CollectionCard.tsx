@@ -1,9 +1,10 @@
 'use client';
-import Link from 'next/link';
+import TransitionLink from '@/components/transitions/TransitionLink';
 import Image from 'next/image';
 import ImageCard from '../imageCard/ImageCard';
 import useWindowWidth from '@/lib/hooks/useWindowWidth';
 import { getMonthYear } from '@/lib/utils';
+import { preloadHeroImage } from '@/lib/preloadHeroImage';
 import { COLLECTION } from '@/lib/types';
 import { HiOutlineCalendarDays } from 'react-icons/hi2';
 
@@ -15,6 +16,8 @@ type Props = {
 const CollectionCard = ({ index, collection }: Props) => {
   const { slug, mainImage, title, date } = collection;
   const width = useWindowWidth();
+  // Fetch the collection header photo on intent, so the morph lands on it.
+  const preload = () => preloadHeroImage(mainImage);
 
   return (
     <div
@@ -23,14 +26,25 @@ const CollectionCard = ({ index, collection }: Props) => {
       data-scroll-target='#collections'
       key={index}
       className='h-full w-min space-y-2'
+      data-vt-card
+      onPointerEnter={preload}
+      onTouchStart={preload}
+      onFocus={preload}
     >
-      <Link href={`/gallery/${slug.current}`}>
-        <ImageCard src={mainImage} alt={title} title={`[MOGZ]-${title}`} />
-      </Link>
+      {/* Full prefetch: the collection page is ready before the click, so the
+          morph never has to wait for the server. */}
+      <TransitionLink href={`/gallery/${slug.current}`} prefetch={true}>
+        <ImageCard
+          src={mainImage}
+          alt={title}
+          title={`[MOGZ]-${title}`}
+          data-vt-shared
+        />
+      </TransitionLink>
       <div className='flex flex-wrap justify-between items-center'>
-        <Link href={`/gallery/${slug.current}`}>
+        <TransitionLink href={`/gallery/${slug.current}`} prefetch={true}>
           <h3 className='text-primary text-lg'>{title}</h3>
-        </Link>
+        </TransitionLink>
         <time>{getMonthYear(date)}</time>
       </div>
     </div>
@@ -44,7 +58,7 @@ export const MiniCollectionCard = ({ collection }: Props) => {
 
   return (
     <div className='h-24 flex items-center gap-2 p-2 bg-copy text-background'>
-      <Link href={`/gallery/${slug.current}`} className='h-full w-20'>
+      <TransitionLink href={`/gallery/${slug.current}`} className='h-full w-20'>
         <Image
           width={50}
           height={100}
@@ -53,11 +67,11 @@ export const MiniCollectionCard = ({ collection }: Props) => {
           loading='lazy'
           className='w-full h-full object-cover'
         />
-      </Link>
+      </TransitionLink>
       <div className='flex flex-col items-start'>
-        <Link href={`/gallery/${slug.current}`}>
+        <TransitionLink href={`/gallery/${slug.current}`}>
           <h3 className='text-lg font-bold text-primary-content'>{title}</h3>
-        </Link>
+        </TransitionLink>
         <time className='flex items-center gap-1 text-sm ml-1'>
           <HiOutlineCalendarDays />
           {getMonthYear(date)}

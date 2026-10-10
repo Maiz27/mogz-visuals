@@ -70,7 +70,7 @@ export default function Step1_Category() {
         <div className='max-w-sm md:w-[320px] space-y-4'>
           <span className='block text-secondary text-[10px] md:text-xs tracking-wide leading-loose font-body'>
             Select every category you want included in this request. Services
-            can only be combined when Sanity marks them as compatible.
+            marked &ldquo;Can be combined&rdquo; can be booked together.
           </span>
           {selectedIds.length > 0 && (
             <p className='text-primary text-[10px] md:text-xs tracking-[0.2em] uppercase font-body font-semibold'>

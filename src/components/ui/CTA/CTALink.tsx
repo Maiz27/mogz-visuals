@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import TransitionLink from '@/components/transitions/TransitionLink';
 import { ReactNode } from 'react';
 
 type LinkProps = {
@@ -25,14 +25,14 @@ export const CTALink = ({
   };
 
   return (
-    <Link
+    <TransitionLink
       href={href}
       {...commonProps}
       target={external ? '_blank' : undefined}
       rel={external ? 'noopener noreferrer' : undefined}
     >
       {children}
-    </Link>
+    </TransitionLink>
   );
 };
 

@@ -1,8 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
-import { FormEvent, useEffect } from 'react';
+import { useTransitionNavigate } from '@/lib/context/TransitionContext';
+import { FormEvent, useEffect, useRef } from 'react';
 import { Logo } from './Header';
 import CTAButton from '../ui/CTA/CTAButton';
 import { ByNilotik } from '../footer/Footer';
@@ -20,17 +20,52 @@ import {
 const MobileMenu = () => {
   const { isOpen, menuRef, handleOpen, handleClose } = useMenu();
 
-  const router = useRouter();
+  const { navigate, latestNavigation } = useTransitionNavigate();
+  // The navigation waiting for the menu to finish closing, if any.
+  const pendingNavigation = useRef<{ cancelled: boolean; href: string } | null>(
+    null,
+  );
+
+  // Back/Forward or leaving the page cancels a navigation still waiting for
+  // the menu to close, so it can't undo the visitor's Back press.
+  useEffect(() => {
+    const cancel = () => {
+      if (pendingNavigation.current) pendingNavigation.current.cancelled = true;
+      pendingNavigation.current = null;
+    };
+    window.addEventListener('popstate', cancel);
+    return () => {
+      window.removeEventListener('popstate', cancel);
+      cancel();
+    };
+  }, []);
+
+  // Let the menu slide shut first so the page transition doesn't capture it.
+  // A newer tap while it closes replaces the destination (one close animation),
+  // and any navigation started in the meantime (e.g. the menu's logo) wins.
+  const closeThenNavigate = (href: string) => {
+    if (pendingNavigation.current) {
+      pendingNavigation.current.href = href;
+      return;
+    }
+    const ticket = { cancelled: false, href };
+    const queuedAt = latestNavigation();
+    pendingNavigation.current = ticket;
+    handleClose(() => {
+      if (pendingNavigation.current === ticket) pendingNavigation.current = null;
+      if (!ticket.cancelled && latestNavigation() === queuedAt) {
+        navigate(ticket.href);
+      }
+    });
+  };
 
   const handleReroute = (response: any) => {
     // The access cookie is httpOnly and already set by the verify response.
-    router.push(`/private?id=${response.id}`);
-    handleClose();
+    closeThenNavigate(`/private?id=${response.id}`);
   };
 
   const handleMenuLinkClick = (href: string) => {
-    router.push(href);
-    handleClose();
+    closeThenNavigate(href);
   };
 
   return (

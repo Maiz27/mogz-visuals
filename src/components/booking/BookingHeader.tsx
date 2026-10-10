@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import TransitionLink from '@/components/transitions/TransitionLink';
 import { Logo } from '@/components/header/Header';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import MobileMenu from '@/components/header/MobileMenu';
@@ -15,6 +15,7 @@ export default function BookingHeader() {
       <LocomotiveScrollSection
         Tag='header'
         className='w-full fixed top-[var(--announcement-height,0px)] z-99'
+        style={{ viewTransitionName: 'site-header' }}
       >
         <div className='bg-background/80 backdrop-blur-md border-b border-white/5 p-4 flex items-center justify-between'>
           <Logo />
@@ -22,14 +23,14 @@ export default function BookingHeader() {
           <div className='flex items-center gap-3'>
             <nav className='hidden lg:flex items-center gap-4'>
               {ROUTES.map(({ name, href }) => (
-                <Link
+                <TransitionLink
                   key={href}
                   href={href}
                   className='transition-colors text-lg font-bold tracking-wider lg:tracking-widest ml-2 relative group hover:text-primary'
                 >
                   {name}
                   <span className='absolute -bottom-1 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
-                </Link>
+                </TransitionLink>
               ))}
             </nav>
             <MobileMenu />

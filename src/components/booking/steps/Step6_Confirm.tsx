@@ -5,7 +5,7 @@ import { useBookingStore } from '@/lib/stores/bookingStore';
 import { useBookingDataStore } from '@/lib/stores/bookingDataStore';
 import { getBookingTotal, resolveBookingSelections } from '@/lib/booking';
 import { formatBookingDateTimeLocal } from '@/lib/bookingValidation';
-import { useRouter } from 'next/navigation';
+import { useTransitionNavigate } from '@/lib/context/TransitionContext';
 import { useToast } from '@/lib/context/ToastContext';
 import { useScroll } from '@/lib/context/scrollContext';
 import {
@@ -34,7 +34,7 @@ export default function Step6_Confirm() {
   );
   const totalPrice = getBookingTotal(selections, categoryDetails);
 
-  const router = useRouter();
+  const { navigate } = useTransitionNavigate();
   const { show } = useToast();
   const { scrollInstance } = useScroll();
 
@@ -118,7 +118,7 @@ export default function Step6_Confirm() {
         </p>
         <CTAButton
           onClick={() => {
-            router.push('/');
+            navigate('/');
           }}
           style='primary'
           className='h-14 px-10 shadow-[0_10px_30px_rgba(251,198,129,0.15)]'

@@ -26,12 +26,17 @@ const useMenu = () => {
     }
   }, [isOpen]);
 
-  const handleClose = () => {
+  // `onClosed` runs once the slide-out has finished. Click handlers pass an
+  // event here, so only a function is treated as a callback.
+  const handleClose = (onClosed?: unknown) => {
     gsap.to(menuRef.current, {
       x: '100vw',
       duration: 0.15,
       ease: 'power3.in',
-      onComplete: () => setIsOpen(false),
+      onComplete: () => {
+        setIsOpen(false);
+        if (typeof onClosed === 'function') onClosed();
+      },
     });
   };
 
