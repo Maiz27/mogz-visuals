@@ -2,7 +2,6 @@ import { notFound } from 'next/navigation';
 import { cookies } from 'next/headers';
 import { SearchParams } from 'next/dist/server/request/search-params';
 import PrivateCollectionHeader from '@/components/gallery/PrivateCollectionHeader';
-import PrivateCollectionLocked from '@/components/gallery/PrivateCollectionLocked';
 import { getPrivateCollectionByID } from '@/lib/sanity/queries';
 import { fetchSanityData } from '@/lib/sanity/client';
 import { COLLECTION } from '@/lib/types';
@@ -33,21 +32,17 @@ const page = async (props: { searchParams: Promise<SearchParams> }) => {
     requestedId || null,
   );
 
-  // No collection data is read until the token proves access to this exact
-  // collection — a missing, malformed, expired or cross-collection token all
-  // land here, and the deep link only survives as an ID prefill.
-  if (!access.ok) {
-    return (
-      <main>
-        <PrivateCollectionLocked collectionId={requestedId} />
-      </main>
-    );
+  if (!requestedId) {
+    return notFound();
   }
 
+  // The hero (title, cover, date) shows to anyone with the link, as before.
+  // The gallery is read only once the token proves access to this exact
+  // collection; a missing, expired or cross-collection token shows Unlock.
   const collection: COLLECTION = await fetchSanityData(
     getPrivateCollectionByID,
     {
-      id: access.collectionId,
+      id: requestedId,
     },
   );
 
@@ -57,9 +52,9 @@ const page = async (props: { searchParams: Promise<SearchParams> }) => {
 
   return (
     <main>
-      <PrivateCollectionHeader collection={collection} />
+      <PrivateCollectionHeader collection={collection} locked={!access.ok} />
 
-      <PrivateGallery collection={collection} />
+      {access.ok && <PrivateGallery collection={collection} />}
     </main>
   );
 };

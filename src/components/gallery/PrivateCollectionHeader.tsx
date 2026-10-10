@@ -7,6 +7,8 @@ import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScroll
 import CTAButton from '../ui/CTA/CTAButton';
 import { COLLECTION } from '@/lib/types';
 import { getStringDate } from '@/lib/utils';
+import { useDrawer } from '@/lib/context/DrawerContext';
+import AccessContent from '../drawers/AccessDrawer';
 import {
   HiOutlineLockClosed,
   HiOutlineCalendarDays,
@@ -15,14 +17,18 @@ import {
 
 type Props = {
   collection: COLLECTION;
+  /** Set by the server when this visitor has no access token for the
+   *  collection: show the Unlock button instead of the way into the gallery. */
+  locked: boolean;
 };
 
 /**
- * Rendered only after the server has validated the access token for this
- * collection, so the unlocked state is the only state it needs to handle.
+ * The collection's hero. The page reads only its title, cover and date until
+ * the server has validated an access token; the gallery stays unread until then.
  */
-const PrivateCollectionHeader = ({ collection }: Props) => {
+const PrivateCollectionHeader = ({ collection, locked }: Props) => {
   const { title, mainImage, date } = collection;
+  const { openDrawer, closeDrawer } = useDrawer();
 
   return (
     <>
@@ -65,20 +71,38 @@ const PrivateCollectionHeader = ({ collection }: Props) => {
                 </time>
               </div>
             </div>
+
+            {locked && (
+              <CTAButton
+                onClick={() =>
+                  openDrawer(
+                    <AccessContent
+                      onClose={closeDrawer}
+                      collection={collection}
+                    />,
+                    'Access Collection',
+                  )
+                }
+              >
+                Unlock Collection
+              </CTAButton>
+            )}
           </div>
         </div>
 
         {/* Scroll Down */}
-        <div className='absolute left-1/2 -translate-x-1/2 bottom-8 z-20'>
-          <CTAButton
-            title='View Collection'
-            scrollId='gallery'
-            style='ghost'
-            className='text-3xl animate-bounce'
-          >
-            <HiOutlineChevronDoubleDown />
-          </CTAButton>
-        </div>
+        {!locked && (
+          <div className='absolute left-1/2 -translate-x-1/2 bottom-8 z-20'>
+            <CTAButton
+              title='View Collection'
+              scrollId='gallery'
+              style='ghost'
+              className='text-3xl animate-bounce'
+            >
+              <HiOutlineChevronDoubleDown />
+            </CTAButton>
+          </div>
+        )}
       </LocomotiveScrollSection>
     </>
   );
