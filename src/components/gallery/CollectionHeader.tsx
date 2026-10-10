@@ -6,6 +6,7 @@ import CTAButton from '../ui/CTA/CTAButton';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { COLLECTION } from '@/lib/types';
 import { getStringDate } from '@/lib/utils';
+import { HERO_IMAGE_SIZE, SHARED_HERO_NAME } from '@/lib/transitions';
 import {
   HiOutlineChevronDoubleDown,
   HiOutlineCalendarDays,
@@ -25,11 +26,14 @@ const CollectionHeader = ({ collection }: Props) => {
         id='collection-header'
         className='relative h-full w-full'
       >
-        <div className='w-full h-screen relative after:content-[""] after:absolute after:inset-0 after:bg-linear-to-b after:from-transparent after:via-background/50 after:to-background overflow-hidden'>
+        <div
+          className='w-full h-screen relative after:content-[""] after:absolute after:inset-0 after:bg-linear-to-b after:from-transparent after:via-background/50 after:to-background overflow-hidden'
+          data-vt-hero
+          style={{ viewTransitionName: SHARED_HERO_NAME }}
+        >
           <Image
             src={mainImage}
-            width={1080}
-            height={720}
+            {...HERO_IMAGE_SIZE}
             alt={title}
             title={`[MOGZ]-${title}`}
             loading='eager'
