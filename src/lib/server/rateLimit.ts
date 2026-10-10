@@ -141,6 +141,46 @@ async function consumeRateLimitRule(
   return { ok: true, enabled: true };
 }
 
+/**
+ * Read-only check: is any rule already at its limit? Does not count this call.
+ * Pair with enforceRateLimitRules to count only some outcomes (e.g. failures).
+ */
+export async function peekRateLimitRules(
+  rules: RateLimitRule[],
+): Promise<RateLimitResult> {
+  const client = getRedisClient();
+  if (!client) {
+    return { ok: true, enabled: false };
+  }
+
+  for (const rule of rules) {
+    if (rule.skip || rule.limit <= 0 || rule.windowMs <= 0) {
+      continue;
+    }
+    const key = buildRateLimitKey(rule.keyParts);
+    if (!key) {
+      continue;
+    }
+
+    const [count, ttlMs] = await Promise.all([
+      client.get(key),
+      client.pttl(key),
+    ]);
+    if (Number(count ?? 0) >= rule.limit) {
+      return {
+        ok: false,
+        message: rule.message,
+        retryAfterSeconds: Math.max(
+          1,
+          Math.ceil((ttlMs > 0 ? ttlMs : rule.windowMs) / 1000),
+        ),
+      };
+    }
+  }
+
+  return { ok: true, enabled: true };
+}
+
 export async function enforceRateLimitRules(
   rules: RateLimitRule[],
 ): Promise<RateLimitResult> {

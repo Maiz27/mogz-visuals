@@ -16,7 +16,7 @@ describe('useAccessStore', () => {
         status: 200,
         message: 'Access granted',
         id: 'abc123',
-        secret: 'encrypted-secret',
+        expiresAt: Date.now() + 3_600_000,
       }),
     });
 
@@ -52,7 +52,6 @@ describe('useAccessStore', () => {
         status: 400,
         message: 'Invalid',
         id: 'bad',
-        secret: '',
       },
       token: 'abc',
     });

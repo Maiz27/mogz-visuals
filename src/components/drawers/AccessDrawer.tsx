@@ -6,7 +6,6 @@ import CTAButton from '@/components/ui/CTA/CTAButton';
 import AccessCollectionForm from '@/components/forms/AccessCollectionForm';
 import useFormState from '@/lib/hooks/useFormState';
 import useVerifyAccess from '@/lib/hooks/useVerifyAccess';
-import { setCollectionAccessCookie } from '@/lib/utils';
 import { FORMS } from '@/lib/Constants';
 import CollectionDrawerHeader from '../gallery/CollectionDrawerHeader';
 import { COLLECTION } from '@/lib/types';
@@ -42,15 +41,12 @@ const AccessContent = ({ onClose, collection }: Props) => {
     const response = await handleVerifyAccess(state);
 
     if (response.status === 200) {
-      setCollectionAccessCookie(response.secret);
-
-      // Small delay to ensure cookie is set before reload
-      await new Promise((resolve) => setTimeout(resolve, 100));
-
+      // The access cookie is httpOnly and was already set by the server on the
+      // verify response, so there is nothing to store client-side.
       reset();
       resetAccessStore();
       onClose(); // Close drawer first
-      if (id && pathname === '/private') {
+      if (id && pathname === '/private' && id === response.id) {
         window.location.reload();
       } else {
         router.push(`/private?id=${response.id}`);
