@@ -35,7 +35,7 @@ export type VERIFY_ACCESS_RESPONSE_BODY = {
 };
 
 export type DownloadStep =
-  | 'email'
+  | 'start'
   | 'choice'
   | 'download_parts'
   | 'download_stream';
