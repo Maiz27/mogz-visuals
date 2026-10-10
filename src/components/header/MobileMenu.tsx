@@ -1,8 +1,8 @@
 'use client';
 
-import { useRouter } from 'next/navigation';
 import { createPortal } from 'react-dom';
-import { FormEvent, useEffect } from 'react';
+import { useTransitionNavigate } from '@/lib/context/TransitionContext';
+import { FormEvent, useEffect, useRef } from 'react';
 import { Logo } from './Header';
 import CTAButton from '../ui/CTA/CTAButton';
 import { ByNilotik } from '../footer/Footer';
@@ -21,17 +21,43 @@ import {
 const MobileMenu = () => {
   const { isOpen, menuRef, handleOpen, handleClose } = useMenu();
 
-  const router = useRouter();
+  const { navigate } = useTransitionNavigate();
+  // The navigation waiting for the menu to finish closing, if any.
+  const pendingNavigation = useRef<{ cancelled: boolean } | null>(null);
+
+  // Back/Forward or leaving the page cancels a navigation still waiting for
+  // the menu to close, so it can't undo the visitor's Back press.
+  useEffect(() => {
+    const cancel = () => {
+      if (pendingNavigation.current) pendingNavigation.current.cancelled = true;
+      pendingNavigation.current = null;
+    };
+    window.addEventListener('popstate', cancel);
+    return () => {
+      window.removeEventListener('popstate', cancel);
+      cancel();
+    };
+  }, []);
+
+  // Let the menu slide shut first so the page transition doesn't capture it.
+  // Repeated taps while it closes are ignored.
+  const closeThenNavigate = (href: string) => {
+    if (pendingNavigation.current) return;
+    const ticket = { cancelled: false };
+    pendingNavigation.current = ticket;
+    handleClose(() => {
+      if (pendingNavigation.current === ticket) pendingNavigation.current = null;
+      if (!ticket.cancelled) navigate(href);
+    });
+  };
 
   const handleReroute = (response: any) => {
     setCollectionAccessCookie(response.secret);
-    router.push(`/private?id=${response.id}`);
-    handleClose();
+    closeThenNavigate(`/private?id=${response.id}`);
   };
 
   const handleMenuLinkClick = (href: string) => {
-    router.push(href);
-    handleClose();
+    closeThenNavigate(href);
   };
 
   return (
