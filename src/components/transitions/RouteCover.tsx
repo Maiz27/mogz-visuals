@@ -14,6 +14,9 @@ export type RouteCoverHandle = {
   /** Called as a route commits, before paint: if the route brought a new page
    *  container (a different layout), hold it out of focus too. */
   hold: () => void;
+  /** Recovery after a failed transition: clear everything at once, with no
+   *  animation (which could fail again), so the page is never left blocked. */
+  reset: () => void;
 };
 
 // The lens is the page content: blurred and slightly magnified while focus racks,
@@ -200,6 +203,39 @@ const RouteCover = ({ ref }: { ref?: Ref<RouteCoverHandle> }) => {
         fill: 'forwards',
       });
       lens.current = current;
+    },
+    reset: () => {
+      for (const animation of [lensAnimation.current, huntAnimation.current]) {
+        try {
+          animation?.cancel();
+        } catch {}
+      }
+      lensAnimation.current = null;
+      huntAnimation.current = null;
+      for (const target of [
+        lens.current,
+        document.querySelector<HTMLElement>(LENS_SELECTOR),
+      ]) {
+        if (!target) continue;
+        try {
+          target.getAnimations().forEach((animation) => animation.cancel());
+        } catch {}
+        target.style.willChange = '';
+        target.style.transformOrigin = '';
+      }
+      lens.current = null;
+      if (reticleRef.current) {
+        try {
+          reticleRef.current
+            .getAnimations()
+            .forEach((animation) => animation.cancel());
+        } catch {}
+        reticleRef.current.style.opacity = '0';
+      }
+      if (rootRef.current) {
+        rootRef.current.style.visibility = 'hidden';
+        rootRef.current.style.pointerEvents = 'none';
+      }
     },
   }));
 

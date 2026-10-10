@@ -188,29 +188,37 @@ export const TransitionProvider = ({ children }: { children: ReactNode }) => {
       }
       busy.current = true;
       const mine = ++generation.current;
-      // Listen from the first frame: if Back or another navigation lands while
-      // focus is still racking out, reveal onto it and drop this one.
-      let pushed = false;
-      let superseded = false;
-      const routed = waitForRoute(COVER_WATCHDOG_MS, 'resolve').then(() => {
-        if (!pushed) superseded = true;
-      });
+      let completed = false;
+      try {
+        // Listen from the first frame: if Back or another navigation lands
+        // while focus is still racking out, reveal onto it and drop this one.
+        let pushed = false;
+        let superseded = false;
+        const routed = waitForRoute(COVER_WATCHDOG_MS, 'resolve').then(() => {
+          if (!pushed) superseded = true;
+        });
 
-      await lens.cover();
-      if (!superseded && generation.current === mine) {
-        pushed = true;
-        router.push(href);
+        await lens.cover();
+        if (!superseded && generation.current === mine) {
+          pushed = true;
+          router.push(href);
+        }
+        const hunt = setTimeout(() => lens.hunt(), HUNT_AFTER_MS);
+        await routed;
+        clearTimeout(hunt);
+        // Let the new page lay out and paint behind the reticle, confirm
+        // focus, then rack it in.
+        await nextFrame();
+        await nextFrame();
+        await lens.lock();
+        await lens.reveal();
+        completed = true;
+      } finally {
+        // An animation that failed must not leave the page blurred, blocked,
+        // or every later navigation treated as mid-transition.
+        busy.current = false;
+        if (!completed) lens.reset();
       }
-      const hunt = setTimeout(() => lens.hunt(), HUNT_AFTER_MS);
-      await routed;
-      clearTimeout(hunt);
-      // Let the new page lay out and paint behind the reticle, confirm focus,
-      // then rack it in.
-      await nextFrame();
-      await nextFrame();
-      await lens.lock();
-      await lens.reveal();
-      busy.current = false;
     },
     [router, waitForRoute],
   );
