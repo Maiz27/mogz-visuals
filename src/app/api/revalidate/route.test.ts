@@ -37,6 +37,25 @@ describe('POST /api/revalidate', () => {
     expect(revalidateTag).toHaveBeenCalledWith('sanity');
   });
 
+  it("accepts a delivery signed by Sanity's official @sanity/webhook", async () => {
+    // Fixture generated with @sanity/webhook@4 encodeSignatureHeader().
+    vi.useFakeTimers();
+    vi.setSystemTime(1_760_000_000_000);
+    vi.stubEnv('SANITY_REVALIDATE_SECRET', 'mogz-test-secret');
+    try {
+      const res = await POST(
+        request(
+          't=1760000000000,v1=tB5pn8cihsGJ40-rNSWkPGsEt_1QgXT3u_qD_M-pQBQ',
+          JSON.stringify({ _id: 'hero-1', _type: 'heroImages' }),
+        ),
+      );
+      expect(res.status).toBe(200);
+      expect(revalidateTag).toHaveBeenCalledWith('sanity');
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('rejects an unsigned or wrongly signed delivery without revalidating', async () => {
     expect((await POST(request())).status).toBe(401);
     expect((await POST(request(signed(BODY, 'wrong')))).status).toBe(401);

@@ -16,10 +16,17 @@ describe('verifySanitySignature', () => {
     expect(verifySanitySignature(BODY, header(), SECRET, NOW)).toEqual({ ok: true });
   });
 
-  it('matches a known vector from the official scheme', () => {
-    // HMAC-SHA256("1760000000000.{}", "secret"), base64url without padding.
-    expect(signPayload('{}', 1_760_000_000_000, 'secret')).toMatch(
-      /^[A-Za-z0-9_-]{43}$/,
+  it("verifies a header produced by Sanity's official @sanity/webhook", () => {
+    // Generated independently with @sanity/webhook@4 encodeSignatureHeader():
+    // payload below, timestamp 1760000000000, secret "mogz-test-secret".
+    const body = JSON.stringify({ _id: 'hero-1', _type: 'heroImages' });
+    const official =
+      't=1760000000000,v1=tB5pn8cihsGJ40-rNSWkPGsEt_1QgXT3u_qD_M-pQBQ';
+    expect(
+      verifySanitySignature(body, official, 'mogz-test-secret', NOW),
+    ).toEqual({ ok: true });
+    expect(signPayload(body, 1_760_000_000_000, 'mogz-test-secret')).toBe(
+      'tB5pn8cihsGJ40-rNSWkPGsEt_1QgXT3u_qD_M-pQBQ',
     );
   });
 
