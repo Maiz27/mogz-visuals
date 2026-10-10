@@ -1,8 +1,24 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import {
+  enforceRateLimitRules,
+  getClientIp,
+  parseRateLimitNumber,
+} from '@/lib/server/rateLimit';
+import { createRateLimitedResponse } from '@/lib/server/request';
 
 const resend = new Resend(process.env.RESEND_API_KEY!);
 const audienceId = process.env.RESEND_AUDIENCE_ID!;
+
+// Public and unauthenticated: limit how many addresses one caller can add.
+const AUDIENCE_IP_LIMIT = parseRateLimitNumber(
+  process.env.AUDIENCE_RATE_LIMIT,
+  5,
+);
+const AUDIENCE_IP_WINDOW_MS = parseRateLimitNumber(
+  process.env.AUDIENCE_RATE_LIMIT_WINDOW,
+  60 * 60 * 1000,
+);
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
@@ -81,6 +97,18 @@ export async function POST(req: NextRequest) {
         { message: 'A valid email address is required' },
         { status: 400 },
       );
+    }
+
+    const rateLimit = await enforceRateLimitRules([
+      {
+        keyParts: ['audience', 'ip', getClientIp(req)],
+        limit: AUDIENCE_IP_LIMIT,
+        windowMs: AUDIENCE_IP_WINDOW_MS,
+        message: 'Too many requests. Please try again later.',
+      },
+    ]);
+    if (!rateLimit.ok) {
+      return createRateLimitedResponse(rateLimit);
     }
 
     try {

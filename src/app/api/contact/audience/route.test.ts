@@ -2,6 +2,13 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { inspect } from 'node:util';
 import { NextRequest } from 'next/server';
 import { POST } from './route';
+import { enforceRateLimitRules } from '@/lib/server/rateLimit';
+
+vi.mock('@/lib/server/rateLimit', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@/lib/server/rateLimit')>();
+  return { ...actual, enforceRateLimitRules: vi.fn(actual.enforceRateLimitRules) };
+});
 
 // Hoisted: the route constructs `new Resend(...)` at import time.
 const { contactsCreate } = vi.hoisted(() => ({ contactsCreate: vi.fn() }));
@@ -75,6 +82,22 @@ describe('POST /api/contact/audience', () => {
     expect(contactsCreate).toHaveBeenCalledWith(
       expect.objectContaining({ email: 'john@example.com' }),
     );
+  });
+
+  it('limits how many addresses one caller can add', async () => {
+    vi.mocked(enforceRateLimitRules).mockResolvedValueOnce({
+      ok: false,
+      message: 'Too many requests. Please try again later.',
+      retryAfterSeconds: 60,
+    });
+    const res = await POST(
+      createRequest({ email: 'someone@example.com', consent: true }),
+    );
+    expect(res.status).toBe(429);
+    expect(res.headers.get('retry-after')).toBe('60');
+    expect(contactsCreate).not.toHaveBeenCalled();
+    const [rule] = vi.mocked(enforceRateLimitRules).mock.calls[0][0];
+    expect(rule.keyParts.slice(0, 2)).toEqual(['audience', 'ip']);
   });
 
   it('refuses to subscribe without explicit consent', async () => {
