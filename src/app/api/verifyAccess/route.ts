@@ -32,14 +32,25 @@ const ACCESS_IP_WINDOW_MS = parseRateLimitNumber(
   process.env.ACCESS_RATE_LIMIT_IP_WINDOW,
   15 * 60 * 1000,
 );
-// Focused guessing at one collection, from any number of addresses: failed
-// attempts only.
+// Failed attempts at one collection from one address. Scoped to the address so
+// a stranger who knows a (discoverable) collection ID can only lock themselves
+// out, never the client.
 const ACCESS_COLLECTION_LIMIT = parseRateLimitNumber(
   process.env.ACCESS_RATE_LIMIT_COLLECTION,
   10,
 );
 const ACCESS_COLLECTION_WINDOW_MS = parseRateLimitNumber(
   process.env.ACCESS_RATE_LIMIT_COLLECTION_WINDOW,
+  15 * 60 * 1000,
+);
+// Failed attempts at one collection from all addresses together: a high ceiling
+// that only slows guessing spread across many addresses.
+const ACCESS_COLLECTION_GLOBAL_LIMIT = parseRateLimitNumber(
+  process.env.ACCESS_RATE_LIMIT_COLLECTION_GLOBAL,
+  100,
+);
+const ACCESS_COLLECTION_GLOBAL_WINDOW_MS = parseRateLimitNumber(
+  process.env.ACCESS_RATE_LIMIT_COLLECTION_GLOBAL_WINDOW,
   15 * 60 * 1000,
 );
 
@@ -83,15 +94,23 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Counts failed attempts only. Collection IDs are discoverable, so counting
-  // every attempt would let anyone lock a client out of their own gallery.
-  const collectionFailureRule = {
-    keyParts: ['access', 'collection-failures', hashRateLimitValue(id.trim())],
-    limit: ACCESS_COLLECTION_LIMIT,
-    windowMs: ACCESS_COLLECTION_WINDOW_MS,
-    message: 'Too many attempts for this collection. Please try again later.',
-  };
-  const collectionLimit = await peekRateLimitRules([collectionFailureRule]);
+  // Failed attempts only, checked before and counted after the code check.
+  const collectionHash = hashRateLimitValue(id.trim());
+  const failureRules = [
+    {
+      keyParts: ['access', 'source-failures', collectionHash, getClientIp(req)],
+      limit: ACCESS_COLLECTION_LIMIT,
+      windowMs: ACCESS_COLLECTION_WINDOW_MS,
+      message: 'Too many attempts for this collection. Please try again later.',
+    },
+    {
+      keyParts: ['access', 'collection-failures', collectionHash],
+      limit: ACCESS_COLLECTION_GLOBAL_LIMIT,
+      windowMs: ACCESS_COLLECTION_GLOBAL_WINDOW_MS,
+      message: 'Too many attempts for this collection. Please try again later.',
+    },
+  ];
+  const collectionLimit = await peekRateLimitRules(failureRules);
   if (!collectionLimit.ok) {
     return createRateLimitedResponse(collectionLimit);
   }
@@ -118,7 +137,10 @@ export async function POST(req: NextRequest) {
   }
 
   if (!check.ok) {
-    await enforceRateLimitRules([collectionFailureRule]);
+    // Count against both; one call per rule so neither is skipped.
+    await Promise.all(
+      failureRules.map((rule) => enforceRateLimitRules([rule])),
+    );
     return NextResponse.json(INVALID_CREDENTIALS, { status: 401 });
   }
 

@@ -37,6 +37,10 @@ vi.mock('@/lib/env', () => ({
   ENCRYPTION_KEY: 'test-key',
 }));
 
+const realLimits = await vi.importActual<
+  typeof import('@/lib/server/rateLimit')
+>('@/lib/server/rateLimit');
+
 const COLLECTION = { _id: 'doc-abc', uniqueId: 'collection-1' };
 const SECRET = {
   _id: 'collectionSecret.doc-abc',
@@ -72,6 +76,13 @@ describe('POST /api/verifyAccess', () => {
     // Drop any queued one-off values a previous test left unconsumed.
     sanityFetch.mockReset();
     getDocument.mockReset();
+    // Restore the real limiter after a test swaps in an in-memory one.
+    vi.mocked(enforceRateLimitRules).mockImplementation(
+      realLimits.enforceRateLimitRules,
+    );
+    vi.mocked(peekRateLimitRules).mockImplementation(
+      realLimits.peekRateLimitRules,
+    );
     global.fetch = vi.fn(async () => ({
       json: async () => ({ success: true }),
     })) as any;
@@ -239,19 +250,62 @@ describe('POST /api/verifyAccess', () => {
     expect(res.status).toBe(429);
     expect(sanityFetch).not.toHaveBeenCalled();
 
-    const [[collectionRule]] = vi
+    const [peekedRules] = vi
       .mocked(peekRateLimitRules)
       .mock.calls.map((call) => call[0]);
     // Keyed by a hash of the collection ID, not the raw ID.
-    expect(collectionRule.keyParts).not.toContain('collection-1');
+    for (const rule of peekedRules) {
+      expect(rule.keyParts).not.toContain('collection-1');
+    }
   });
 
-  it('counts a failed attempt against the collection', async () => {
+  it('counts a failed attempt per address and per collection', async () => {
     await submit('wrong-code');
     const rules = vi
       .mocked(enforceRateLimitRules)
       .mock.calls.map((call) => call[0][0].keyParts[1]);
-    expect(rules).toEqual(['ip', 'collection-failures']);
+    expect(rules).toEqual(['ip', 'source-failures', 'collection-failures']);
+  });
+
+  it("doesn't let a stranger's failed guesses lock the client out", async () => {
+    // In-memory stand-in for Redis so the real limits apply.
+    const counts = new Map<string, number>();
+    const key = (parts: unknown[]) => parts.join(':');
+    vi.mocked(enforceRateLimitRules).mockImplementation(async (rules) => {
+      for (const rule of rules) {
+        const k = key(rule.keyParts);
+        const next = (counts.get(k) ?? 0) + 1;
+        counts.set(k, next);
+        if (next > rule.limit) {
+          return { ok: false, message: rule.message, retryAfterSeconds: 60 };
+        }
+      }
+      return { ok: true, enabled: true };
+    });
+    vi.mocked(peekRateLimitRules).mockImplementation(async (rules) => {
+      for (const rule of rules) {
+        if ((counts.get(key(rule.keyParts)) ?? 0) >= rule.limit) {
+          return { ok: false, message: rule.message, retryAfterSeconds: 60 };
+        }
+      }
+      return { ok: true, enabled: true };
+    });
+
+    const from = (ip: string, password: string) =>
+      POST(
+        new NextRequest('http://localhost/api/verifyAccess', {
+          method: 'POST',
+          body: JSON.stringify({ id: 'collection-1', password, token: 't' }),
+          headers: { 'content-type': 'application/json', 'cf-connecting-ip': ip },
+        }),
+      );
+
+    const attacker = [];
+    for (let i = 0; i < 12; i++) attacker.push((await from('203.0.113.9', `guess-${i}`)).status);
+    expect(attacker.slice(0, 10)).toEqual(Array(10).fill(401));
+    expect(attacker.slice(10)).toEqual([429, 429]);
+
+    expect((await from('198.51.100.7', 'garden-party')).status).toBe(200);
   });
 
   it('does not count a successful unlock against the collection', async () => {
