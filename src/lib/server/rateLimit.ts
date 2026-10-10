@@ -145,44 +145,38 @@ async function consumeRateLimitRule(
   return { ok: true, enabled: true };
 }
 
+// Gives back one counted attempt, never going below zero or reviving an expired key.
+const RELEASE_SCRIPT = `
+local count = tonumber(redis.call('GET', KEYS[1]) or '0')
+if count > 0 then
+  return redis.call('DECR', KEYS[1])
+end
+return 0`;
+
 /**
- * Read-only check: is any rule already at its limit? Does not count this call.
- * Pair with enforceRateLimitRules to count only some outcomes (e.g. failures).
+ * Returns attempts counted by enforceRateLimitRules for requests that turned
+ * out not to count (e.g. a correct code). Counting first and giving back after
+ * keeps concurrent requests from all passing a limit before any is recorded.
  */
-export async function peekRateLimitRules(
+export async function releaseRateLimitRules(
   rules: RateLimitRule[],
-): Promise<RateLimitResult> {
+): Promise<void> {
   const client = getRedisClient();
   if (!client) {
-    return { ok: true, enabled: false };
+    return;
   }
 
-  for (const rule of rules) {
-    if (rule.skip || rule.limit <= 0 || rule.windowMs <= 0) {
-      continue;
-    }
-    const key = buildRateLimitKey(rule.keyParts);
-    if (!key) {
-      continue;
-    }
-
-    const [count, ttlMs] = await Promise.all([
-      client.get(key),
-      client.pttl(key),
-    ]);
-    if (Number(count ?? 0) >= rule.limit) {
-      return {
-        ok: false,
-        message: rule.message,
-        retryAfterSeconds: Math.max(
-          1,
-          Math.ceil((ttlMs > 0 ? ttlMs : rule.windowMs) / 1000),
-        ),
-      };
-    }
-  }
-
-  return { ok: true, enabled: true };
+  await Promise.all(
+    rules.map(async (rule) => {
+      if (rule.skip || rule.limit <= 0 || rule.windowMs <= 0) {
+        return;
+      }
+      const key = buildRateLimitKey(rule.keyParts);
+      if (key) {
+        await client.eval(RELEASE_SCRIPT, 1, key);
+      }
+    }),
+  );
 }
 
 export async function enforceRateLimitRules(

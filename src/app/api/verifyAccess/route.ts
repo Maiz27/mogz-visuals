@@ -11,7 +11,7 @@ import {
   getClientIp,
   hashRateLimitValue,
   parseRateLimitNumber,
-  peekRateLimitRules,
+  releaseRateLimitRules,
 } from '@/lib/server/rateLimit';
 import {
   createRateLimitedResponse,
@@ -94,7 +94,9 @@ export async function POST(req: NextRequest) {
     );
   }
 
-  // Failed attempts only, checked before and counted after the code check.
+  // Failed attempts only. Each check reserves a slot before it runs, so a burst
+  // of simultaneous requests can't all pass before any failure is recorded; a
+  // check that doesn't end in a wrong code gives its slot back.
   const collectionHash = hashRateLimitValue(id.trim());
   const failureRules = [
     {
@@ -110,7 +112,7 @@ export async function POST(req: NextRequest) {
       message: 'Too many attempts for this collection. Please try again later.',
     },
   ];
-  const collectionLimit = await peekRateLimitRules(failureRules);
+  const collectionLimit = await enforceRateLimitRules(failureRules);
   if (!collectionLimit.ok) {
     return createRateLimitedResponse(collectionLimit);
   }
@@ -119,6 +121,7 @@ export async function POST(req: NextRequest) {
   try {
     check = await checkCollectionAccessCode(id, password);
   } catch (error) {
+    await releaseRateLimitRules(failureRules);
     // Fail closed: never fall back to the public client or skip the check.
     if (error instanceof SanityServerConfigError) {
       console.error('[Access] Server Sanity client is not configured');
@@ -137,12 +140,11 @@ export async function POST(req: NextRequest) {
   }
 
   if (!check.ok) {
-    // Count against both; one call per rule so neither is skipped.
-    await Promise.all(
-      failureRules.map((rule) => enforceRateLimitRules([rule])),
-    );
+    // The reserved slots stay counted as failures.
     return NextResponse.json(INVALID_CREDENTIALS, { status: 401 });
   }
+
+  await releaseRateLimitRules(failureRules);
 
   const { token: accessToken, expiresAt } = issueCollectionAccessToken(
     check.uniqueId,

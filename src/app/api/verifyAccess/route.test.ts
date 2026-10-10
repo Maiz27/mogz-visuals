@@ -8,7 +8,7 @@ import {
 } from '@/lib/sanity/serverClient';
 import {
   enforceRateLimitRules,
-  peekRateLimitRules,
+  releaseRateLimitRules,
 } from '@/lib/server/rateLimit';
 
 const sanityFetch = vi.fn();
@@ -29,7 +29,7 @@ vi.mock('@/lib/server/rateLimit', async (importOriginal) => {
   return {
     ...actual,
     enforceRateLimitRules: vi.fn(actual.enforceRateLimitRules),
-    peekRateLimitRules: vi.fn(actual.peekRateLimitRules),
+    releaseRateLimitRules: vi.fn(actual.releaseRateLimitRules),
   };
 });
 
@@ -70,6 +70,39 @@ const parseSetCookie = (header: string | null) => {
 
 const INVALID = { message: 'Invalid collection ID or password', status: 401 };
 
+// In-memory stand-in for Redis so the real limits apply.
+const useInMemoryLimiter = () => {
+  const counts = new Map<string, number>();
+  const key = (parts: unknown[]) => parts.join(':');
+  vi.mocked(enforceRateLimitRules).mockImplementation(async (rules) => {
+    for (const rule of rules) {
+      const k = key(rule.keyParts);
+      const next = (counts.get(k) ?? 0) + 1;
+      counts.set(k, next);
+      if (next > rule.limit) {
+        return { ok: false, message: rule.message, retryAfterSeconds: 60 };
+      }
+    }
+    return { ok: true, enabled: true };
+  });
+  vi.mocked(releaseRateLimitRules).mockImplementation(async (rules) => {
+    for (const rule of rules) {
+      const k = key(rule.keyParts);
+      counts.set(k, Math.max(0, (counts.get(k) ?? 0) - 1));
+    }
+  });
+  return counts;
+};
+
+const from = (ip: string, password: string) =>
+  POST(
+    new NextRequest('http://localhost/api/verifyAccess', {
+      method: 'POST',
+      body: JSON.stringify({ id: 'collection-1', password, token: 't' }),
+      headers: { 'content-type': 'application/json', 'cf-connecting-ip': ip },
+    }),
+  );
+
 describe('POST /api/verifyAccess', () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -80,8 +113,8 @@ describe('POST /api/verifyAccess', () => {
     vi.mocked(enforceRateLimitRules).mockImplementation(
       realLimits.enforceRateLimitRules,
     );
-    vi.mocked(peekRateLimitRules).mockImplementation(
-      realLimits.peekRateLimitRules,
+    vi.mocked(releaseRateLimitRules).mockImplementation(
+      realLimits.releaseRateLimitRules,
     );
     global.fetch = vi.fn(async () => ({
       json: async () => ({ success: true }),
@@ -241,64 +274,35 @@ describe('POST /api/verifyAccess', () => {
   });
 
   it('blocks a collection that has too many failed attempts, before reading Sanity', async () => {
-    vi.mocked(peekRateLimitRules).mockResolvedValueOnce({
-      ok: false,
-      message: 'Too many attempts for this collection.',
-      retryAfterSeconds: 120,
-    });
+    vi.mocked(enforceRateLimitRules)
+      .mockResolvedValueOnce({ ok: true, enabled: true })
+      .mockResolvedValueOnce({
+        ok: false,
+        message: 'Too many attempts for this collection.',
+        retryAfterSeconds: 120,
+      });
     const res = await submit('garden-party');
     expect(res.status).toBe(429);
     expect(sanityFetch).not.toHaveBeenCalled();
 
-    const [peekedRules] = vi
-      .mocked(peekRateLimitRules)
-      .mock.calls.map((call) => call[0]);
+    const failureRules = vi.mocked(enforceRateLimitRules).mock.calls[1][0];
     // Keyed by a hash of the collection ID, not the raw ID.
-    for (const rule of peekedRules) {
+    for (const rule of failureRules) {
       expect(rule.keyParts).not.toContain('collection-1');
     }
   });
 
   it('counts a failed attempt per address and per collection', async () => {
-    await submit('wrong-code');
-    const rules = vi
-      .mocked(enforceRateLimitRules)
-      .mock.calls.map((call) => call[0][0].keyParts[1]);
-    expect(rules).toEqual(['ip', 'source-failures', 'collection-failures']);
+    const counts = useInMemoryLimiter();
+    expect((await submit('wrong-code')).status).toBe(401);
+    const kinds = [...counts.entries()]
+      .filter(([, count]) => count > 0)
+      .map(([k]) => k.split(':')[1]);
+    expect(kinds.sort()).toEqual(['collection-failures', 'ip', 'source-failures']);
   });
 
   it("doesn't let a stranger's failed guesses lock the client out", async () => {
-    // In-memory stand-in for Redis so the real limits apply.
-    const counts = new Map<string, number>();
-    const key = (parts: unknown[]) => parts.join(':');
-    vi.mocked(enforceRateLimitRules).mockImplementation(async (rules) => {
-      for (const rule of rules) {
-        const k = key(rule.keyParts);
-        const next = (counts.get(k) ?? 0) + 1;
-        counts.set(k, next);
-        if (next > rule.limit) {
-          return { ok: false, message: rule.message, retryAfterSeconds: 60 };
-        }
-      }
-      return { ok: true, enabled: true };
-    });
-    vi.mocked(peekRateLimitRules).mockImplementation(async (rules) => {
-      for (const rule of rules) {
-        if ((counts.get(key(rule.keyParts)) ?? 0) >= rule.limit) {
-          return { ok: false, message: rule.message, retryAfterSeconds: 60 };
-        }
-      }
-      return { ok: true, enabled: true };
-    });
-
-    const from = (ip: string, password: string) =>
-      POST(
-        new NextRequest('http://localhost/api/verifyAccess', {
-          method: 'POST',
-          body: JSON.stringify({ id: 'collection-1', password, token: 't' }),
-          headers: { 'content-type': 'application/json', 'cf-connecting-ip': ip },
-        }),
-      );
+    useInMemoryLimiter();
 
     const attacker = [];
     for (let i = 0; i < 12; i++) attacker.push((await from('203.0.113.9', `guess-${i}`)).status);
@@ -308,12 +312,36 @@ describe('POST /api/verifyAccess', () => {
     expect((await from('198.51.100.7', 'garden-party')).status).toBe(200);
   });
 
+  it('admits no more simultaneous guesses than the limit allows', async () => {
+    useInMemoryLimiter();
+    // Slow Sanity reads, so every request is in flight at once.
+    getDocument.mockImplementation(
+      () => new Promise((resolve) => setTimeout(() => resolve(SECRET), 20)),
+    );
+
+    const statuses = await Promise.all(
+      Array.from({ length: 25 }, (_, i) => from('203.0.113.9', `guess-${i}`)),
+    ).then((responses) => responses.map((res) => res.status));
+
+    expect(statuses.filter((status) => status === 401)).toHaveLength(10);
+    expect(statuses.filter((status) => status === 429)).toHaveLength(15);
+  });
+
   it('does not count a successful unlock against the collection', async () => {
-    await submit('garden-party');
-    const rules = vi
-      .mocked(enforceRateLimitRules)
-      .mock.calls.map((call) => call[0][0].keyParts[1]);
-    expect(rules).toEqual(['ip']);
+    const counts = useInMemoryLimiter();
+    expect((await submit('garden-party')).status).toBe(200);
+    for (const [k, count] of counts) {
+      if (!k.startsWith('access:ip:')) expect(count).toBe(0);
+    }
+  });
+
+  it('gives the slot back when Sanity cannot be reached', async () => {
+    const counts = useInMemoryLimiter();
+    getDocument.mockRejectedValue(new Error('network'));
+    expect((await submit('garden-party')).status).toBe(503);
+    for (const [k, count] of counts) {
+      if (!k.startsWith('access:ip:')) expect(count).toBe(0);
+    }
   });
 
   it('rejects a malformed body', async () => {
