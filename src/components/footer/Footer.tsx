@@ -8,7 +8,6 @@ import { divideImagesArray } from '@/lib/utils';
 import { LEGAL_ROUTES, SITE_NAME, SOCIALS } from '@/lib/Constants';
 import { HERO_IMAGES } from '@/lib/types';
 
-export const revalidate = 60;
 
 const Footer = async () => {
   const data: HERO_IMAGES = await fetchSanityData(getFooterImages);

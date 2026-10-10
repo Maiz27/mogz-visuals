@@ -1,4 +1,3 @@
-import Cookies from 'js-cookie';
 import { Metadata } from 'next';
 import { OpenGraph } from 'next/dist/lib/metadata/types/opengraph-types';
 import { BASEURL, METADATA, SITE_NAME, SOCIALS } from './Constants';
@@ -207,18 +206,6 @@ export const setInputMinDate = (params?: SetInputMinDateParams): string => {
     String(resultDate.getHours()).padStart(2, '0') +
     ':' +
     String(resultDate.getMinutes()).padStart(2, '0')
-  );
-};
-
-export const setCollectionAccessCookie = (secret: string) => {
-  const isSecure = window.location.protocol === 'https:';
-  Cookies.set('collectionAccess', secret, {
-    secure: isSecure,
-    sameSite: 'Lax',
-    path: '/',
-  });
-  console.log(
-    `[Cookie] Set collectionAccess (Secure: ${isSecure}, SameSite: Lax, Path: /)`,
   );
 };
 

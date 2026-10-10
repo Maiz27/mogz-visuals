@@ -1,16 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server';
 import archiver from 'archiver';
-import { fetchSanityData } from '@/lib/sanity/client';
+import {
+  fetchSanityData,
+  fetchSanityDataUncached,
+} from '@/lib/sanity/client';
 import {
   getDownloadGalleryBySlug,
   getDownloadGalleryById,
+  isPublicCollectionById,
 } from '@/lib/sanity/queries';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
 import CryptoJS from 'crypto-js';
 import { Readable } from 'stream';
-import { ENCRYPTION_KEY } from '@/lib/env';
+import { readCollectionAccess } from '@/lib/server/collectionAccess';
+import { signToken, verifyToken } from '@/lib/server/signedToken';
 import {
   enforceRateLimitRules,
   getClientIp,
@@ -25,6 +30,7 @@ import type {
 const ONE_HOUR = 3600000;
 const ALLOWED_EXTS = ['jpg', 'jpeg', 'png', 'webp', 'gif', 'svg'];
 const CACHE_VERSION = 'v2';
+const PREPARED_DOWNLOAD_TOKEN_PURPOSE = 'download-prepared';
 const DOWNLOAD_STREAM_RATE_LIMIT = parseRateLimitNumber(
   process.env.DOWNLOAD_STREAM_RATE_LIMIT,
   3,
@@ -39,10 +45,13 @@ type DownloadItem = {
   size: number;
 };
 
+/**
+ * Downloads are gated on collection access, never on an email address — the
+ * endpoint neither requires nor accepts one.
+ */
 type DownloadParams = {
   collectionId: string;
   slug: string;
-  email: string;
   isPrivate: boolean;
   token: string;
 };
@@ -54,6 +63,8 @@ type ArchiveCleanup = {
 
 type PreparedArchive = {
   cacheKey: string;
+  // The Sanity document a public archive was built from; null when private.
+  documentId: string | null;
   downloadName: string;
   responsePath: string;
   size: number;
@@ -71,6 +82,8 @@ type PreparedDownloadTokenPayload = {
   collectionId: string;
   slug: string;
   isPrivate: boolean;
+  // Public archives only: the exact document whose visibility is rechecked.
+  documentId?: string;
   expiresAt: number;
 };
 
@@ -190,7 +203,6 @@ const waitForReadableToFinish = (stream: Readable) =>
 async function extractDownloadParams(req: NextRequest) {
   let collectionId = '';
   let slug = '';
-  let email = '';
   let isPrivate = false;
   let token = '';
 
@@ -198,18 +210,16 @@ async function extractDownloadParams(req: NextRequest) {
     const { searchParams } = req.nextUrl;
     collectionId = searchParams.get('collectionId') || '';
     slug = searchParams.get('slug') || '';
-    email = searchParams.get('email') || '';
     isPrivate = searchParams.get('isPrivate') === 'true';
     token = searchParams.get('token') || '';
   } else {
     const formData = await req.formData();
-    collectionId = formData.get('collectionId') as string;
-    slug = formData.get('slug') as string;
-    email = formData.get('email') as string;
+    collectionId = (formData.get('collectionId') as string) || '';
+    slug = (formData.get('slug') as string) || '';
     isPrivate = formData.get('isPrivate') === 'true';
   }
 
-  return { collectionId, slug, email, isPrivate, token } satisfies DownloadParams;
+  return { collectionId, slug, isPrivate, token } satisfies DownloadParams;
 }
 
 const sanitizeFilename = (title: string) =>
@@ -584,40 +594,29 @@ const validateIdentifiers = ({
 };
 
 const validatePrivateAccess = async (req: NextRequest, collectionId: string) => {
-  const token = req.cookies.get('collectionAccess')?.value;
-  if (!token) {
-    throw new DownloadHttpError(401, 'Unauthorized');
-  }
-
-  try {
-    const bytes = CryptoJS.AES.decrypt(token, ENCRYPTION_KEY);
-    const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-    if (decryptedData.uniqueId !== collectionId) {
-      throw new Error('Invalid token');
-    }
-  } catch {
+  if (!readCollectionAccess(req, collectionId).ok) {
     throw new DownloadHttpError(401, 'Unauthorized');
   }
 };
 
 const buildPreparedDownloadToken = (payload: PreparedDownloadTokenPayload) =>
-  CryptoJS.AES.encrypt(JSON.stringify(payload), ENCRYPTION_KEY).toString();
+  signToken(
+    PREPARED_DOWNLOAD_TOKEN_PURPOSE,
+    payload,
+    payload.expiresAt,
+  );
 
 const readPreparedDownloadToken = (token: string) => {
-  try {
-    const bytes = CryptoJS.AES.decrypt(token, ENCRYPTION_KEY);
-    const payload = JSON.parse(
-      bytes.toString(CryptoJS.enc.Utf8),
-    ) as PreparedDownloadTokenPayload;
+  const result = verifyToken<PreparedDownloadTokenPayload>(
+    PREPARED_DOWNLOAD_TOKEN_PURPOSE,
+    token,
+  );
 
-    if (!payload.cacheKey || !payload.downloadName || payload.expiresAt < Date.now()) {
-      return null;
-    }
-
-    return payload;
-  } catch {
+  if (!result.ok || !result.payload.cacheKey || !result.payload.downloadName) {
     return null;
   }
+
+  return result.payload;
 };
 
 const getCollectionDownloadData = async ({
@@ -627,6 +626,7 @@ const getCollectionDownloadData = async ({
 }: Pick<DownloadParams, 'collectionId' | 'slug' | 'isPrivate'>) => {
   let title = 'Collection';
   let items: DownloadItem[] = [];
+  let documentId: string | null = null;
 
   if (isPrivate) {
     const data = await fetchSanityData(getDownloadGalleryById, {
@@ -641,6 +641,7 @@ const getCollectionDownloadData = async ({
     if (data) {
       items = data.gallery || [];
       title = data.title || 'Collection';
+      documentId = data._id || null;
     }
   }
 
@@ -648,7 +649,7 @@ const getCollectionDownloadData = async ({
     throw new DownloadHttpError(404, 'Collection not found or empty');
   }
 
-  return { title, items };
+  return { title, items, documentId };
 };
 
 const maybeScheduleCleanup = (dir: string) => {
@@ -672,7 +673,7 @@ const prepareArchive = async ({
   onProgress?: PrepareProgressReporter;
 }): Promise<PreparedArchive> => {
   validateIdentifiers({ collectionId, slug, isPrivate });
-  const { title, items } = await getCollectionDownloadData({
+  const { title, items, documentId } = await getCollectionDownloadData({
     collectionId,
     slug,
     isPrivate,
@@ -699,6 +700,7 @@ const prepareArchive = async ({
       );
       return {
         cacheKey,
+        documentId,
         downloadName,
         responsePath: tempFilePath,
         size: stats.size,
@@ -732,6 +734,7 @@ const prepareArchive = async ({
       const stats = fs.statSync(tempFilePath);
       return {
         cacheKey,
+        documentId,
         downloadName,
         responsePath: tempFilePath,
         size: stats.size,
@@ -748,6 +751,7 @@ const prepareArchive = async ({
     deferredCleanup = true;
     return {
       cacheKey,
+      documentId,
       downloadName,
       responsePath: uniqueGenPath,
       size: stats.size,
@@ -775,6 +779,7 @@ const createPrepareReadyPayload = (
     collectionId: params.collectionId,
     slug: params.slug,
     isPrivate: params.isPrivate,
+    ...(archive.documentId ? { documentId: archive.documentId } : {}),
     expiresAt: Date.now() + ONE_HOUR,
   });
 
@@ -843,12 +848,7 @@ const toErrorResponse = (error: any) => {
 
 async function handlePrepareDownload(req: NextRequest) {
   try {
-    const { collectionId, slug, email, isPrivate } =
-      await extractDownloadParams(req);
-
-    if (!email) {
-      throw new DownloadHttpError(400, 'Email required');
-    }
+    const { collectionId, slug, isPrivate } = await extractDownloadParams(req);
 
     validateIdentifiers({ collectionId, slug, isPrivate });
 
@@ -961,6 +961,22 @@ async function handlePreparedTokenDownload(req: NextRequest, token: string) {
 
   if (payload.isPrivate) {
     await validatePrivateAccess(req, payload.collectionId);
+  } else {
+    // The token records visibility at preparation time. If the collection has
+    // since been made private, a cached public archive must not be served.
+    // Checked by document ID: the slug may now belong to another collection.
+    if (!payload.documentId) {
+      throw new DownloadHttpError(
+        410,
+        'Prepared download is no longer available. Please prepare it again.',
+      );
+    }
+    const stillPublic = await fetchSanityDataUncached(isPublicCollectionById, {
+      documentId: payload.documentId,
+    });
+    if (stillPublic !== true) {
+      throw new DownloadHttpError(404, 'Collection not found.');
+    }
   }
 
   const cachedPath = path.join(os.tmpdir(), `mogz_${payload.cacheKey}.zip`);
@@ -975,6 +991,16 @@ async function handlePreparedTokenDownload(req: NextRequest, token: string) {
     signal: req.signal,
     requirePersistentFile: false,
   });
+  // Rebuilt by slug: refuse if the slug now resolves to a different collection.
+  if (!payload.isPrivate && archive.documentId !== payload.documentId) {
+    if (archive.cleanup) {
+      await cleanupGeneratedArchive(
+        archive.cleanup.filePath,
+        archive.cleanup.dirPath,
+      );
+    }
+    throw new DownloadHttpError(404, 'Collection not found.');
+  }
 
   return createZipResponse(
     archive.responsePath,
@@ -986,15 +1012,11 @@ async function handlePreparedTokenDownload(req: NextRequest, token: string) {
 
 async function handleGetDownload(req: NextRequest) {
   try {
-    const { collectionId, slug, email, isPrivate, token } =
+    const { collectionId, slug, isPrivate, token } =
       await extractDownloadParams(req);
 
     if (token) {
       return await handlePreparedTokenDownload(req, token);
-    }
-
-    if (!email) {
-      throw new DownloadHttpError(400, 'Email required');
     }
 
     validateIdentifiers({ collectionId, slug, isPrivate });

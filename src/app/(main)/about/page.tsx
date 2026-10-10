@@ -13,7 +13,9 @@ import { EMPTY_STATE, PAGES } from '@/lib/Constants';
 import { TEAM_MEMBER } from '@/lib/types';
 import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
 
-export const revalidate = 60;
+// Sanity edits arrive through the webhook (/api/revalidate); this daily refresh
+// is only a safety net for a missed delivery.
+export const revalidate = 86400;
 
 export const metadata: Metadata = getPageMetadata('about');
 

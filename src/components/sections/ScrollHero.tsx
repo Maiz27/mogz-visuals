@@ -8,7 +8,6 @@ import { HERO_IMAGES } from '@/lib/types';
 import { CTALink } from '../ui/CTA/CTALink';
 import { HiOutlineChevronDoubleDown } from 'react-icons/hi2';
 
-export const revalidate = 60;
 
 const ScrollHero = async () => {
   const data: HERO_IMAGES = await fetchSanityData(getHeroImages);

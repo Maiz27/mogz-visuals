@@ -1,7 +1,8 @@
 'use client';
 
-import { FormEvent } from 'react';
+import { FormEvent, useState } from 'react';
 import Input from '@/components/ui/form/Input';
+import Checkbox from '@/components/ui/form/Checkbox';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import useFormState from '@/lib/hooks/useFormState';
 import useDownloadCollection from '@/lib/hooks/useDownloadCollection';
@@ -22,6 +23,9 @@ type Props = {
   collection: COLLECTION;
 };
 
+const EMAIL_ERROR_ID = 'download-email-error';
+const EMAIL_HINT_ID = 'download-email-hint';
+
 const DownloadContent = ({ collection }: Props) => {
   const {
     step,
@@ -31,7 +35,7 @@ const DownloadContent = ({ collection }: Props) => {
     loading,
     segments,
     downloadChunk,
-    submitEmail,
+    submitPreferences,
     goBack,
     setStep,
     current,
@@ -41,19 +45,56 @@ const DownloadContent = ({ collection }: Props) => {
     downloadSize,
   } = useDownloadCollection(collection);
 
-  const stepNumber = step === 'email' ? 1 : step === 'choice' ? 2 : 3;
+  const stepNumber = step === 'start' ? 1 : step === 'choice' ? 2 : 3;
 
   const { initialValue, fields, rules } = FORMS.download;
   const { state, errors, handleChange } = useFormState(initialValue, rules);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const handleEmailSubmit = (e: FormEvent) => {
+  const emailField = fields.find((field) => field.name === 'email');
+  const marketingField = fields.find(
+    (field) => field.name === 'marketingOptIn',
+  );
+
+  const hasOptedIn = Boolean(state.marketingOptIn);
+
+  // A stale message must never outlive the input it describes: unticking the
+  // opt-in removes the field entirely, and editing the address supersedes the
+  // last verdict on it.
+  const handleFieldChange: typeof handleChange = (e) => {
+    setSubmitError(null);
+    handleChange(e);
+  };
+
+  // Only surfaced while the field exists, and only once — the submit-time
+  // verdict wins over the last per-keystroke one so the two cannot disagree.
+  const emailError = hasOptedIn ? (submitError ?? errors.email ?? null) : null;
+
+  // The download itself never needs an address. An email is only required —
+  // and only collected — when the visitor asks for future email.
+  const handleStartSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (!state.email || errors.email) return;
-    submitEmail(state.email.toLowerCase());
+
+    if (!hasOptedIn) {
+      setSubmitError(null);
+      submitPreferences(false);
+      return;
+    }
+
+    const email = state.email.trim().toLowerCase();
+    const validationError = rules.email(email);
+
+    if (validationError) {
+      setSubmitError(validationError);
+      return;
+    }
+
+    setSubmitError(null);
+    submitPreferences(true, email);
   };
 
   const handleFullDownload = async () => {
-    await downloadStream(state.email.toLowerCase());
+    await downloadStream();
   };
 
   const handlePartDownload = async (index: number) => {
@@ -80,7 +121,7 @@ const DownloadContent = ({ collection }: Props) => {
           onClick={goBack}
           className='text-xl hover:text-primary transition-colors hover:cursor-pointer disabled:cursor-not-allowed'
           aria-label='Go back'
-          disabled={step === 'email'}
+          disabled={step === 'start'}
         >
           <HiChevronDoubleLeft />
         </button>
@@ -88,29 +129,57 @@ const DownloadContent = ({ collection }: Props) => {
         <span className='text-sm font-medium'>Step {stepNumber} of 3</span>
       </div>
 
-      {/* Step 1: Email */}
-      {step === 'email' && (
+      {/* Step 1: Start */}
+      {step === 'start' && (
         <form
-          onSubmit={handleEmailSubmit}
+          onSubmit={handleStartSubmit}
           className='h-full flex flex-col justify-between'
         >
           <div className='space-y-4'>
             <p className='text-lg!'>
-              Please enter your email address to access and download this
-              exclusive collection.
+              This collection is ready to download. No email address is
+              required — continue and pick how you want your files.
             </p>
-            {fields.map((field) => {
-              if (field.name !== 'email') return null;
-              return (
+            {marketingField && (
+              <Checkbox
+                key={marketingField.name}
+                state={state}
+                errors={errors}
+                onChange={handleFieldChange}
+                {...marketingField}
+              />
+            )}
+            {hasOptedIn && emailField && (
+              <div className='space-y-1'>
+                {/* `errors` is deliberately not passed: this block owns the
+                    single error node so it can be announced and referenced. */}
                 <Input
-                  key={field.name}
+                  key={emailField.name}
                   state={state}
-                  errors={errors}
-                  onChange={handleChange}
-                  {...field}
+                  onChange={handleFieldChange}
+                  {...emailField}
+                  aria-invalid={emailError ? 'true' : 'false'}
+                  aria-describedby={
+                    emailError
+                      ? `${EMAIL_ERROR_ID} ${EMAIL_HINT_ID}`
+                      : EMAIL_HINT_ID
+                  }
                 />
-              );
-            })}
+                {emailError && (
+                  <p
+                    id={EMAIL_ERROR_ID}
+                    role='alert'
+                    className='text-red-600 text-sm text-left'
+                  >
+                    {emailError}
+                  </p>
+                )}
+                <p id={EMAIL_HINT_ID} className='text-sm text-gray-500'>
+                  We need a valid address to send you email. It is used for the
+                  mailing list only, and you can unsubscribe at any time.
+                </p>
+              </div>
+            )}
           </div>
           <CTAButton type='submit'>Next</CTAButton>
         </form>

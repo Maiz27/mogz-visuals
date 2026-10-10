@@ -1,5 +1,6 @@
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
+import { SANITY_CACHE_TAG } from './cacheTags';
 
 const SANITY_CONFIG = {
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
@@ -26,9 +27,31 @@ export const urlFor = (source: Object) => {
   return builder.image(source);
 };
 
-export const fetchSanityData = async (query: string, variables?: {}) => {
+/**
+ * Server reads are cached under SANITY_CACHE_TAG until the Sanity webhook
+ * expires it. They skip Sanity's CDN: otherwise a read made just after the
+ * webhook could re-cache the stale CDN copy. Browser reads keep the CDN.
+ *
+ * `revalidateSeconds` is for reads whose result changes with time rather than
+ * with an edit (anything using `now()`), which the webhook can't know about.
+ */
+export const fetchSanityData = async (
+  query: string,
+  variables?: {},
+  options: { revalidateSeconds?: number } = {},
+) => {
   try {
-    const data = await sanity.fetch(query, variables);
+    const data =
+      typeof window === 'undefined'
+        ? await sanityLive.fetch(query, variables, {
+            next: {
+              tags: [SANITY_CACHE_TAG],
+              ...(options.revalidateSeconds !== undefined && {
+                revalidate: options.revalidateSeconds,
+              }),
+            },
+          })
+        : await sanity.fetch(query, variables);
     return data;
   } catch (error) {
     console.error('Error fetching data:', error);

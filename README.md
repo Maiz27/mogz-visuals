@@ -22,6 +22,22 @@ yarn dev
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
+## Content Updates
+
+Sanity reads are cached until a Sanity webhook tells the site that content changed, so edits appear on the next page load. A daily refresh is only a safety net.
+
+Create the webhook in Sanity (Manage → API → Webhooks):
+
+- **URL:** `https://www.mogz.studio/api/revalidate`
+- **Dataset:** `production`
+- **Trigger on:** Create, Update, Delete (drafts off)
+- **Filter:** `!(_id in path("collectionSecret.**"))`
+- **Projection:** `{_id, _type}`
+- **HTTP method:** POST
+- **Secret:** a long random string, also set as `SANITY_REVALIDATE_SECRET` on the host
+
+The route rejects unsigned, wrongly signed and stale deliveries.
+
 ## Tech Stack
 
 - **Framework:** [Next.js](https://nextjs.org/) (App Router)

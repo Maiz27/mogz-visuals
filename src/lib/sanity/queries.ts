@@ -15,12 +15,6 @@ export const getServiceNames = `*[_type == "services"]{
   title,
 }| order(title asc)`;
 
-export const getCollectionCredentials = `*[_type == "collection" && uniqueId == $id && isPrivate == true]{
-  uniqueId,
-  isPrivate,
-  password,
-}[0]`;
-
 export const getCollectionBySlug = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
   isPrivate,
   uniqueId,
@@ -39,7 +33,6 @@ export const getPrivateCollectionByID = `*[_type == "collection" && uniqueId == 
   "mainImage": mainImage.asset->url,
   service,
   date,
-  password,
   "imageCount": count(gallery),
 }[0]`;
 
@@ -99,7 +92,6 @@ export const getPrivateCollectionWithInitialImages = `*[_type == "collection" &&
   "mainImage": mainImage.asset->url,
   service,
   date,
-  password,
   "imageCount": count(gallery),
   "gallery": gallery[0...20].asset->url,
 }[0]`;
@@ -109,7 +101,12 @@ export const getPrivateCollectionInitialGallery = `*[_type == "collection" && un
   "gallery": gallery[0...20].asset->url,
 }[0]`;
 
+// Current visibility of the exact document an archive was prepared from, checked
+// before serving it: a slug can later be reassigned to another collection.
+export const isPublicCollectionById = `count(*[_type == "collection" && _id == $documentId && (isPrivate == false || isPrivate == null)]) > 0`;
+
 export const getDownloadGalleryBySlug = `*[_type == "collection" && slug.current == $slug && (isPrivate == false || isPrivate == null)]{
+  _id,
   "gallery": gallery[].asset->{
     "url": url,
     "size": size

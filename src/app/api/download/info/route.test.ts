@@ -2,6 +2,10 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { POST } from './route';
 import { NextRequest } from 'next/server';
 import { fetchSanityData } from '@/lib/sanity/client';
+import {
+  COLLECTION_ACCESS_TTL_MS,
+  issueCollectionAccessToken,
+} from '@/lib/server/collectionAccess';
 
 // Mock Dependencies
 vi.mock('@/lib/sanity/client', () => ({
@@ -20,11 +24,19 @@ describe('POST /api/download/info', () => {
     global.fetch = vi.fn();
   });
 
-  const createRequest = (body: FormData) =>
+  const createRequest = (body: FormData, cookie?: string) =>
     new NextRequest('http://localhost/api/download/info', {
       method: 'POST',
       body,
+      headers: cookie ? { cookie } : undefined,
     });
+
+  const privateFormData = () => {
+    const formData = new FormData();
+    formData.append('collectionId', 'private-1');
+    formData.append('isPrivate', 'true');
+    return formData;
+  };
 
   it('should calculate size using correct sample ratio', async () => {
     // Mock Sanity Data: 20 items, each 1000 bytes
@@ -124,5 +136,66 @@ describe('POST /api/download/info', () => {
     expect(res.status).toBe(200);
     expect(typeof data.size).toBe('number');
     expect(data.size).toBeGreaterThan(1000);
+  });
+
+  it('rejects private collections without a token', async () => {
+    const res = await POST(createRequest(privateFormData()));
+
+    expect(res.status).toBe(401);
+    expect(mockFetchSanity).not.toHaveBeenCalled();
+  });
+
+  it('rejects a token issued for another collection', async () => {
+    const res = await POST(
+      createRequest(
+        privateFormData(),
+        `collectionAccess=${issueCollectionAccessToken('private-2').token}`,
+      ),
+    );
+
+    expect(res.status).toBe(401);
+    expect(mockFetchSanity).not.toHaveBeenCalled();
+  });
+
+  it('rejects malformed and expired tokens', async () => {
+    const malformed = await POST(
+      createRequest(privateFormData(), 'collectionAccess=nonsense'),
+    );
+    expect(malformed.status).toBe(401);
+
+    const expired = await POST(
+      createRequest(
+        privateFormData(),
+        `collectionAccess=${
+          issueCollectionAccessToken(
+            'private-1',
+            Date.now() - COLLECTION_ACCESS_TTL_MS - 1000,
+          ).token
+        }`,
+      ),
+    );
+    expect(expired.status).toBe(401);
+    expect(mockFetchSanity).not.toHaveBeenCalled();
+  });
+
+  it('serves private collections for a valid scoped token', async () => {
+    mockFetchSanity.mockResolvedValue({
+      title: 'Private Collection',
+      gallery: [{ url: 'http://cdn.sanity.io/img1.jpg', size: 1000 }],
+    });
+    (global.fetch as any).mockResolvedValue({
+      ok: true,
+      headers: { get: () => '500' },
+    });
+
+    const res = await POST(
+      createRequest(
+        privateFormData(),
+        `collectionAccess=${issueCollectionAccessToken('private-1').token}`,
+      ),
+    );
+
+    expect(res.status).toBe(200);
+    await expect(res.json()).resolves.toMatchObject({ count: 1 });
   });
 });
