@@ -21,7 +21,7 @@ import {
 const MobileMenu = () => {
   const { isOpen, menuRef, handleOpen, handleClose } = useMenu();
 
-  const { navigate } = useTransitionNavigate();
+  const { navigate, latestNavigation } = useTransitionNavigate();
   // The navigation waiting for the menu to finish closing, if any.
   const pendingNavigation = useRef<{ cancelled: boolean } | null>(null);
 
@@ -40,14 +40,16 @@ const MobileMenu = () => {
   }, []);
 
   // Let the menu slide shut first so the page transition doesn't capture it.
-  // Repeated taps while it closes are ignored.
+  // Repeated taps while it closes are ignored, and any navigation started in
+  // the meantime (e.g. the menu's logo) wins over this one.
   const closeThenNavigate = (href: string) => {
     if (pendingNavigation.current) return;
     const ticket = { cancelled: false };
+    const queuedAt = latestNavigation();
     pendingNavigation.current = ticket;
     handleClose(() => {
       if (pendingNavigation.current === ticket) pendingNavigation.current = null;
-      if (!ticket.cancelled) navigate(href);
+      if (!ticket.cancelled && latestNavigation() === queuedAt) navigate(href);
     });
   };
 

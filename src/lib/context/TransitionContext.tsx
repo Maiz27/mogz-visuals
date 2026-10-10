@@ -17,6 +17,9 @@ import { SHARED_HERO_NAME, getTransitionKind } from '@/lib/transitions';
 
 type TransitionContextValue = {
   navigate: (href: string, sharedImage?: HTMLElement | null) => void;
+  /** Changes whenever a navigation starts or Back/Forward is used, so a
+   *  navigation queued earlier can tell it has been overtaken. */
+  latestNavigation: () => number;
 };
 
 const TransitionContext = createContext<TransitionContextValue | null>(null);
@@ -91,6 +94,9 @@ export const TransitionProvider = ({ children }: { children: ReactNode }) => {
   // Bumped by every navigation and every Back/Forward: a transition only
   // pushes its destination if nothing newer has happened since it started.
   const generation = useRef(0);
+  // Bumped by every navigate() call and every Back/Forward.
+  const navigations = useRef(0);
+  const latestNavigation = useCallback(() => navigations.current, []);
   const activeMorph = useRef<ViewTransition | null>(null);
 
   /** Something newer happened: no delayed push may follow, and any waiting
@@ -111,6 +117,7 @@ export const TransitionProvider = ({ children }: { children: ReactNode }) => {
     const onPopState = (event: PopStateEvent) => {
       // Cancels an in-flight transition even when only the query changes
       // (e.g. gallery page 2 -> page 1), where no pathname change would.
+      navigations.current += 1;
       supersede();
       const uaAnimated = (
         event as PopStateEvent & { hasUAVisualTransition?: boolean }
@@ -243,6 +250,7 @@ export const TransitionProvider = ({ children }: { children: ReactNode }) => {
 
   const navigate = useCallback(
     (href: string, sharedImage?: HTMLElement | null) => {
+      navigations.current += 1;
       const url = new URL(href, window.location.href);
       if (url.origin !== window.location.origin) {
         window.location.href = url.href;
@@ -281,7 +289,7 @@ export const TransitionProvider = ({ children }: { children: ReactNode }) => {
   );
 
   return (
-    <TransitionContext.Provider value={{ navigate }}>
+    <TransitionContext.Provider value={{ navigate, latestNavigation }}>
       {children}
       <RouteCover ref={routeCover} />
     </TransitionContext.Provider>
