@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import TransitionLink from '@/components/transitions/TransitionLink';
 import Image from 'next/image';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import { CTALink } from '../ui/CTA/CTALink';
@@ -31,14 +31,14 @@ const Footer = async () => {
         <div className='grid grid-cols-1 md:grid-cols-2 gap-2 md:divide-x-2 divide-primary'>
           {LEGAL_ROUTES.map(({ name, href }) => {
             return (
-              <Link
+              <TransitionLink
                 key={name}
                 href={href}
                 className='transition-colors tracking-wider lg:tracking-widest ml-2 relative group hover:text-primary first:pr-2'
               >
                 {name}
                 <span className='absolute bottom-0 left-0 right-0 h-1 origin-left scale-x-0 group-hover:scale-x-100 bg-primary transition-transform duration-300 ease-out' />
-              </Link>
+              </TransitionLink>
             );
           })}
         </div>

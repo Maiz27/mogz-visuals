@@ -1,6 +1,7 @@
 'use client';
 
-import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { usePathname, useSearchParams } from 'next/navigation';
+import { useTransitionNavigate } from '@/lib/context/TransitionContext';
 import { FormEvent, useEffect } from 'react';
 import CTAButton from '@/components/ui/CTA/CTAButton';
 import AccessCollectionForm from '@/components/forms/AccessCollectionForm';
@@ -17,7 +18,7 @@ type Props = {
 };
 
 const AccessContent = ({ onClose, collection }: Props) => {
-  const router = useRouter();
+  const { navigate } = useTransitionNavigate();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const id = searchParams.get('id');
@@ -53,7 +54,7 @@ const AccessContent = ({ onClose, collection }: Props) => {
       if (id && pathname === '/private') {
         window.location.reload();
       } else {
-        router.push(`/private?id=${response.id}`);
+        navigate(`/private?id=${response.id}`);
       }
     }
   };
