@@ -1,4 +1,5 @@
 import { createHash } from 'crypto';
+import { isIP } from 'net';
 import type { NextRequest } from 'next/server';
 import Redis from 'ioredis';
 
@@ -68,8 +69,11 @@ export const parseRateLimitNumber = (
 };
 
 export const getClientIp = (req: Pick<NextRequest, 'headers'>) => {
+  // Cloudflare sets this and overwrites any value the visitor sent, so it is
+  // trustworthy only while the origin is reachable through Cloudflare alone.
+  // A value that isn't an IP address was not set by Cloudflare: ignore it.
   const cfConnectingIp = req.headers.get('cf-connecting-ip')?.trim();
-  if (cfConnectingIp) {
+  if (cfConnectingIp && isIP(cfConnectingIp)) {
     return cfConnectingIp;
   }
 
@@ -139,6 +143,40 @@ async function consumeRateLimitRule(
   }
 
   return { ok: true, enabled: true };
+}
+
+// Gives back one counted attempt, never going below zero or reviving an expired key.
+const RELEASE_SCRIPT = `
+local count = tonumber(redis.call('GET', KEYS[1]) or '0')
+if count > 0 then
+  return redis.call('DECR', KEYS[1])
+end
+return 0`;
+
+/**
+ * Returns attempts counted by enforceRateLimitRules for requests that turned
+ * out not to count (e.g. a correct code). Counting first and giving back after
+ * keeps concurrent requests from all passing a limit before any is recorded.
+ */
+export async function releaseRateLimitRules(
+  rules: RateLimitRule[],
+): Promise<void> {
+  const client = getRedisClient();
+  if (!client) {
+    return;
+  }
+
+  await Promise.all(
+    rules.map(async (rule) => {
+      if (rule.skip || rule.limit <= 0 || rule.windowMs <= 0) {
+        return;
+      }
+      const key = buildRateLimitKey(rule.keyParts);
+      if (key) {
+        await client.eval(RELEASE_SCRIPT, 1, key);
+      }
+    }),
+  );
 }
 
 export async function enforceRateLimitRules(

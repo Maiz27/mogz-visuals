@@ -9,7 +9,6 @@ import { ByNilotik } from '../footer/Footer';
 import AccessCollectionForm from '../forms/AccessCollectionForm';
 import useMenu from '@/lib/hooks/useMenu';
 import useFormState from '@/lib/hooks/useFormState';
-import { setCollectionAccessCookie } from '@/lib/utils';
 import useVerifyAccess from '@/lib/hooks/useVerifyAccess';
 import { FORMS, ROUTES, BOOK_ROUTE } from '@/lib/Constants';
 import {
@@ -54,7 +53,7 @@ const MobileMenu = () => {
   };
 
   const handleReroute = (response: any) => {
-    setCollectionAccessCookie(response.secret);
+    // The access cookie is httpOnly and already set by the verify response.
     closeThenNavigate(`/private?id=${response.id}`);
   };
 

@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import Image from 'next/image';
-import { RequestCookie } from 'next/dist/compiled/@edge-runtime/cookies';
 import Heading from '../heading/Heading';
 import LocomotiveScrollSection from '../locomotiveScrollSection/LocomotiveScrollSection';
 import CTAButton from '../ui/CTA/CTAButton';
@@ -13,38 +12,17 @@ import {
   HiOutlineCalendarDays,
   HiOutlineChevronDoubleDown,
 } from 'react-icons/hi2';
-import { useDrawer } from '@/lib/context/DrawerContext';
-import AccessContent from '../drawers/AccessDrawer';
 
 type Props = {
   collection: COLLECTION;
-  /** @deprecated cookie prop is opaque httpOnly, verification happens via API */
-  cookie: RequestCookie | undefined;
 };
-const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
+
+/**
+ * Rendered only after the server has validated the access token for this
+ * collection, so the unlocked state is the only state it needs to handle.
+ */
+const PrivateCollectionHeader = ({ collection }: Props) => {
   const { title, mainImage, date } = collection;
-  const [decrypted, setDecrypted] = useState<any | null>(null);
-  const { openDrawer, closeDrawer } = useDrawer();
-
-  // Check auth status on mount (or when cookie prop changes, though prop might be opaque)
-  useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const res = await fetch('/api/auth/check');
-        if (res.ok) {
-          const data = await res.json();
-          if (data.authenticated) {
-            setDecrypted({ uniqueId: data.uniqueId });
-          }
-        }
-      } catch (e) {
-        console.error('Auth check error', e);
-      }
-    };
-    checkAuth();
-  }, []); // Run on mount
-
-  const isValidCookie = decrypted && decrypted.uniqueId === collection.uniqueId;
 
   return (
     <>
@@ -87,38 +65,20 @@ const PrivateCollectionHeader = ({ collection, cookie }: Props) => {
                 </time>
               </div>
             </div>
-
-            {!isValidCookie && (
-              <CTAButton
-                onClick={() =>
-                  openDrawer(
-                    <AccessContent
-                      onClose={closeDrawer}
-                      collection={collection}
-                    />,
-                    'Access Collection',
-                  )
-                }
-              >
-                Unlock Collection
-              </CTAButton>
-            )}
           </div>
         </div>
 
         {/* Scroll Down */}
-        {isValidCookie && (
-          <div className='absolute left-1/2 -translate-x-1/2 bottom-8 z-20'>
-            <CTAButton
-              title='View Collection'
-              scrollId='gallery'
-              style='ghost'
-              className='text-3xl animate-bounce'
-            >
-              <HiOutlineChevronDoubleDown />
-            </CTAButton>
-          </div>
-        )}
+        <div className='absolute left-1/2 -translate-x-1/2 bottom-8 z-20'>
+          <CTAButton
+            title='View Collection'
+            scrollId='gallery'
+            style='ghost'
+            className='text-3xl animate-bounce'
+          >
+            <HiOutlineChevronDoubleDown />
+          </CTAButton>
+        </div>
       </LocomotiveScrollSection>
     </>
   );

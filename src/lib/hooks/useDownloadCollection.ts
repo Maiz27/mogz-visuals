@@ -30,8 +30,8 @@ const useDownloadCollection = (collection: COLLECTION) => {
     ...store,
     downloadChunk: (segmentIndex: number) =>
       store.downloadPart(segmentIndex, notify),
-    downloadAllChunks: (email: string) => store.downloadAll(email, notify),
-    downloadStream: (email: string) => store.downloadStream(email, notify),
+    downloadAllChunks: () => store.downloadAll(notify),
+    downloadStream: () => store.downloadStream(notify),
   };
 };
 

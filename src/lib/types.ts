@@ -15,7 +15,6 @@ export type COLLECTION = {
   title: string;
   slug: SLUG;
   isPrivate: boolean;
-  password?: string;
   uniqueId?: string;
   date: string;
   service: SERVICE;
@@ -24,21 +23,19 @@ export type COLLECTION = {
   imageCount: number;
 };
 
-export type COLLECTION_CREDENTIALS = {
-  uniqueId: string;
-  isPrivate: boolean;
-  password: string;
-};
-
+/**
+ * The access token itself is never sent to the browser — the server issues it
+ * as an httpOnly cookie on this response.
+ */
 export type VERIFY_ACCESS_RESPONSE_BODY = {
   message: string;
   status: number;
   id: string;
-  secret: string;
+  expiresAt?: number;
 };
 
 export type DownloadStep =
-  | 'email'
+  | 'start'
   | 'choice'
   | 'download_parts'
   | 'download_stream';

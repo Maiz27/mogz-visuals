@@ -1,11 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { useDownloadStore } from './downloadStore';
-import { fetchSanityData } from '@/lib/sanity/client';
 import type { DownloadPrepareEvent } from '@/lib/types';
-
-vi.mock('@/lib/sanity/client', () => ({
-  fetchSanityData: vi.fn(),
-}));
 
 vi.mock('file-saver', () => ({
   saveAs: vi.fn(),
@@ -73,7 +68,14 @@ describe('useDownloadStore', () => {
       if (url.includes('/api/download/info')) {
         return {
           ok: true,
-          json: async () => ({ size: 2048 }),
+          json: async () => ({ size: 2048, count: 250 }),
+        } as Response;
+      }
+
+      if (url.includes('/api/gallery')) {
+        return {
+          ok: true,
+          json: async () => ['img-1.jpg', 'img-2.jpg'],
         } as Response;
       }
 
@@ -111,9 +113,9 @@ describe('useDownloadStore', () => {
 
     vi.stubGlobal(
       'Worker',
-      vi.fn(() => ({
-        terminate: vi.fn(),
-      })),
+      class {
+        terminate = vi.fn();
+      },
     );
 
     vi.stubGlobal('document', {
@@ -127,10 +129,6 @@ describe('useDownloadStore', () => {
         removeChild: vi.fn(),
       },
     });
-
-    vi.mocked(fetchSanityData)
-      .mockResolvedValueOnce(250 as never)
-      .mockResolvedValue(['img-1.jpg', 'img-2.jpg'] as never);
   });
 
   afterEach(() => {
@@ -149,11 +147,11 @@ describe('useDownloadStore', () => {
       { start: 200, end: 250 },
     ]);
     expect(state.downloadSize).toBe(2048);
-    expect(state.step).toBe('email');
+    expect(state.step).toBe('start');
   });
 
-  it('submits email and supports back navigation', () => {
-    useDownloadStore.getState().submitEmail('john@example.com');
+  it('advances past the first step and supports back navigation', () => {
+    useDownloadStore.getState().submitPreferences(false);
     expect(useDownloadStore.getState().step).toBe('choice');
 
     useDownloadStore.getState().setStep('download_parts');
@@ -161,7 +159,7 @@ describe('useDownloadStore', () => {
     expect(useDownloadStore.getState().step).toBe('choice');
 
     useDownloadStore.getState().goBack();
-    expect(useDownloadStore.getState().step).toBe('email');
+    expect(useDownloadStore.getState().step).toBe('start');
   });
 
   it('resets loading state when rate limit fails for part download', async () => {
@@ -243,7 +241,7 @@ describe('useDownloadStore', () => {
     const notify = vi.fn();
     const downloadPromise = useDownloadStore
       .getState()
-      .downloadStream('john@example.com', notify);
+      .downloadStream(notify);
 
     expect(useDownloadStore.getState().step).toBe('download_stream');
     expect(useDownloadStore.getState().streamStatus).toBe('preparing');
@@ -347,10 +345,7 @@ describe('useDownloadStore', () => {
     }) as any;
 
     const notify = vi.fn();
-    await useDownloadStore.getState().downloadStream(
-      'john@example.com',
-      notify,
-    );
+    await useDownloadStore.getState().downloadStream(notify);
 
     const state = useDownloadStore.getState();
     expect(state.step).toBe('download_stream');
@@ -409,10 +404,7 @@ describe('useDownloadStore', () => {
     }) as any;
 
     const notify = vi.fn();
-    await useDownloadStore.getState().downloadStream(
-      'john@example.com',
-      notify,
-    );
+    await useDownloadStore.getState().downloadStream(notify);
 
     const state = useDownloadStore.getState();
     expect(state.streamStatus).toBe('failed');
@@ -471,7 +463,7 @@ describe('useDownloadStore', () => {
     const notify = vi.fn();
     const downloadPromise = useDownloadStore
       .getState()
-      .downloadStream('john@example.com', notify);
+      .downloadStream(notify);
 
     expect(useDownloadStore.getState().streamStatus).toBe('preparing');
 
@@ -502,24 +494,274 @@ describe('useDownloadStore', () => {
   });
 
   it('ignores late initialize results after the store resets', async () => {
-    let resolveCount: ((value: number) => void) | undefined;
+    let resolveInfo: ((value: Response) => void) | undefined;
 
-    vi.mocked(fetchSanityData).mockImplementationOnce(
-      () =>
-        new Promise<number>((resolve) => {
-          resolveCount = resolve;
-        }) as never,
-    );
+    global.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = input.toString();
+      if (url.includes('/api/download/info')) {
+        return new Promise<Response>((resolve) => {
+          resolveInfo = resolve;
+        });
+      }
+
+      return Promise.resolve({
+        ok: true,
+        json: async () => ({}),
+      } as Response);
+    }) as any;
 
     const initializePromise = useDownloadStore.getState().initialize(collection);
     useDownloadStore.getState().reset();
 
-    resolveCount?.(250);
+    resolveInfo?.({
+      ok: true,
+      json: async () => ({ size: 2048, count: 250 }),
+    } as Response);
     await initializePromise;
 
     const state = useDownloadStore.getState();
     expect(state.collection).toBeNull();
     expect(state.segments).toEqual([]);
     expect(state.downloadSize).toBeNull();
+  });
+
+  describe('email is optional', () => {
+    const audienceCalls = () =>
+      (global.fetch as any).mock.calls.filter((call: unknown[]) =>
+        String(call[0]).includes('/api/contact/audience'),
+      );
+
+    const prepareRequests = () =>
+      (global.fetch as any).mock.calls.filter(
+        (call: unknown[]) =>
+          String(call[0]).includes('/api/download/stream') &&
+          (call[1] as RequestInit | undefined)?.method === 'POST',
+      );
+
+    it('downloads with no email address at all', async () => {
+      await useDownloadStore.getState().initialize(collection);
+      useDownloadStore.getState().submitPreferences(false);
+
+      expect(useDownloadStore.getState().email).toBe('');
+      expect(useDownloadStore.getState().step).toBe('choice');
+
+      const notify = vi.fn();
+      await useDownloadStore.getState().downloadStream(notify);
+
+      expect(useDownloadStore.getState().streamStatus).toBe('started');
+      expect(linkClick).toHaveBeenCalled();
+      expect(notify).toHaveBeenCalledWith('Download started...', 'success');
+      expect(audienceCalls()).toHaveLength(0);
+    });
+
+    it('never puts an email on the prepare request, even after opting in', async () => {
+      await useDownloadStore.getState().initialize(collection);
+      useDownloadStore.getState().submitPreferences(true, 'john@example.com');
+
+      await useDownloadStore.getState().downloadStream(vi.fn());
+
+      const [, init] = prepareRequests()[0];
+      const body = init.body as FormData;
+      expect(body.get('email')).toBeNull();
+    });
+
+    it('discards a typed address when the opt-in is left unticked', async () => {
+      await useDownloadStore.getState().initialize(collection);
+      // The drawer only forwards an address alongside consent, but the store
+      // must not retain one regardless.
+      useDownloadStore.getState().submitPreferences(false, 'john@example.com');
+
+      expect(useDownloadStore.getState().email).toBe('');
+
+      await useDownloadStore.getState().downloadStream(vi.fn());
+
+      expect(audienceCalls()).toHaveLength(0);
+    });
+
+    it('does not subscribe when consent is given without an address', async () => {
+      await useDownloadStore.getState().initialize(collection);
+      useDownloadStore.getState().submitPreferences(true);
+
+      await useDownloadStore.getState().downloadStream(vi.fn());
+
+      expect(useDownloadStore.getState().streamStatus).toBe('started');
+      expect(audienceCalls()).toHaveLength(0);
+    });
+
+    it('subscribes only after an explicit opt-in', async () => {
+      await useDownloadStore.getState().initialize(collection);
+      useDownloadStore.getState().submitPreferences(true, 'john@example.com');
+
+      await useDownloadStore.getState().downloadStream(vi.fn());
+
+      const calls = audienceCalls();
+      expect(calls).toHaveLength(1);
+      expect(JSON.parse(calls[0][1].body)).toEqual({
+        email: 'john@example.com',
+        consent: true,
+      });
+    });
+
+    it('keeps the download working when the audience request fails', async () => {
+      await useDownloadStore.getState().initialize(collection);
+      useDownloadStore.getState().submitPreferences(true, 'john@example.com');
+
+      const previousFetch = global.fetch as any;
+      global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        if (input.toString().includes('/api/contact/audience')) {
+          return Promise.resolve({
+            ok: false,
+            status: 500,
+            json: async () => ({ message: 'Resend is down' }),
+          } as Response);
+        }
+
+        return previousFetch(input, init);
+      }) as any;
+
+      const notify = vi.fn();
+      await useDownloadStore.getState().downloadStream(notify);
+
+      expect(useDownloadStore.getState().streamStatus).toBe('started');
+      expect(linkClick).toHaveBeenCalled();
+      expect(notify).toHaveBeenCalledWith('Download started...', 'success');
+      expect(notify).not.toHaveBeenCalledWith(
+        expect.stringContaining('Resend'),
+        'error',
+      );
+    });
+
+    it('downloads every part without subscribing when the user declines', async () => {
+      await useDownloadStore.getState().initialize(collection);
+      useDownloadStore.getState().submitPreferences(false);
+
+      const notify = vi.fn();
+      await useDownloadStore.getState().downloadAll(notify);
+
+      expect(audienceCalls()).toHaveLength(0);
+      expect(notify).toHaveBeenCalledWith(
+        'All parts downloaded successfully!',
+        'success',
+      );
+    });
+  });
+
+  describe('consent across every download path', () => {
+    const audienceCalls = () =>
+      (global.fetch as any).mock.calls.filter((call: unknown[]) =>
+        String(call[0]).includes('/api/contact/audience'),
+      );
+
+    const optedIn = async () => {
+      await useDownloadStore.getState().initialize(collection);
+      useDownloadStore.getState().submitPreferences(true, 'john@example.com');
+    };
+
+    const declined = async () => {
+      await useDownloadStore.getState().initialize(collection);
+      useDownloadStore.getState().submitPreferences(false);
+    };
+
+    it('subscribes once for an opted-in single-part download', async () => {
+      await optedIn();
+
+      await useDownloadStore.getState().downloadPart(0, vi.fn());
+
+      expect(audienceCalls()).toHaveLength(1);
+      expect(useDownloadStore.getState().subscribedEmail).toBe(
+        'john@example.com',
+      );
+    });
+
+    it('subscribes once for an opted-in multipart download', async () => {
+      await optedIn();
+
+      await useDownloadStore.getState().downloadAll(vi.fn());
+
+      expect(useDownloadStore.getState().segments.length).toBeGreaterThan(1);
+      expect(audienceCalls()).toHaveLength(1);
+    });
+
+    it('never subscribes for single-part or multipart without consent', async () => {
+      await declined();
+
+      await useDownloadStore.getState().downloadPart(0, vi.fn());
+      await useDownloadStore.getState().downloadAll(vi.fn());
+      await useDownloadStore.getState().downloadStream(vi.fn());
+
+      expect(audienceCalls()).toHaveLength(0);
+      expect(useDownloadStore.getState().subscribedEmail).toBeNull();
+    });
+
+    it('does not resubmit when a part download is retried', async () => {
+      await optedIn();
+
+      await useDownloadStore.getState().downloadPart(0, vi.fn());
+      await useDownloadStore.getState().downloadPart(0, vi.fn());
+      await useDownloadStore.getState().downloadPart(1, vi.fn());
+
+      expect(audienceCalls()).toHaveLength(1);
+    });
+
+    it('does not resubmit across repeated full-download attempts', async () => {
+      await optedIn();
+
+      await useDownloadStore.getState().downloadStream(vi.fn());
+      await useDownloadStore.getState().downloadStream(vi.fn());
+
+      expect(audienceCalls()).toHaveLength(1);
+    });
+
+    it('does not resubmit when the visitor mixes download paths', async () => {
+      await optedIn();
+
+      await useDownloadStore.getState().downloadPart(0, vi.fn());
+      await useDownloadStore.getState().downloadAll(vi.fn());
+      await useDownloadStore.getState().downloadStream(vi.fn());
+
+      expect(audienceCalls()).toHaveLength(1);
+    });
+
+    it('does not resubmit after a failed subscription', async () => {
+      await optedIn();
+
+      const previousFetch = global.fetch as any;
+      global.fetch = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+        if (input.toString().includes('/api/contact/audience')) {
+          return Promise.resolve({
+            ok: false,
+            status: 502,
+            json: async () => ({ message: 'Provider down' }),
+          } as Response);
+        }
+
+        return previousFetch(input, init);
+      }) as any;
+
+      await useDownloadStore.getState().downloadStream(vi.fn());
+      await useDownloadStore.getState().downloadPart(0, vi.fn());
+
+      expect(audienceCalls()).toHaveLength(1);
+    });
+
+    it('subscribes again for a new address after the drawer resets', async () => {
+      await optedIn();
+      await useDownloadStore.getState().downloadStream(vi.fn());
+      expect(audienceCalls()).toHaveLength(1);
+
+      useDownloadStore.getState().reset();
+      expect(useDownloadStore.getState().subscribedEmail).toBeNull();
+
+      await useDownloadStore.getState().initialize(collection);
+      useDownloadStore.getState().submitPreferences(true, 'jane@example.com');
+      await useDownloadStore.getState().downloadStream(vi.fn());
+
+      const calls = audienceCalls();
+      expect(calls).toHaveLength(2);
+      expect(JSON.parse(calls[1][1].body)).toEqual({
+        email: 'jane@example.com',
+        consent: true,
+      });
+    });
   });
 });

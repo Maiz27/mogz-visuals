@@ -214,8 +214,15 @@ export const FORMS = {
     },
   },
   download: {
-    initialValue: { email: '', part: '0' },
+    initialValue: { email: '', part: '0', marketingOptIn: false },
     fields: [
+      {
+        comp: 'checkbox',
+        id: 'download-marketing-opt-in',
+        name: 'marketingOptIn',
+        label:
+          'Email me occasional news and offers from Mogz Visuals. Entirely optional — leave this unticked and your download starts without an email address.',
+      },
       {
         id: 'download-email',
         name: 'email',

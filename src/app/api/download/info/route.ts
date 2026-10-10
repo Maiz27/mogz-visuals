@@ -4,8 +4,7 @@ import {
   getDownloadGalleryBySlug,
   getDownloadGalleryById,
 } from '@/lib/sanity/queries';
-import CryptoJS from 'crypto-js';
-import { ENCRYPTION_KEY } from '@/lib/env';
+import { readCollectionAccess } from '@/lib/server/collectionAccess';
 import { Buffer } from 'buffer';
 
 export async function POST(req: NextRequest) {
@@ -23,19 +22,8 @@ export async function POST(req: NextRequest) {
     }
 
     // AUTH CHECK FOR PRIVATE COLLECTIONS
-    if (isPrivate) {
-      const token = req.cookies.get('collectionAccess')?.value;
-      if (!token)
-        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-
-      try {
-        const bytes = CryptoJS.AES.decrypt(token, ENCRYPTION_KEY);
-        const decryptedData = JSON.parse(bytes.toString(CryptoJS.enc.Utf8));
-        if (decryptedData.uniqueId !== collectionId)
-          throw new Error('Invalid token');
-      } catch (error) {
-        return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
-      }
+    if (isPrivate && !readCollectionAccess(req, collectionId).ok) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
     }
 
     // 1. Fetch Metadata and Items

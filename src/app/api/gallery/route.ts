@@ -4,6 +4,9 @@ import {
   getPublicCollectionGallerySegment,
   getPrivateCollectionGallerySegment,
 } from '@/lib/sanity/queries';
+import { readCollectionAccess } from '@/lib/server/collectionAccess';
+
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -17,6 +20,14 @@ export async function GET(req: NextRequest) {
       { message: 'Invalid request parameters' },
       { status: 400 }
     );
+  }
+
+  if (isPrivate) {
+    const access = readCollectionAccess(req, collectionId);
+
+    if (!access.ok) {
+      return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
+    }
   }
 
   try {

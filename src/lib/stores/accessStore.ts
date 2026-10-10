@@ -24,7 +24,6 @@ const DEFAULT_RESPONSE: VERIFY_ACCESS_RESPONSE_BODY = {
   message: 'Unable to verify access.',
   status: 500,
   id: '',
-  secret: '',
 };
 
 export const useAccessStore = create<AccessStore>((set) => ({

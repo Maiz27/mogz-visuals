@@ -3,13 +3,6 @@
 import { create } from 'zustand';
 import { saveAs } from 'file-saver';
 import * as Comlink from 'comlink';
-import { fetchSanityData } from '@/lib/sanity/client';
-import {
-  getPrivateCollectionGallerySegment,
-  getPrivateCollectionImageCount,
-  getPublicCollectionGallerySegment,
-  getPublicCollectionImageCount,
-} from '@/lib/sanity/queries';
 import type {
   COLLECTION,
   DownloadPrepareEvent,
@@ -52,6 +45,9 @@ type DownloadStoreState = {
   total: number;
   error: string | null;
   email: string;
+  marketingOptIn: boolean;
+  /** Address already sent to the audience API in this session, if any. */
+  subscribedEmail: string | null;
   collection: DownloadCollectionRef | null;
   initializedKey: string | null;
   sessionId: number;
@@ -61,19 +57,19 @@ type DownloadStoreState = {
 
 type DownloadStoreActions = {
   initialize: (collection: COLLECTION) => Promise<void>;
-  submitEmail: (email: string) => void;
+  submitPreferences: (marketingOptIn: boolean, email?: string) => void;
   setStep: (step: DownloadStep) => void;
   goBack: () => void;
   downloadPart: (segmentIndex: number, notify: Notify) => Promise<void>;
-  downloadAll: (email: string, notify: Notify) => Promise<void>;
-  downloadStream: (email: string, notify: Notify) => Promise<void>;
+  downloadAll: (notify: Notify) => Promise<void>;
+  downloadStream: (notify: Notify) => Promise<void>;
   reset: () => void;
 };
 
 type DownloadStore = DownloadStoreState & DownloadStoreActions;
 
 const DEFAULT_STATE: DownloadStoreState = {
-  step: 'email',
+  step: 'start',
   loading: false,
   streamStatus: 'idle',
   streamError: null,
@@ -86,6 +82,8 @@ const DEFAULT_STATE: DownloadStoreState = {
   total: 0,
   error: null,
   email: '',
+  marketingOptIn: false,
+  subscribedEmail: null,
   collection: null,
   initializedKey: null,
   sessionId: 0,
@@ -115,13 +113,8 @@ const createSegments = (imageCount: number): Segment[] => {
   });
 };
 
-const getCollectionParams = (collection: DownloadCollectionRef) =>
-  collection.isPrivate
-    ? { collectionId: collection.uniqueId, queryParam: { id: collection.uniqueId } }
-    : {
-        collectionId: collection.slug?.current,
-        queryParam: { slug: collection.slug?.current },
-      };
+const getCollectionId = (collection: DownloadCollectionRef) =>
+  collection.isPrivate ? collection.uniqueId : collection.slug?.current;
 
 const startProgress = (totalItems: number) => ({
   total: totalItems,
@@ -208,14 +201,81 @@ const readPrepareStream = async (
   }
 };
 
+/**
+ * The download never needs an email address. This is the only path that sends
+ * one anywhere, it only runs behind an explicit marketing opt-in, and it is
+ * never awaited by the download: a failed or refused subscription must not
+ * stop a download that was never conditional on it.
+ */
 const addEmailToAudience = async (email: string) => {
-  await fetch('/api/contact/audience', {
+  const response = await fetch('/api/contact/audience', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
     },
-    body: JSON.stringify({ email }),
+    body: JSON.stringify({ email, consent: true }),
   });
+
+  if (!response.ok) {
+    throw new Error(
+      await getResponseMessage(response, 'Failed to save email preference.'),
+    );
+  }
+};
+
+/**
+ * One subscription per address per drawer session, shared by every download
+ * path. The flag is claimed synchronously before the request goes out, so
+ * retries, repeated full downloads and part-by-part downloads cannot stack up
+ * duplicate audience requests. A failed attempt is not retried — resubmitting
+ * is exactly what the dedup exists to prevent, and the visitor can opt in
+ * again from a fresh drawer.
+ */
+const subscribeOnceIfConsented = (
+  read: () => Pick<
+    DownloadStoreState,
+    'email' | 'marketingOptIn' | 'subscribedEmail'
+  >,
+  write: (partial: Partial<DownloadStoreState>) => void,
+) => {
+  const { email, marketingOptIn, subscribedEmail } = read();
+
+  if (!marketingOptIn || !email || subscribedEmail === email) {
+    return;
+  }
+
+  write({ subscribedEmail: email });
+
+  void addEmailToAudience(email).catch((error) => {
+    console.error(
+      'Failed to add email to audience:',
+      error instanceof Error ? error.message : 'Unknown error',
+    );
+  });
+};
+
+const fetchGallerySegment = async (
+  collection: DownloadCollectionRef,
+  start: number,
+  end: number,
+): Promise<string[]> => {
+  const params = new URLSearchParams({
+    collectionId: getCollectionId(collection) ?? '',
+    isPrivate: String(Boolean(collection.isPrivate)),
+    start: String(start),
+    end: String(end),
+  });
+
+  const response = await fetch(`/api/gallery?${params.toString()}`);
+
+  if (!response.ok) {
+    throw new Error(
+      await getResponseMessage(response, 'Failed to load collection images.'),
+    );
+  }
+
+  const images = await response.json();
+  return Array.isArray(images) ? images : [];
 };
 
 const checkRateLimit = async (
@@ -325,25 +385,9 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
       return;
     }
 
-    try {
-      const countQuery = collectionRef.isPrivate
-        ? getPrivateCollectionImageCount
-        : getPublicCollectionImageCount;
-      const { queryParam } = getCollectionParams(collectionRef);
-
-      const imageCount: number = await fetchSanityData(countQuery, queryParam);
-      if (get().sessionId !== sessionId) {
-        return;
-      }
-      set({ segments: createSegments(imageCount) });
-    } catch (error) {
-      if (get().sessionId !== sessionId) {
-        return;
-      }
-      console.error('Failed to fetch download segments', error);
-      set({ error: 'Failed to load download segments.' });
-    }
-
+    // `/api/download/info` is the authorized source for both the size estimate
+    // and the image count, so private collections never get counted straight
+    // out of Sanity by the browser.
     try {
       const formData = new FormData();
       if (collectionRef.isPrivate && collectionRef.uniqueId) {
@@ -363,24 +407,37 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
         return;
       }
 
-      if (res.ok) {
-        const data = await res.json();
-        if (get().sessionId !== sessionId) {
-          return;
-        }
-        set({ downloadSize: data.size });
+      if (!res.ok) {
+        set({ error: 'Failed to load download segments.' });
+        return;
       }
+
+      const data = await res.json();
+      if (get().sessionId !== sessionId) {
+        return;
+      }
+
+      set({
+        downloadSize: typeof data?.size === 'number' ? data.size : null,
+        segments: createSegments(
+          typeof data?.count === 'number' ? data.count : 0,
+        ),
+      });
     } catch (error) {
       if (get().sessionId !== sessionId) {
         return;
       }
-      console.error('Failed to fetch download size', error);
+      console.error('Failed to fetch download details', error);
+      set({ error: 'Failed to load download segments.' });
     }
   },
 
-  submitEmail: (email) => {
+  // An email is only ever stored when the visitor opted in to marketing. With
+  // no opt-in there is nothing to keep and nothing to send.
+  submitPreferences: (marketingOptIn, email) => {
     set({
-      email,
+      email: marketingOptIn ? (email ?? '') : '',
+      marketingOptIn,
       step: 'choice',
       error: null,
       ...resetStreamState(),
@@ -407,7 +464,7 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
       switch (state.step) {
         case 'choice':
           return {
-            step: 'email' as DownloadStep,
+            step: 'start' as DownloadStep,
             ...resetStreamState(),
           };
         case 'download_parts':
@@ -437,22 +494,19 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
     });
 
     try {
-      const { collectionId, queryParam } = getCollectionParams(collection);
+      const collectionId = getCollectionId(collection);
       if (!(await checkRateLimit('download-part', notify, collectionId))) {
         return;
       }
 
-      const segment = segments[segmentIndex];
-      const segmentQuery = collection.isPrivate
-        ? getPrivateCollectionGallerySegment
-        : getPublicCollectionGallerySegment;
-      const params = {
-        ...queryParam,
-        start: segment.start,
-        end: segment.end,
-      };
+      subscribeOnceIfConsented(get, set);
 
-      const images: string[] = await fetchSanityData(segmentQuery, params);
+      const segment = segments[segmentIndex];
+      const images = await fetchGallerySegment(
+        collection,
+        segment.start,
+        segment.end,
+      );
 
       await zipAndSave(
         images,
@@ -479,7 +533,7 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
     }
   },
 
-  downloadAll: async (email, notify) => {
+  downloadAll: async (notify) => {
     const { collection, segments } = get();
     if (!collection) {
       return;
@@ -496,20 +550,15 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
         return;
       }
 
-      await addEmailToAudience(email);
+      subscribeOnceIfConsented(get, set);
 
       for (let i = 0; i < segments.length; i++) {
         const segment = segments[i];
-        const segmentQuery = collection.isPrivate
-          ? getPrivateCollectionGallerySegment
-          : getPublicCollectionGallerySegment;
-        const { queryParam } = getCollectionParams(collection);
-        const params = {
-          ...queryParam,
-          start: segment.start,
-          end: segment.end,
-        };
-        const images: string[] = await fetchSanityData(segmentQuery, params);
+        const images = await fetchGallerySegment(
+          collection,
+          segment.start,
+          segment.end,
+        );
 
         await zipAndSave(
           images,
@@ -542,7 +591,7 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
     }
   },
 
-  downloadStream: async (email, notify) => {
+  downloadStream: async (notify) => {
     const { collection } = get();
     if (!collection) {
       return;
@@ -571,18 +620,15 @@ export const useDownloadStore = create<DownloadStore>((set, get) => ({
       streamDownloadUrl: null,
       streamProgress: null,
       error: null,
-      email,
       activeStreamRequestId: requestId,
       streamAbortController,
     });
 
     try {
-      void addEmailToAudience(email).catch((error) => {
-        console.error('Failed to add email to audience:', error);
-      });
+      subscribeOnceIfConsented(get, set);
 
+      // The prepare request deliberately carries no email address.
       const formData = new FormData();
-      formData.append('email', email);
 
       if (collection.isPrivate && collection.uniqueId) {
         formData.append('collectionId', collection.uniqueId);
