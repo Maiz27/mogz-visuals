@@ -5,7 +5,6 @@ import { getTeamImages } from '@/lib/sanity/queries';
 import ImmersiveImages from './ImmersiveImages';
 import Heading from '../heading/Heading';
 
-export const revalidate = 60;
 
 const ImmersiveAbout = async () => {
   const images: string[] = await fetchSanityData(getTeamImages);

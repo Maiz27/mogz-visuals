@@ -10,7 +10,9 @@ import {
 import { COLLECTION } from '@/lib/types';
 import { BASEURL, SITE_NAME } from '@/lib/Constants';
 
-export const revalidate = 60;
+// Sanity edits arrive through the webhook (/api/revalidate); this daily refresh
+// is only a safety net for a missed delivery.
+export const revalidate = 86400;
 
 export async function generateMetadata(props: {
   params: Promise<{ slug: string }>;

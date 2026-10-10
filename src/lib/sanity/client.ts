@@ -1,5 +1,6 @@
 import { createClient } from '@sanity/client';
 import imageUrlBuilder from '@sanity/image-url';
+import { SANITY_CACHE_TAG } from './cacheTags';
 
 const SANITY_CONFIG = {
   projectId: process.env.NEXT_PUBLIC_SANITY_PROJECT_ID,
@@ -26,9 +27,19 @@ export const urlFor = (source: Object) => {
   return builder.image(source);
 };
 
+/**
+ * Server reads are cached under SANITY_CACHE_TAG until the Sanity webhook
+ * expires it. They skip Sanity's CDN: otherwise a read made just after the
+ * webhook could re-cache the stale CDN copy. Browser reads keep the CDN.
+ */
 export const fetchSanityData = async (query: string, variables?: {}) => {
   try {
-    const data = await sanity.fetch(query, variables);
+    const data =
+      typeof window === 'undefined'
+        ? await sanityLive.fetch(query, variables, {
+            next: { tags: [SANITY_CACHE_TAG] },
+          })
+        : await sanity.fetch(query, variables);
     return data;
   } catch (error) {
     console.error('Error fetching data:', error);
