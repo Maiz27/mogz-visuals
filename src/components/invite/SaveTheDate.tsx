@@ -1,6 +1,7 @@
 import SectionTitle from './SectionTitle';
 import WaxSeal from './WaxSeal';
-import { CALENDAR_ICS, INVITE } from '@/lib/invite';
+import AddToCalendar from './AddToCalendar';
+import { INVITE } from '@/lib/invite';
 
 /** An ivory date tag, sealed, with the day ready to drop into a calendar. */
 const SaveTheDate = () => (
@@ -26,14 +27,7 @@ const SaveTheDate = () => (
       </div>
     </div>
 
-    <a
-      data-iv='rise'
-      href={`data:text/calendar;charset=utf-8,${encodeURIComponent(CALENDAR_ICS)}`}
-      download='mogz-and-lin.ics'
-      className='iv-rise iv-caps mt-10 inline-flex border border-[#c5a15b]/70 px-7 py-3.5 text-[10px] text-[var(--iv-gold-light)] transition-colors hover:bg-[#c5a15b]/15'
-    >
-      Add to calendar
-    </a>
+    <AddToCalendar />
   </section>
 );
 
