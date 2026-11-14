@@ -6,9 +6,9 @@ const VOLUME = 0.7;
 
 /** The track, trimmed of its trailing silence and faded at the loop point. */
 export const MUSIC_SOURCES = [
-  { src: '/audio/perfect-sax.webm', type: 'audio/webm; codecs=opus' },
+  { src: '/audio/perfect-instrumental.webm', type: 'audio/webm; codecs=opus' },
   // For Safari releases that can't play Opus.
-  { src: '/audio/perfect-sax.m4a', type: 'audio/mp4' },
+  { src: '/audio/perfect-instrumental.m4a', type: 'audio/mp4' },
 ];
 
 /**
