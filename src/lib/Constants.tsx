@@ -336,6 +336,18 @@ export const METADATA: Map<string, any> = new Map([
       icon: '/imgs/logo/favicon.ico',
     },
   ],
+  [
+    'mogz-and-lin',
+    {
+      title: 'Mogz & Lin - 12 December 2026',
+      description:
+        'Together with their families, Jacob Mogga Kei and Lin Nelson Michael joyfully invite you to be part of their wedding celebration.',
+      type: 'website',
+      url: `${BASEURL}/mogz-and-lin`,
+      image: `${BASEURL}/imgs/wedding/portrait.jpg`,
+      icon: '/imgs/logo/favicon.ico',
+    },
+  ],
 ]);
 
 export const EMPTY_STATE = {
