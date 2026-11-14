@@ -344,7 +344,7 @@ export const METADATA: Map<string, any> = new Map([
         'Together with their families, Mogz and Lin joyfully invite you to be part of their wedding celebration.',
       type: 'website',
       url: `${BASEURL}/mogz-and-lin`,
-      image: `${BASEURL}/imgs/wedding/portrait.jpg`,
+      image: `${BASEURL}/mogz-and-lin/share.png`,
       icon: '/imgs/logo/favicon.ico',
     },
   ],
