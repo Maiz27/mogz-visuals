@@ -54,9 +54,6 @@ export const VIP_TABLES: VipTable[] = [
   { number: 6 },
 ];
 
-/** The cover's card colour: the couple's main colour, or their secondary. */
-export type CoverVariant = 'burgundy' | 'green';
-
 /** The day as one calendar event, from the blessing to the end of the reception (UTC). */
 const EVENT = {
   title: 'Wedding of Mogz & Lin',

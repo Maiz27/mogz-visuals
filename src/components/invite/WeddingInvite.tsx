@@ -16,7 +16,6 @@ import GallerySection from './GallerySection';
 import SeatingSection from './SeatingSection';
 import ClosingSection from './ClosingSection';
 import BottomNav, { type NavSection } from './BottomNav';
-import type { CoverVariant } from '@/lib/invite';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -26,7 +25,7 @@ const NAV_SECTIONS: NavSection[] = ['home', 'venues', 'day', 'seating'];
 const prefersReducedMotion = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-const WeddingInvite = ({ variant }: { variant: CoverVariant }) => {
+const WeddingInvite = () => {
   const root = useRef<HTMLDivElement>(null);
   const opening = useRef(false);
   const timeline = useRef<gsap.core.Timeline | null>(null);
@@ -256,7 +255,7 @@ const WeddingInvite = ({ variant }: { variant: CoverVariant }) => {
   );
 
   return (
-    <div ref={root} className='invite-root' data-cover={variant} data-open={isOpen || undefined}>
+    <div ref={root} className='invite-root' data-open={isOpen || undefined}>
       <main inert={!isOpen} tabIndex={-1} className='iv-col iv-page overflow-x-clip outline-none'>
         <InviteHero />
         <Countdown />
@@ -270,7 +269,7 @@ const WeddingInvite = ({ variant }: { variant: CoverVariant }) => {
         <ClosingSection />
       </main>
 
-      <InviteCover variant={variant} canSkip={canSkip} onOpen={open} onSkip={skip} />
+      <InviteCover canSkip={canSkip} onOpen={open} onSkip={skip} />
       <BottomNav visible={isOpen} active={active} />
     </div>
   );

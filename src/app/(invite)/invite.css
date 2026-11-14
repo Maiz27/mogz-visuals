@@ -182,10 +182,6 @@ html:has(.invite-root:not([data-open])) {
   box-shadow: inset 0 0 60px rgb(0 0 0 / 0.25);
 }
 
-[data-cover='green'] .iv-flap-front {
-  background: url('/imgs/wedding/paper-green.jpg') center / 700px auto, var(--iv-green);
-}
-
 /* The seam, and the shade each flap throws on it. */
 .iv-flap-left .iv-flap-front {
   box-shadow: inset -1px 0 0 rgb(0 0 0 / 0.4), inset -12px 0 14px -12px rgb(0 0 0 / 0.45);

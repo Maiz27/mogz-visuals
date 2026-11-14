@@ -1,5 +1,5 @@
 import Image from 'next/image';
-import { INVITE, type CoverVariant } from '@/lib/invite';
+import { INVITE } from '@/lib/invite';
 
 // The champagne satin bow; its knot sits 31% down the image, so it lands on the band.
 const BOW = { src: '/imgs/wedding/bow-gold.webp', ratio: '1100/1068', knot: '31%' };
@@ -73,12 +73,10 @@ const Flap = ({ side }: { side: 'left' | 'right' }) => {
 
 /** The tied gatefold card guests land on. Presentational: the page runs the opening. */
 const InviteCover = ({
-  variant,
   canSkip,
   onOpen,
   onSkip,
 }: {
-  variant: CoverVariant;
   canSkip: boolean;
   onOpen: () => void;
   onSkip: () => void;
@@ -86,7 +84,6 @@ const InviteCover = ({
   return (
     <div
       data-iv='cover'
-      data-cover={variant}
       className='iv-cover fixed inset-0 z-50 flex justify-center bg-[#2a0d17]/70'
     >
       <div className='iv-col h-dvh'>
