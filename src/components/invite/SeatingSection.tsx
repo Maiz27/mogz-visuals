@@ -93,7 +93,7 @@ const SeatingSection = () => {
         <div className='relative mx-auto mt-4 w-[78%]'>
           <div className='relative border border-[#c5a15b] bg-[var(--iv-burgundy)] px-4 py-2.5 shadow-[0_8px_18px_rgba(112,38,61,0.25)]'>
             <span className='iv-caps block text-[8px] text-[var(--iv-gold-light)]'>Head table</span>
-            <span className='iv-script iv-gold block text-[1.7rem] leading-[1.3]'>
+            <span className='iv-script iv-gold -my-[0.35em] block py-[0.35em] text-[1.7rem] leading-[1.3]'>
               {INVITE.couple.short[0]} <span className='iv-serif text-[0.5em] italic'>&amp;</span>{' '}
               {INVITE.couple.short[1]}
             </span>

@@ -7,7 +7,8 @@ const divider = '/imgs/wedding/divider.webp';
 /** The invitation card itself, waiting behind the cover's flaps. */
 const InviteHero = () => {
   const [firstName, secondName] = INVITE.couple.short;
-  const nameClass = 'iv-write -my-[0.2em] inline-block px-[0.3em] py-[0.2em] text-[var(--iv-burgundy)]';
+  // Padded so the reveal mask never trims the script's swashes and descenders.
+  const nameClass = 'iv-write -mx-[0.45em] -my-[0.35em] inline-block px-[0.45em] py-[0.35em] text-[var(--iv-burgundy)]';
 
   return (
     // The bottom padding keeps the whole card clear of the next sheet's dome.

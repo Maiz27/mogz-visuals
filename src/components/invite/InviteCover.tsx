@@ -52,7 +52,8 @@ const Flap = ({ side }: { side: 'left' | 'right' }) => {
           <span className='iv-caps text-[10px] text-[var(--iv-gold)]'>The wedding of</span>
           {/* Sized by the shorter of width and height, so it clears the bow in a short window. */}
           {/* The ampersand sits on the seam; each name takes its own side of it. */}
-          <span className='iv-script iv-gold grid w-full grid-cols-[1fr_auto_1fr] items-baseline gap-[0.22em] text-[clamp(2.6rem,min(17vw,9dvh),4.6rem)] leading-[1.2]'>
+          {/* The padding gives the foil room for the script's swashes and descenders. */}
+          <span className='iv-script iv-gold -my-[0.35em] grid w-full grid-cols-[1fr_auto_1fr] items-baseline gap-[0.22em] py-[0.35em] text-[clamp(2.6rem,min(17vw,9dvh),4.6rem)] leading-[1.2]'>
             <span className='text-right'>{firstName}</span>
             <span className='iv-serif text-[0.42em] italic'>&amp;</span>
             <span className='text-left'>{secondName}</span>

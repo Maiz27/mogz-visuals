@@ -17,7 +17,7 @@ const SectionTitle = ({ eyebrow, title, tone }: Props) => (
     <h2 className='iv-script text-[clamp(2.8rem,12vw,3.4rem)] leading-[1.15]'>
       <span
         data-iv='write'
-        className={`iv-write -my-[0.2em] inline-block px-[0.3em] py-[0.2em] ${tone === 'dark' ? 'iv-gold' : 'iv-gold-deep'}`}
+        className={`iv-write -mx-[0.45em] -my-[0.35em] inline-block px-[0.45em] py-[0.35em] ${tone === 'dark' ? 'iv-gold' : 'iv-gold-deep'}`}
       >
         {title}
       </span>
