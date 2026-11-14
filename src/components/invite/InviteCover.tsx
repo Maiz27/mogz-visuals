@@ -58,6 +58,9 @@ const Flap = ({ side }: { side: 'left' | 'right' }) => {
             <span className='iv-serif text-[0.42em] italic'>&amp;</span>
             <span className='text-left'>{secondName}</span>
           </span>
+          <span className='iv-serif text-[clamp(1rem,4.4vw,1.2rem)] italic text-[var(--iv-gold-light)]'>
+            {INVITE.theme}
+          </span>
         </div>
 
         <div
