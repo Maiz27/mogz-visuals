@@ -121,8 +121,9 @@ const SeatingSection = () => {
           </div>
         </div>
 
-        <div className='mt-5 flex flex-col items-center gap-2' aria-hidden='true'>
-          <div className='grid grid-cols-9 gap-2 opacity-40'>
+        {/* The dots and line are drawing; the labels are read out. */}
+        <div className='mt-5 flex flex-col items-center gap-2'>
+          <div className='grid grid-cols-9 gap-2 opacity-40' aria-hidden='true'>
             {Array.from({ length: 18 }, (_, i) => (
               <span key={i} className='size-1.5 rounded-full bg-[var(--iv-ink-soft)]' />
             ))}
@@ -130,8 +131,8 @@ const SeatingSection = () => {
           <span className='iv-caps text-[8px] text-[var(--iv-ink-soft)]'>General seating</span>
         </div>
 
-        <div className='mt-5 flex flex-col items-center gap-1 text-[var(--iv-ink-soft)]' aria-hidden='true'>
-          <span className='block h-5 w-px bg-current opacity-50' />
+        <div className='mt-5 flex flex-col items-center gap-1 text-[var(--iv-ink-soft)]'>
+          <span className='block h-5 w-px bg-current opacity-50' aria-hidden='true' />
           <span className='iv-caps text-[8px]'>Entrance</span>
         </div>
       </div>
