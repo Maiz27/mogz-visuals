@@ -43,6 +43,23 @@ html:has(.invite-root) body {
   background: #3a1220;
 }
 
+/*
+  No native scrollbar, as on the rest of the site: its width coming and going
+  would shift the centred card. The page still scrolls by wheel, touch and keys.
+*/
+html:has(.invite-root) {
+  scrollbar-width: none;
+}
+
+html:has(.invite-root)::-webkit-scrollbar {
+  display: none;
+}
+
+/* Held still under the cover from the first paint, until it is opened. */
+html:has(.invite-root:not([data-open])) {
+  overflow: hidden;
+}
+
 /* One phone-sized column; wider screens see it centred like a card. */
 .iv-col {
   position: relative;

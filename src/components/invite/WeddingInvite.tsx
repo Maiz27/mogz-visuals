@@ -53,7 +53,7 @@ const WeddingInvite = ({ variant }: { variant: CoverVariant }) => {
     { scope: root },
   );
 
-  // Hold the page still at the top until the invitation is open.
+  // Start at the top. The page is held still in CSS until `data-open` is set.
   useEffect(() => {
     try {
       setCanSkip(localStorage.getItem(OPENED_KEY) === '1');
@@ -61,16 +61,12 @@ const WeddingInvite = ({ variant }: { variant: CoverVariant }) => {
     history.scrollRestoration = 'manual';
     // Instant: the site sets smooth scrolling, which would glide here from a #hash.
     window.scrollTo({ top: 0, behavior: 'instant' });
-    const html = document.documentElement;
-    html.style.overflow = 'hidden';
     return () => {
-      html.style.overflow = '';
       history.scrollRestoration = 'auto';
     };
   }, []);
 
   const finish = () => {
-    document.documentElement.style.overflow = '';
     try {
       localStorage.setItem(OPENED_KEY, '1');
     } catch {}
@@ -260,7 +256,7 @@ const WeddingInvite = ({ variant }: { variant: CoverVariant }) => {
   );
 
   return (
-    <div ref={root} className='invite-root' data-cover={variant}>
+    <div ref={root} className='invite-root' data-cover={variant} data-open={isOpen || undefined}>
       <main inert={!isOpen} tabIndex={-1} className='iv-col iv-page overflow-x-clip outline-none'>
         <InviteHero />
         <Countdown />
