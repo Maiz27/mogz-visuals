@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState, type RefObject } from 'react';
 
 const LINKS = [
   ['home', 'Home'],
@@ -14,9 +14,10 @@ const IDLE_MS = 650;
 
 /**
  * Tucks the bar away while the reader scrolls down, and brings it back when
- * they scroll up, pause, or reach either end of the page.
+ * they scroll up, pause, or reach either end of the page. It never tucks
+ * while one of its links has keyboard focus.
  */
-const useTucked = (enabled: boolean) => {
+const useTucked = (enabled: boolean, nav: RefObject<HTMLElement | null>) => {
   const [tucked, setTucked] = useState(false);
 
   useEffect(() => {
@@ -31,7 +32,8 @@ const useTucked = (enabled: boolean) => {
       const atEnd = y + window.innerHeight >= document.documentElement.scrollHeight - 4;
 
       clearTimeout(idle);
-      if (y < 80 || atEnd || delta < -4) setTucked(false);
+      const focused = nav.current?.contains(document.activeElement);
+      if (focused || y < 80 || atEnd || delta < -4) setTucked(false);
       else if (delta > 4) setTucked(true);
       idle = setTimeout(() => setTucked(false), IDLE_MS);
     };
@@ -41,18 +43,21 @@ const useTucked = (enabled: boolean) => {
       window.removeEventListener('scroll', onScroll);
       clearTimeout(idle);
     };
-  }, [enabled]);
+  }, [enabled, nav]);
 
-  return enabled && tucked;
+  return { tucked: enabled && tucked, reveal: () => setTucked(false) };
 };
 
 /** The invitation's own tab bar, shown once the card is open. */
 const BottomNav = ({ visible, active }: { visible: boolean; active: NavSection }) => {
-  const tucked = useTucked(visible);
+  const ref = useRef<HTMLElement>(null);
+  const { tucked, reveal } = useTucked(visible, ref);
   const shown = visible && !tucked;
 
   return (
     <nav
+      ref={ref}
+      onFocus={reveal}
       aria-label='Invitation sections'
       inert={!visible}
       className={`pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center transition-transform ease-out ${
