@@ -16,6 +16,7 @@ import GallerySection from './GallerySection';
 import SeatingSection from './SeatingSection';
 import ClosingSection from './ClosingSection';
 import BottomNav, { type NavSection } from './BottomNav';
+import { MUSIC_SOURCES, useMusic } from './useMusic';
 
 gsap.registerPlugin(useGSAP, ScrollTrigger);
 
@@ -34,6 +35,7 @@ const WeddingInvite = () => {
   const [isOpen, setIsOpen] = useState(false);
   const [canSkip, setCanSkip] = useState(false);
   const [active, setActive] = useState<NavSection>('home');
+  const music = useMusic();
 
   const q = gsap.utils.selector(root);
   const part = (...names: string[]) =>
@@ -90,6 +92,8 @@ const WeddingInvite = () => {
   const open = contextSafe(() => {
     if (opening.current) return;
     opening.current = true;
+    // The tap is what lets the browser play sound.
+    music.start();
 
     if (prefersReducedMotion()) {
       // The card is laid out at rest beneath; the cover simply dissolves.
@@ -150,6 +154,7 @@ const WeddingInvite = () => {
 
   const skip = contextSafe(() => {
     opening.current = true;
+    music.start();
     timeline.current?.kill();
     settleHero();
     finish();
@@ -291,7 +296,13 @@ const WeddingInvite = () => {
       </main>
 
       <InviteCover canSkip={canSkip} onOpen={open} onSkip={skip} />
-      <BottomNav visible={isOpen} active={active} />
+      <BottomNav visible={isOpen} active={active} soundOn={music.on} onToggleSound={music.toggle} />
+      {/* Loaded only once the seal is tapped. */}
+      <audio ref={music.audio} loop preload='none'>
+        {MUSIC_SOURCES.map((s) => (
+          <source key={s.src} src={s.src} type={s.type} />
+        ))}
+      </audio>
     </div>
   );
 };
