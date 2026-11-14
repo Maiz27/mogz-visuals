@@ -106,6 +106,11 @@ const WeddingInvite = () => {
       return;
     }
 
+    // A tap during the seal's entrance would otherwise let that tween carry on
+    // and bring the whole seal back after it cracks.
+    gsap.killTweensOf(part('seal'));
+    gsap.set(part('seal'), { opacity: 1, scale: 1 });
+
     const [firstName, secondName] = part('hero-name');
     timeline.current = gsap
       .timeline({ onComplete: finish })
