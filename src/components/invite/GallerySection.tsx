@@ -20,6 +20,8 @@ const GallerySection = () => (
       data-iv='strip'
       role='region'
       aria-label='Photos of the couple'
+      // Safari only lets the keyboard scroll a container that can take focus.
+      tabIndex={0}
       className='iv-strip relative mt-8 flex h-[min(56dvh,460px)] items-center overflow-hidden'
     >
       <div data-iv='strip-track' className='flex h-full w-max items-center gap-5 px-[13%]'>
