@@ -20,6 +20,8 @@ import {
   SiX,
 } from 'react-icons/si';
 
+import { SHARE_IMAGE_PATH } from './invite';
+
 export const SITE_NAME = 'Mogz Visuals';
 
 export const BASEURL = 'https://www.mogz.studio';
@@ -344,7 +346,7 @@ export const METADATA: Map<string, any> = new Map([
         'Together with their families, Mogz and Lin joyfully invite you to be part of their wedding celebration.',
       type: 'website',
       url: `${BASEURL}/mogz-and-lin`,
-      image: `${BASEURL}/mogz-and-lin/share.png`,
+      image: `${BASEURL}${SHARE_IMAGE_PATH}`,
       icon: '/imgs/logo/favicon.ico',
     },
   ],

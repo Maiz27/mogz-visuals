@@ -2,9 +2,10 @@ import type { Metadata, Viewport } from 'next';
 import { headers } from 'next/headers';
 import WeddingInvite from '@/components/invite/WeddingInvite';
 import { getPageMetadata } from '@/lib/utils';
+import { SHARE_IMAGE_PATH } from '@/lib/invite';
 
 const SHARE_IMAGE = {
-  url: '/mogz-and-lin/share.png',
+  url: SHARE_IMAGE_PATH,
   width: 1200,
   height: 630,
   alt: 'The wedding of Mogz & Lin, Saturday, 12 December 2026, Juba',

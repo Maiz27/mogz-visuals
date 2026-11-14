@@ -109,3 +109,9 @@ export const CALENDAR_LINKS = {
     body: EVENT.details,
   })}`,
 };
+
+/**
+ * The link preview card. Cloudflare and chat apps keep a card cached by its
+ * address for a long time, so bump `v` whenever the card's design changes.
+ */
+export const SHARE_IMAGE_PATH = '/mogz-and-lin/share.png?v=2';
