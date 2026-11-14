@@ -15,7 +15,13 @@ const GallerySection = () => (
       <SectionTitle eyebrow='Moments' title='Captured' tone='dark' />
     </div>
 
-    <div data-iv='strip' className='relative mt-8 flex h-[min(56dvh,460px)] items-center overflow-hidden'>
+    {/* With reduced motion the strip doesn't slide, so it scrolls by hand instead (invite.css). */}
+    <div
+      data-iv='strip'
+      role='region'
+      aria-label='Photos of the couple'
+      className='iv-strip relative mt-8 flex h-[min(56dvh,460px)] items-center overflow-hidden'
+    >
       <div data-iv='strip-track' className='flex h-full w-max items-center gap-5 px-[13%]'>
         {/* Prints on the card's own ivory stock, laid down slightly askew. */}
         {PHOTOS.map((photo, i) => (

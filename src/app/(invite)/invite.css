@@ -415,6 +415,16 @@ html:has(.invite-root:not([data-open])) {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .iv-strip {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+  }
+
+  .iv-strip figure {
+    scroll-snap-align: center;
+  }
+
   .iv-cue,
   .iv-hint,
   .iv-tick {
