@@ -13,23 +13,23 @@ const dataUrl = (bytes: Buffer, type: string) => `data:${type};base64,${bytes.to
 
 const GOLD = '#c5a15b';
 const FOIL = 'linear-gradient(100deg, #b08a43 0%, #ead6a4 30%, #c5a15b 50%, #f6e7c1 66%, #b08a43 100%)';
-const BAND = 'linear-gradient(90deg, #7a5c26 0%, #c5a15b 18%, #f1e0b4 34%, #d2b170 50%, #a8854a 66%, #e6cf98 82%, #7a5c26 100%)';
-const BAND_X = 300;
+// The sealed envelope, captured from the cover itself (480 × 630).
+const ENVELOPE = { width: 480, height: 630 };
 
 // next/og has no `inset` shorthand.
 const frame = (gap: number) =>
   ({ position: 'absolute', top: gap, left: gap, right: gap, bottom: gap, display: 'flex' }) as const;
 
 /**
- * The link preview: the cover in landscape. Burgundy card, a champagne ribbon
- * tied down its left side, and the names in gold foil.
+ * The link preview: the cover in landscape. The sealed envelope on the left,
+ * and the names in gold foil on burgundy beside it.
  */
 export async function GET() {
-  const [script, serif, italic, bow, paper] = await Promise.all([
+  const [script, serif, italic, envelope, paper] = await Promise.all([
     read('fonts/PinyonScript-Regular.ttf'),
     read('fonts/CormorantGaramond-Medium.ttf'),
     read('fonts/CormorantGaramond-Italic.ttf'),
-    read('bow.png'),
+    read('envelope.png'),
     readFile(join(process.cwd(), 'public/imgs/wedding/paper-burgundy.jpg')),
   ]);
   const [first, second] = INVITE.couple.short;
@@ -51,33 +51,21 @@ export async function GET() {
         <div style={{ ...frame(26), border: `1.5px solid ${GOLD}` }} />
         <div style={{ ...frame(34), border: '1px solid rgba(197,161,91,0.45)' }} />
 
-        {/* The ribbon down the card, and its bow. */}
-        <div
-          style={{
-            position: 'absolute',
-            top: 0,
-            bottom: 0,
-            left: BAND_X - 24,
-            width: 48,
-            display: 'flex',
-            backgroundImage: BAND,
-            boxShadow: '6px 0 14px rgba(0,0,0,0.45)',
-          }}
-        />
+        {/* The envelope, casting its shade on the card. */}
         {/* eslint-disable-next-line @next/next/no-img-element -- rendered by next/og, not the browser */}
         <img
-          src={dataUrl(bow, 'image/png')}
-          width={360}
-          height={350}
+          src={dataUrl(envelope, 'image/png')}
+          width={ENVELOPE.width}
+          height={ENVELOPE.height}
           alt=''
-          style={{ position: 'absolute', left: BAND_X - 180, top: 315 - 350 * 0.31 - 40 }}
+          style={{ position: 'absolute', left: 0, top: 0, boxShadow: '10px 0 26px rgba(0,0,0,0.5)' }}
         />
 
         <div
           style={{
             position: 'absolute',
-            left: 470,
-            right: 70,
+            left: ENVELOPE.width + 30,
+            right: 60,
             top: 0,
             bottom: 0,
             display: 'flex',
