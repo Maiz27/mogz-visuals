@@ -21,6 +21,8 @@ gsap.registerPlugin(useGSAP, ScrollTrigger);
 
 const OPENED_KEY = 'mogz-and-lin:opened';
 const NAV_SECTIONS: NavSection[] = ['home', 'venues', 'day', 'seating'];
+// The portrait at rest: lifted a touch, since the couple sits in shadow.
+const HERO_REST = 'blur(0px) brightness(1.1) saturate(1.1)';
 
 const prefersReducedMotion = () =>
   window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -37,16 +39,16 @@ const WeddingInvite = () => {
   const part = (...names: string[]) =>
     q(names.map((name) => `[data-iv='${name}']`).join(','));
 
-  // The bow settles onto the card as the page arrives. Every animated part
-  // starts in CSS where its motion begins (invite.css), so GSAP only ever
+  // The seal is pressed onto the envelope as the page arrives. Every animated
+  // part starts in CSS where its motion begins (invite.css), so GSAP only ever
   // animates *to* the rest state and nothing flashes before it plays.
   const { contextSafe } = useGSAP(
     () => {
       if (prefersReducedMotion()) {
-        gsap.set(part('bow', 'cover-copy'), { opacity: 1, y: 0 });
+        gsap.set(part('seal', 'cover-copy'), { opacity: 1, scale: 1 });
         return;
       }
-      gsap.to(part('bow'), { y: 0, opacity: 1, duration: 1.1, ease: 'power3.out', delay: 0.2 });
+      gsap.to(part('seal'), { scale: 1, opacity: 1, duration: 0.9, ease: 'power3.out', delay: 0.2 });
       gsap.to(part('cover-copy'), { opacity: 1, duration: 1, delay: 1 });
     },
     { scope: root },
@@ -80,7 +82,7 @@ const WeddingInvite = () => {
   /** The card, at rest, as it is once the cover is gone. */
   const settleHero = () => {
     gsap.set(part('cover'), { display: 'none' });
-    gsap.set(part('hero-card'), { scale: 1, y: 0 });
+    gsap.set(part('hero-photo'), { scale: 1, filter: HERO_REST });
     gsap.set(part('hero-rise'), { opacity: 1, y: 0 });
     gsap.set(part('hero-name'), { '--reveal': '125%' });
   };
@@ -107,24 +109,38 @@ const WeddingInvite = () => {
     const [firstName, secondName] = part('hero-name');
     timeline.current = gsap
       .timeline({ onComplete: finish })
-      .to(part('cover-copy'), { opacity: 0, duration: 0.3 }, 0)
-      // The bow is lifted, then falls away as the ribbon is drawn out.
-      .to(part('bow'), { y: -14, scale: 1.03, duration: 0.2, ease: 'power2.out' }, 0)
-      .to(part('bow'), { y: '115vh', rotation: 10, duration: 1, ease: 'power2.in' }, 0.2)
-      .to(part('band-left'), { xPercent: -101, duration: 0.75, ease: 'power3.in' }, 0.3)
-      .to(part('band-right'), { xPercent: 101, duration: 0.75, ease: 'power3.in' }, 0.3)
-      // The gatefold swings open and the card rises out of it.
-      .to(part('flap-left'), { rotationY: -165, duration: 1.7, ease: 'power3.inOut' }, 0.85)
-      .to(part('flap-right'), { rotationY: 165, duration: 1.7, ease: 'power3.inOut' }, 0.85)
-      .to(part('flaps'), { opacity: 0, duration: 0.5 }, 2.15)
-      // The shade behind the flaps lifts as they part, so nothing is left to
-      // cut out when the cover is removed.
-      .to(part('cover'), { backgroundColor: 'rgba(42, 13, 23, 0)', duration: 1.2, ease: 'power2.out' }, 1.1)
-      .set(part('cover'), { display: 'none' }, 2.7)
-      .to(part('hero-card'), { scale: 1, y: 0, duration: 1.6, ease: 'power3.out' }, 1)
-      .to(part('hero-rise'), { opacity: 1, y: 0, duration: 0.9, stagger: 0.1 }, 1.55)
-      .to(firstName, { '--reveal': '125%', duration: 1.1, ease: 'power1.inOut' }, 1.85)
-      .to(secondName, { '--reveal': '125%', duration: 1.1, ease: 'power1.inOut' }, 2.5);
+      // The print stays on the flaps and folds away with them.
+      // The seal throbs once under the tap, then cracks along the folds: the
+      // whole seal gives way to the quarter printed on each flap, and the
+      // quarters part a hair while the paper stays closed.
+      .to(part('seal'), { scale: 1.15, duration: 0.18, ease: 'power2.out' }, 0)
+      .to(part('seal'), { scale: 1, duration: 0.14, ease: 'power3.in' }, 0.18)
+      .set(part('wedge-left', 'wedge-right', 'wedge-top', 'wedge-bottom'), { visibility: 'visible' }, 0.32)
+      .set(part('seal'), { opacity: 0 }, 0.32)
+      .to(part('wedge-left'), { x: -3, rotation: -2, duration: 0.25, ease: 'power2.out' }, 0.32)
+      .to(part('wedge-right'), { x: 3, rotation: 2, duration: 0.25, ease: 'power2.out' }, 0.32)
+      .to(part('wedge-top'), { y: -3, rotation: 1.5, duration: 0.25, ease: 'power2.out' }, 0.32)
+      .to(part('wedge-bottom'), { y: 3, rotation: -1.5, duration: 0.25, ease: 'power2.out' }, 0.32)
+      // The camera leans in as the envelope opens.
+      .to(part('flaps'), { scale: 1.15, duration: 2.6, ease: 'power2.in' }, 0.55)
+      // The sides fold out towards the guest first, each taking its piece of the seal.
+      .to(part('flap-left'), { rotationY: -108, duration: 1.4, ease: 'power3.inOut' }, 0.7)
+      .to(part('flap-right'), { rotationY: 108, duration: 1.4, ease: 'power3.inOut' }, 0.78)
+      .to(part('dark-left', 'dark-right'), { opacity: 0.6, duration: 1.2, ease: 'power2.in' }, 0.7)
+      // Then the top and bottom, the last of the seal riding on their tips.
+      .to(part('flap-top'), { rotationX: 108, duration: 1.4, ease: 'power3.inOut' }, 1.55)
+      .to(part('flap-bottom'), { rotationX: -108, duration: 1.4, ease: 'power3.inOut' }, 1.7)
+      .to(part('dark-top', 'dark-bottom'), { opacity: 0.6, duration: 1.2, ease: 'power2.in' }, 1.55)
+      // The shade behind the flaps lifts as they part, so the gaps glow with
+      // the portrait and nothing is left to cut out when the cover goes.
+      .to(part('cover'), { backgroundColor: 'rgba(18, 6, 10, 0)', duration: 1.4, ease: 'power1.inOut' }, 0.65)
+      .set(part('cover'), { display: 'none' }, 3.1)
+      // The portrait comes into focus as it is uncovered, still settling after
+      // the last flap leaves, and the print rises over it.
+      .to(part('hero-photo'), { scale: 1, filter: HERO_REST, duration: 3.2, ease: 'power3.out' }, 0.7)
+      .to(part('hero-rise'), { opacity: 1, y: 0, duration: 0.9, stagger: 0.12 }, 2.45)
+      .to(firstName, { '--reveal': '125%', duration: 1.1, ease: 'power1.inOut' }, 2.65)
+      .to(secondName, { '--reveal': '125%', duration: 1.1, ease: 'power1.inOut' }, 3.15);
   });
 
   const skip = contextSafe(() => {

@@ -1,50 +1,53 @@
 import Image from 'next/image';
 import { INVITE } from '@/lib/invite';
 
-const leaf = '/imgs/wedding/ornament-leaf.webp';
 const divider = '/imgs/wedding/divider.webp';
 
-/** The invitation card itself, waiting behind the cover's flaps. */
+/** The couple's portrait with the invitation printed over it, waiting beneath the envelope. */
 const InviteHero = () => {
   const [firstName, secondName] = INVITE.couple.short;
   // Padded so the reveal mask never trims the script's swashes and descenders.
-  const nameClass = 'iv-write -mx-[0.45em] -my-[0.35em] inline-block px-[0.45em] py-[0.35em] text-[var(--iv-burgundy)]';
+  const nameClass = 'iv-write iv-gold -mx-[0.3em] -my-[0.35em] inline-block px-[0.3em] py-[0.35em]';
 
   return (
-    // The bottom padding keeps the whole card clear of the next sheet's dome.
-    <section id='home' className='relative flex h-dvh min-h-[620px] p-3.5 pb-[calc(var(--iv-dome)+0.875rem)]'>
-      <div
-        data-iv='hero-card'
-        className='iv-card-ivory relative flex w-full flex-col items-center justify-center overflow-hidden px-7 text-center shadow-[0_24px_60px_rgba(0,0,0,0.6)]'
-      >
-        <div className='iv-card-frame pointer-events-none absolute inset-3' />
-        <div className='pointer-events-none absolute -left-10 -top-9 aspect-[700/795] w-36 -rotate-[32deg]'>
-          <Image src={leaf} alt='' fill sizes='144px' className='object-contain' />
-        </div>
-        <div className='pointer-events-none absolute -bottom-9 -right-10 aspect-[700/795] w-36 rotate-[148deg]'>
-          <Image src={leaf} alt='' fill sizes='144px' className='object-contain' />
-        </div>
+    // The bottom padding keeps the copy clear of the next sheet's dome.
+    <section
+      id='home'
+      className='relative flex h-dvh min-h-[620px] flex-col items-center overflow-hidden px-6 pb-[calc(var(--iv-dome)+1.5rem)] pt-10 text-center text-[var(--iv-ivory)]'
+    >
+      <div data-iv='hero-photo' className='absolute inset-0'>
+        <Image
+          src='/imgs/wedding/couple-hero.jpg'
+          alt={`${firstName} and ${secondName}`}
+          fill
+          priority
+          sizes='(max-width: 480px) 100vw, 480px'
+          className='object-cover object-[50%_40%]'
+        />
+      </div>
+      {/* The photo darkens into burgundy at the top and bottom so the print reads over it. */}
+      <div className='iv-hero-shade pointer-events-none absolute inset-0' />
 
-        <span data-iv='hero-rise' className='iv-rise iv-caps text-[10px] text-[var(--iv-accent)]'>
+      <div className='relative flex flex-col items-center gap-3'>
+        <span data-iv='hero-rise' className='iv-rise iv-caps text-[10px] text-[var(--iv-gold-light)]'>
           Together with their families
         </span>
-        <div data-iv='hero-rise' className='iv-rise relative mt-4 aspect-[1200/188] w-36'>
-          <Image src={divider} alt='' fill sizes='144px' className='object-contain' />
+        <div data-iv='hero-rise' className='iv-rise relative aspect-[1200/188] w-32'>
+          <Image src={divider} alt='' fill sizes='128px' className='object-contain' />
         </div>
+      </div>
 
-        <h1 className='iv-script mt-5 text-[clamp(3.5rem,16vw,4.5rem)] leading-[0.95]'>
-          <span className='block'>
+      <div className='relative mt-auto flex flex-col items-center'>
+        <h1 className='iv-script grid w-full grid-cols-[1fr_auto_1fr] items-baseline gap-[0.2em] text-[clamp(3rem,14vw,4rem)] leading-[1.2]'>
+          <span className='text-right'>
             <span data-iv='hero-name' className={nameClass}>
               {firstName}
             </span>
           </span>
-          <span
-            data-iv='hero-rise'
-            className='iv-rise iv-serif my-[0.45em] block text-[0.4em] italic text-[var(--iv-accent)]'
-          >
+          <span data-iv='hero-rise' className='iv-rise iv-serif text-[0.4em] italic text-[var(--iv-gold-light)]'>
             &amp;
           </span>
-          <span className='block'>
+          <span className='text-left'>
             <span data-iv='hero-name' className={nameClass}>
               {secondName}
             </span>
@@ -53,27 +56,19 @@ const InviteHero = () => {
 
         <span
           data-iv='hero-rise'
-          className='iv-rise iv-serif mt-6 block max-w-[17rem] text-lg italic leading-snug text-[var(--iv-ink-soft)]'
+          className='iv-rise iv-serif mt-2 block max-w-[17rem] text-lg italic leading-snug opacity-90'
         >
           joyfully invite you to be part of their wedding celebration
         </span>
 
-        <div data-iv='hero-rise' className='iv-rise mt-7 flex flex-col items-center gap-2'>
-          <span className='iv-serif text-xl'>{INVITE.date.long}</span>
-          <span className='iv-caps text-[10px] opacity-70'>{INVITE.city}</span>
+        <div data-iv='hero-rise' className='iv-rise mt-5 flex flex-col items-center gap-2'>
+          <span className='iv-caps text-[11px] tracking-[0.2em] text-[var(--iv-gold-light)]'>{INVITE.date.long}</span>
+          <span className='iv-caps text-[9px] text-[var(--iv-ivory-dim)]'>{INVITE.city}</span>
         </div>
 
-        <div data-iv='hero-rise' className='iv-rise relative mt-7 aspect-[1200/188] w-36 rotate-180'>
-          <Image src={divider} alt='' fill sizes='144px' className='object-contain' />
-        </div>
-
-        <div
-          data-iv='hero-rise'
-          className='iv-rise absolute bottom-7 flex flex-col items-center gap-2'
-          aria-hidden='true'
-        >
-          <span className='iv-caps text-[9px] opacity-60'>Scroll</span>
-          <span className='iv-cue block h-7 w-px bg-[var(--iv-accent)]' />
+        <div data-iv='hero-rise' className='iv-rise mt-5 flex flex-col items-center gap-2' aria-hidden='true'>
+          <span className='iv-caps text-[9px] text-[var(--iv-ivory-dim)]'>Scroll</span>
+          <span className='iv-cue block h-6 w-px bg-[var(--iv-gold)]' />
         </div>
       </div>
     </section>
