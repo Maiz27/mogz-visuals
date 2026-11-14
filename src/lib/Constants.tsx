@@ -341,7 +341,7 @@ export const METADATA: Map<string, any> = new Map([
     {
       title: 'Mogz & Lin - 12 December 2026',
       description:
-        'Together with their families, Jacob Mogga Kei and Lin Nelson Michael joyfully invite you to be part of their wedding celebration.',
+        'Together with their families, Mogz and Lin joyfully invite you to be part of their wedding celebration.',
       type: 'website',
       url: `${BASEURL}/mogz-and-lin`,
       image: `${BASEURL}/imgs/wedding/portrait.jpg`,
