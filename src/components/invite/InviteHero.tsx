@@ -17,12 +17,12 @@ const InviteHero = () => {
     >
       <div data-iv='hero-photo' className='absolute inset-0'>
         <Image
-          src='/imgs/wedding/couple-hero.jpg'
+          src='/imgs/wedding/couple-portrait.jpg'
           alt={`${firstName} and ${secondName}`}
           fill
           priority
           sizes='(max-width: 480px) 100vw, 480px'
-          className='object-cover object-[50%_40%]'
+          className='object-cover object-[42%_50%]'
         />
       </div>
       {/* The photo darkens into burgundy at the top and bottom so the print reads over it. */}
