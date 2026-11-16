@@ -36,22 +36,38 @@ export const INVITE = {
 } as const;
 
 /**
- * The reception's reserved VIP tables. The final count and who each table is
- * for are still to come from the couple: add or remove entries, and fill in
- * `reservedFor` (a family, a group or names); the floor plan lays itself out
- * from this list.
+ * The reception's reserved VIP tables. The plan is four columns: the groom's
+ * two on the left, the bride's two on the right, numbered across the room a
+ * row at a time (1 2 | 3 4, then 5 6 | 7 8 …), families in the front row.
+ * Each half lays out in the order listed here; a table without `reservedFor`
+ * shows "To be confirmed".
  */
-export type VipTable = { number: number; reservedFor?: string };
+export type VipTable = { number: number; side: 'groom' | 'bride'; reservedFor?: string };
 
-// PLACEHOLDER: sample assignments to preview the layout. Replace with the
-// couple's real list (or remove `reservedFor` to show "To be confirmed").
 export const VIP_TABLES: VipTable[] = [
-  { number: 1, reservedFor: 'Family of the groom' },
-  { number: 2, reservedFor: 'Family of the bride' },
-  { number: 3, reservedFor: 'Clergy & church elders' },
-  { number: 4, reservedFor: 'Bridal party' },
-  { number: 5, reservedFor: 'Honoured guests' },
-  { number: 6 },
+  // The groom's half.
+  {
+    number: 1,
+    side: 'groom',
+    reservedFor: "The groom's maternal family, the bride's mates, mothers of the bride & Al Mashriq",
+  },
+  { number: 2, side: 'groom', reservedFor: "The groom's paternal family" },
+  { number: 5, side: 'groom', reservedFor: "The groom's friends" },
+  { number: 6, side: 'groom', reservedFor: 'Green: Rebecca, Amani, Anoon & Julia' },
+  { number: 9, side: 'groom', reservedFor: 'Colleagues & Mogz' },
+  { number: 10, side: 'groom', reservedFor: "Women's Museum & MTN" },
+  // These two came without a side; they sit here to balance the halves.
+  { number: 13, side: 'groom', reservedFor: 'Eva & Ecobank' },
+  { number: 14, side: 'groom', reservedFor: 'Olympic' },
+  // The bride's half.
+  { number: 3, side: 'bride', reservedFor: "The bride's maternal family" },
+  { number: 4, side: 'bride', reservedFor: "The bride's paternal family" },
+  { number: 7, side: 'bride', reservedFor: "Mothers of the bride's friends" },
+  { number: 8, side: 'bride', reservedFor: "The bride's church" },
+  { number: 11, side: 'bride', reservedFor: "The bride's friends" },
+  { number: 12, side: 'bride', reservedFor: 'Pink: Mathiang & Manas' },
+  { number: 15, side: 'bride', reservedFor: "The bride's colleagues" },
+  { number: 16, side: 'bride' },
 ];
 
 /** The day as one calendar event, from the blessing to the end of the reception (UTC). */

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import SectionTitle from './SectionTitle';
 import { INVITE, VIP_TABLES, type VipTable } from '@/lib/invite';
 
@@ -8,6 +8,11 @@ const CHAIRS = Array.from({ length: 8 }, (_, i) => {
   const angle = (i / 8) * Math.PI * 2 - Math.PI / 2;
   return { cx: 50 + Math.cos(angle) * 43, cy: 50 + Math.sin(angle) * 43 };
 });
+
+const SIDES = [
+  { side: 'groom', label: "Groom's side" },
+  { side: 'bride', label: "Bride's side" },
+] as const;
 
 /** One round VIP table with its ring of chairs, as seen from above. */
 const TableMark = ({
@@ -24,7 +29,7 @@ const TableMark = ({
     aria-pressed={selected}
     aria-label={`Table ${table.number}`}
     onClick={onSelect}
-    className='group relative aspect-square w-[calc((100%-2rem)/3)] outline-none'
+    className='group relative aspect-square w-full outline-none'
   >
     <svg viewBox='0 0 100 100' className='absolute inset-0 size-full' aria-hidden='true'>
       {CHAIRS.map((c) => (
@@ -48,7 +53,7 @@ const TableMark = ({
       <circle cx='50' cy='50' r='27' fill='none' className='stroke-[#c5a15b]/50' strokeWidth='0.75' />
     </svg>
     <span
-      className={`iv-serif absolute inset-0 flex items-center justify-center text-[1.6rem] leading-none transition-colors duration-300 ${
+      className={`iv-serif absolute inset-0 flex items-center justify-center text-[clamp(1rem,4.6vw,1.25rem)] leading-none transition-colors duration-300 ${
         selected ? 'text-[var(--iv-ivory)]' : 'text-[var(--iv-burgundy)]'
       }`}
     >
@@ -66,7 +71,8 @@ const TableMark = ({
 const SeatingSection = () => {
   const [selected, setSelected] = useState<number | null>(null);
   const table = VIP_TABLES.find((t) => t.number === selected);
-  const assigned = VIP_TABLES.filter((t) => t.reservedFor);
+  // Listed by number, whichever half the table is on.
+  const assigned = VIP_TABLES.filter((t) => t.reservedFor).sort((a, b) => a.number - b.number);
   const reception = INVITE.events.find((e) => e.id === 'reception');
 
   return (
@@ -109,14 +115,27 @@ const SeatingSection = () => {
           <span className='iv-caps absolute left-1/2 top-0 -translate-x-1/2 -translate-y-1/2 bg-[#fdf6ea] px-3 text-[9px] text-[var(--iv-accent)]'>
             VIP
           </span>
-          <div className='flex flex-wrap justify-center gap-x-4 gap-y-3'>
-            {VIP_TABLES.map((t) => (
-              <TableMark
-                key={t.number}
-                table={t}
-                selected={selected === t.number}
-                onSelect={() => setSelected(selected === t.number ? null : t.number)}
-              />
+          {/* The groom's half under his name, the bride's under hers, an aisle between. */}
+          <div className='grid grid-cols-[1fr_auto_1fr] gap-x-2'>
+            {SIDES.map(({ side, label }, i) => (
+              <Fragment key={side}>
+                {i > 0 && (
+                  <span className='w-px border-l border-dashed border-[#c5a15b]/50' aria-hidden='true' />
+                )}
+                <div role='group' aria-label={label} className='flex flex-col gap-2'>
+                  <span className='iv-caps text-[7.5px] tracking-[0.2em] text-[var(--iv-ink-soft)]'>{label}</span>
+                  <div className='grid grid-cols-2 gap-1.5'>
+                    {VIP_TABLES.filter((t) => t.side === side).map((t) => (
+                      <TableMark
+                        key={t.number}
+                        table={t}
+                        selected={selected === t.number}
+                        onSelect={() => setSelected(selected === t.number ? null : t.number)}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </Fragment>
             ))}
           </div>
         </div>
