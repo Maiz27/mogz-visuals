@@ -421,7 +421,8 @@ html:has(.invite-root:not([data-open])) {
     overscroll-behavior-x: contain;
   }
 
-  .iv-strip figure {
+  .iv-strip figure,
+  .iv-strip [data-iv='gallery-link'] {
     scroll-snap-align: center;
   }
 

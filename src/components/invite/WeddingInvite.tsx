@@ -12,7 +12,6 @@ import SaveTheDate from './SaveTheDate';
 import VenuesSection from './VenuesSection';
 import TheDaySection from './TheDaySection';
 import DressCodeSection from './DressCodeSection';
-import WeddingGallerySection from './WeddingGallerySection';
 import GallerySection from './GallerySection';
 import SeatingSection from './SeatingSection';
 import ClosingSection from './ClosingSection';
@@ -172,9 +171,10 @@ const WeddingInvite = () => {
       // would not account for that space and fire too early.
       const [strip] = part('strip');
       const [track] = part('strip-track');
+      let releaseStrip = () => {};
       if (strip && track && !reduced) {
         const distance = () => track.scrollWidth - strip.clientWidth;
-        gsap.to(track, {
+        const slide = gsap.to(track, {
           x: () => -distance(),
           ease: 'none',
           scrollTrigger: {
@@ -186,6 +186,16 @@ const WeddingInvite = () => {
             invalidateOnRefresh: true,
           },
         });
+        // Tabbing to the gallery link would scroll the clipped strip itself and
+        // throw the slide out of line, so the page scrolls to the slide's end instead.
+        const onFocus = (e: Event) => {
+          if (e.target === strip) return;
+          strip.scrollLeft = 0;
+          const end = slide.scrollTrigger?.end;
+          if (end !== undefined && window.scrollY < end) window.scrollTo(0, end);
+        };
+        strip.addEventListener('focusin', onFocus);
+        releaseStrip = () => strip.removeEventListener('focusin', onFocus);
       }
 
       NAV_SECTIONS.forEach((id) => {
@@ -277,6 +287,7 @@ const WeddingInvite = () => {
       );
 
       ScrollTrigger.refresh();
+      return releaseStrip;
     },
     { scope: root, dependencies: [isOpen] },
   );
@@ -293,7 +304,6 @@ const WeddingInvite = () => {
         <DressCodeSection />
         <GallerySection />
         <SeatingSection />
-        <WeddingGallerySection />
         <ClosingSection />
       </main>
 

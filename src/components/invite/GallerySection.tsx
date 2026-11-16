@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import SectionTitle from './SectionTitle';
+import { INVITE } from '@/lib/invite';
 
 const PHOTOS = [
   { src: '/imgs/wedding/rings.jpg', alt: 'Their hands, with the ring' },
@@ -8,7 +9,7 @@ const PHOTOS = [
   { src: '/imgs/wedding/garden-hands.jpg', alt: 'Mogz taking Lin by the hand' },
 ];
 
-/** A film strip of the couple that slides sideways while it holds the screen. */
+/** A film strip of the couple that slides sideways while it holds the screen, ending on the link to the wedding gallery. */
 const GallerySection = () => (
   <section className='iv-sheet iv-paper-burgundy pb-20'>
     <div className='px-6'>
@@ -36,6 +37,23 @@ const GallerySection = () => (
             </div>
           </figure>
         ))}
+
+        {/* The strip ends on the way to every photograph from the day. Its width is the column's, less the track's padding, so it rests centred. */}
+        <div data-iv='gallery-link' className='iv-card-frame relative flex h-[78%] w-[min(74vw,355px)] shrink-0 flex-col items-center justify-center gap-5 px-6 text-center'>
+          <span className='iv-caps text-[10px] text-[var(--iv-accent)]'>After the day</span>
+          <span className='iv-serif text-balance text-xl italic leading-snug'>
+            Every photograph from the wedding, gathered in a private collection by Mogz Visuals.
+          </span>
+          <a
+            href={INVITE.gallery}
+            className='iv-caps inline-flex border border-[#c5a15b]/70 px-7 py-3.5 text-[10px] text-[var(--iv-gold-light)] transition-colors hover:bg-[#c5a15b]/15'
+          >
+            View the gallery
+          </a>
+          <span className='iv-caps text-[8.5px] tracking-[0.2em] text-[var(--iv-ivory-dim)]'>
+            Open after 12 December
+          </span>
+        </div>
       </div>
     </div>
   </section>
