@@ -8,7 +8,7 @@ const SWATCHES = [
   { name: 'Forest Green', colour: '#174d38' },
   { name: 'Dark Emerald', colour: '#0d3026' },
   { name: 'Soft Black', colour: '#171717' },
-  { name: 'Warm Ivory', colour: '#f5ebdd' },
+  { name: 'Blush Pink', colour: '#e3a5b0' },
   { name: 'Champagne Gold', colour: '#c5a15b' },
 ];
 
