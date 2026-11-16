@@ -15,6 +15,8 @@ export const INVITE = {
   },
   city: 'Juba · South Sudan',
   theme: 'A union fit for royalty',
+  /** The couple's private collection of the wedding photographs. */
+  gallery: '/private?id=mf0j3Ab9XhwH',
   events: [
     {
       id: 'blessing',

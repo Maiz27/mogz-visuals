@@ -12,6 +12,7 @@ import SaveTheDate from './SaveTheDate';
 import VenuesSection from './VenuesSection';
 import TheDaySection from './TheDaySection';
 import DressCodeSection from './DressCodeSection';
+import WeddingGallerySection from './WeddingGallerySection';
 import GallerySection from './GallerySection';
 import SeatingSection from './SeatingSection';
 import ClosingSection from './ClosingSection';
@@ -292,6 +293,7 @@ const WeddingInvite = () => {
         <DressCodeSection />
         <GallerySection />
         <SeatingSection />
+        <WeddingGallerySection />
         <ClosingSection />
       </main>
 
