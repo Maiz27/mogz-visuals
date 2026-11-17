@@ -1,0 +1,434 @@
+/*
+  Wedding invitation styles. Unlayered on purpose: the site's global `h1`/`p`
+  rules are unlayered too, so these classes need to sit at the same level to
+  win on specificity.
+
+  Palette (from the couple): Deep Burgundy #70263D (main), Forest Green
+  #174D38 (secondary), Dark Emerald #0D3026 (accent), Soft Black #171717
+  (small details), Warm Ivory #F5EBDD (background), Champagne Gold #C5A15B.
+*/
+
+.invite-root {
+  --iv-burgundy: #70263d;
+  --iv-green: #174d38;
+  --iv-emerald: #0d3026;
+  --iv-ink: #171717;
+  --iv-ivory: #f5ebdd;
+  --iv-ivory-dim: #d9c9b4;
+  --iv-ink-soft: #5a4f45;
+  --iv-gold: #c5a15b;
+  --iv-gold-light: #ead6a4;
+  --iv-gold-deep: #8e6e2e;
+  /* Small caps on ivory: deep enough to hold about 5:1 at 10px. */
+  --iv-gold-ink: #7d5f27;
+  --iv-dome: 56px;
+
+  min-height: 100dvh;
+  color: var(--iv-ivory);
+  font-family: var(--font-invite-serif), serif;
+  /* Cormorant's default old-style 1 reads as a Roman I; use lining figures. */
+  font-variant-numeric: lining-nums;
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgb(0 0 0 / 0) 0%, rgb(0 0 0 / 0.55) 100%),
+    url('/imgs/wedding/paper-burgundy.jpg') center / 900px auto,
+    var(--iv-burgundy);
+}
+
+/* The invitation is its own world: no site announcement bar above it. */
+html:has(.invite-root) aside[id^='announcement-bar-'] {
+  display: none !important;
+}
+
+html:has(.invite-root) body {
+  background: #3a1220;
+}
+
+/*
+  No native scrollbar, as on the rest of the site: its width coming and going
+  would shift the centred card. The page still scrolls by wheel, touch and keys.
+*/
+html:has(.invite-root) {
+  scrollbar-width: none;
+}
+
+html:has(.invite-root)::-webkit-scrollbar {
+  display: none;
+}
+
+/* Held still under the cover from the first paint, until it is opened. */
+html:has(.invite-root:not([data-open])) {
+  overflow: hidden;
+}
+
+/* One phone-sized column; wider screens see it centred like a card. */
+.iv-col {
+  position: relative;
+  width: min(100%, 480px);
+  margin-inline: auto;
+}
+
+@media (min-width: 520px) {
+  .iv-page {
+    box-shadow: 0 0 0 1px rgb(197 161 91 / 0.2), 0 40px 120px rgb(0 0 0 / 0.6);
+  }
+}
+
+/* Paper. Each sets the gold that reads best on it as --iv-accent. */
+
+.iv-paper-burgundy {
+  --iv-accent: var(--iv-gold);
+  background: url('/imgs/wedding/paper-burgundy.jpg') center / 700px auto, var(--iv-burgundy);
+  color: var(--iv-ivory);
+}
+
+.iv-paper-green {
+  --iv-accent: var(--iv-gold);
+  background: url('/imgs/wedding/paper-green.jpg') center / 700px auto, var(--iv-green);
+  color: var(--iv-ivory);
+}
+
+.iv-paper-emerald {
+  --iv-accent: var(--iv-gold);
+  background: url('/imgs/wedding/paper-emerald.jpg') center / 700px auto, var(--iv-emerald);
+  color: var(--iv-ivory);
+}
+
+.iv-paper-ivory {
+  --iv-accent: var(--iv-gold-ink);
+  background: url('/imgs/wedding/paper-ivory.jpg') center / 700px auto, var(--iv-ivory);
+  color: var(--iv-ink);
+}
+
+/* A sheet whose top edge is a shallow dome, laid over the one before it. */
+.iv-sheet {
+  position: relative;
+  margin-top: calc(var(--iv-dome) * -1);
+  padding-top: calc(var(--iv-dome) + 3.5rem);
+  border-top-left-radius: 50% var(--iv-dome);
+  border-top-right-radius: 50% var(--iv-dome);
+  box-shadow: 0 -18px 40px -24px rgb(0 0 0 / 0.6);
+}
+
+.iv-sheet::before {
+  content: '';
+  position: absolute;
+  inset: 12px 12px auto;
+  height: var(--iv-dome);
+  border-top: 1px solid rgb(197 161 91 / 0.6);
+  border-top-left-radius: 50% calc(var(--iv-dome) - 6px);
+  border-top-right-radius: 50% calc(var(--iv-dome) - 6px);
+  pointer-events: none;
+}
+
+/* Type */
+
+.iv-serif {
+  font-family: var(--font-invite-serif), serif;
+}
+
+.iv-script {
+  font-family: var(--font-invite-script), cursive;
+  font-weight: 400;
+}
+
+.iv-caps {
+  font-family: var(--font-invite-serif), serif;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.3em;
+}
+
+/* Champagne foil for coloured paper. */
+.iv-gold {
+  background-image: linear-gradient(100deg, #8e6e2e 0%, #ead6a4 28%, #c5a15b 48%, #f6e7c1 64%, #9c7a3a 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Foil that sits on ivory needs more depth to read. */
+.iv-gold-deep {
+  background-image: linear-gradient(100deg, #6b5122 0%, #b08a43 30%, #7d5f27 52%, #c5a15b 70%, #6b5122 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* The cover */
+
+.iv-cover {
+  -webkit-touch-callout: none;
+  user-select: none;
+}
+
+.iv-flaps {
+  perspective: 1100px;
+}
+
+.iv-flap {
+  transform-style: preserve-3d;
+}
+
+.iv-face {
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Every flap spans the whole cover, so this light falls across all four as one. */
+.iv-flap-front {
+  background:
+    radial-gradient(ellipse at 50% 42%, rgb(255 255 255 / 0.1), transparent 55%, rgb(0 0 0 / 0.3)),
+    url('/imgs/wedding/paper-burgundy.jpg') center / 700px auto,
+    var(--iv-burgundy);
+}
+
+/* Light falls from above: the top flap catches it, the bottom one is in shade. */
+.iv-flap-front::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.iv-light-top::before {
+  background: linear-gradient(180deg, rgb(255 255 255 / 0.07), rgb(255 255 255 / 0.02) 50%);
+}
+
+.iv-light-bottom::before {
+  background: linear-gradient(0deg, rgb(0 0 0 / 0.3), rgb(0 0 0 / 0.12) 50%);
+}
+
+.iv-light-left::before {
+  background: linear-gradient(90deg, rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.2) 50%);
+}
+
+.iv-light-right::before {
+  background: linear-gradient(270deg, rgb(0 0 0 / 0.08), rgb(0 0 0 / 0.2) 50%);
+}
+
+/* The top and bottom flaps lie over the side ones and throw a shade on them. */
+.iv-flap-shade-top {
+  filter: drop-shadow(0 3px 5px rgb(0 0 0 / 0.5));
+}
+
+.iv-flap-shade-bottom {
+  filter: drop-shadow(0 -3px 5px rgb(0 0 0 / 0.45));
+}
+
+/*
+  Foliage pressed into the paper: the gold art's own light and shade, blended
+  onto the burgundy so only its relief shows, over a soft shadow of its shape.
+*/
+.iv-emboss-shadow {
+  background: rgb(0 0 0 / 0.5);
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  translate: 1px 2px;
+  opacity: 0.45;
+}
+
+.iv-emboss-relief {
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.5);
+  mix-blend-mode: soft-light;
+}
+
+/* Embossed fold creases: a light edge over a dark one. */
+.iv-crease-hi {
+  stroke: rgb(255 220 225 / 0.2);
+}
+
+.iv-crease-lo {
+  stroke: rgb(20 0 6 / 0.55);
+}
+
+.iv-drop {
+  filter: drop-shadow(0 14px 18px rgb(0 0 0 / 0.5)) drop-shadow(0 3px 4px rgb(0 0 0 / 0.35));
+}
+
+/* The inner card */
+
+.iv-card-ivory {
+  --iv-accent: var(--iv-gold-ink);
+  background: url('/imgs/wedding/paper-ivory.jpg') center / 700px auto, var(--iv-ivory);
+  color: var(--iv-ink);
+}
+
+/* The portrait sinks into burgundy behind the print at the top and bottom. */
+.iv-hero-shade {
+  background:
+    linear-gradient(180deg, rgb(42 13 23 / 0.6) 0%, rgb(60 14 28 / 0.15) 14%, transparent 24%),
+    linear-gradient(
+      0deg,
+      #2a0d17 0%,
+      rgb(70 14 32 / 0.92) calc(var(--iv-dome) + 6%),
+      rgb(110 20 40 / 0.55) 36%,
+      rgb(110 20 40 / 0.12) 50%,
+      transparent 56%
+    );
+}
+
+/* A double hairline: the rule, and a fainter one just inside it. */
+.iv-card-frame {
+  border: 1px solid rgb(197 161 91 / 0.8);
+  outline: 1px solid rgb(197 161 91 / 0.45);
+  outline-offset: -5px;
+}
+
+/* Countdown medallions */
+
+.iv-medal {
+  position: relative;
+  border: 1px solid rgb(197 161 91 / 0.8);
+  background: radial-gradient(circle, rgb(255 255 255 / 0.06), transparent 70%);
+}
+
+/* The second, fainter ring of the double rule. */
+.iv-medal::after {
+  content: '';
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgb(197 161 91 / 0.4);
+  border-radius: 50%;
+  pointer-events: none;
+}
+
+.iv-tick {
+  display: inline-block;
+  animation: iv-tick 0.45s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Date tag: an ivory card with notched corners. */
+.iv-tag {
+  --notch: 14px;
+  -webkit-mask:
+    radial-gradient(circle at 0 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)) top left,
+    radial-gradient(circle at 100% 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)) top right,
+    radial-gradient(circle at 0 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)) bottom left,
+    radial-gradient(circle at 100% 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)) bottom right;
+  -webkit-mask-size: 51% 51%;
+  -webkit-mask-repeat: no-repeat;
+  mask:
+    radial-gradient(circle at 0 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)) top left,
+    radial-gradient(circle at 100% 0, transparent var(--notch), #000 calc(var(--notch) + 0.5px)) top right,
+    radial-gradient(circle at 0 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)) bottom left,
+    radial-gradient(circle at 100% 100%, transparent var(--notch), #000 calc(var(--notch) + 0.5px)) bottom right;
+  mask-size: 51% 51%;
+  mask-repeat: no-repeat;
+}
+
+/*
+  Motion starting states. Each animated part is painted where its motion
+  begins, so the first frame already matches and GSAP only animates *to* the
+  rest state: nothing shows, hides, then plays.
+*/
+
+[data-iv='seal'] {
+  opacity: 0;
+  transform: scale(1.35);
+}
+
+/* Each flap's quarter of the seal stays hidden under the whole seal until it cracks. */
+[data-iv^='wedge-'] {
+  visibility: hidden;
+}
+
+[data-iv='cover-copy'] {
+  opacity: 0;
+}
+
+[data-iv='hero-photo'] {
+  transform: scale(1.18);
+  filter: blur(16px) brightness(0.55) saturate(1.1);
+}
+
+[data-iv='develop'] {
+  filter: brightness(0.05) blur(14px) saturate(0);
+  transform: scale(1.18);
+}
+
+[data-iv='wreath'] {
+  opacity: 0.3;
+  transform: rotate(-18deg) scale(0.86);
+}
+
+[data-iv='timeline-line'] {
+  transform: scaleY(0);
+}
+
+[data-iv='draw'] {
+  visibility: hidden;
+}
+
+.iv-write {
+  --reveal: 0%;
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(var(--reveal) - 18%), transparent var(--reveal));
+  mask-image: linear-gradient(90deg, #000 calc(var(--reveal) - 18%), transparent var(--reveal));
+}
+
+.iv-rise {
+  opacity: 0;
+  transform: translateY(18px);
+}
+
+.iv-cue {
+  animation: iv-cue 2.4s ease-in-out infinite;
+  transform-origin: top;
+}
+
+.iv-hint {
+  animation: iv-hint 2.6s ease-in-out infinite;
+}
+
+@keyframes iv-tick {
+  from {
+    transform: translateY(-40%);
+    opacity: 0;
+  }
+}
+
+@keyframes iv-cue {
+  0% {
+    transform: scaleY(0);
+    opacity: 1;
+  }
+  60% {
+    transform: scaleY(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleY(1);
+    opacity: 0;
+  }
+}
+
+@keyframes iv-hint {
+  0%,
+  100% {
+    opacity: 0.45;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .iv-strip {
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    overscroll-behavior-x: contain;
+  }
+
+  .iv-strip figure,
+  .iv-strip [data-iv='gallery-link'] {
+    scroll-snap-align: center;
+  }
+
+  .iv-cue,
+  .iv-hint,
+  .iv-tick {
+    animation: none;
+  }
+}
