@@ -38,38 +38,42 @@ export const INVITE = {
 } as const;
 
 /**
- * The reception's reserved VIP tables. The plan is four columns: the groom's
- * two on the left, the bride's two on the right, numbered across the room a
- * row at a time (1 2 | 3 4, then 5 6 | 7 8 …), families in the front row.
- * Each half lays out in the order listed here; a table without `reservedFor`
- * shows "To be confirmed".
+ * The reception's reserved VIP tables, from the couple's final guest list. The
+ * plan is four columns: the groom's two on the left, the bride's two on the
+ * right, numbered across the room a row at a time (1 2 | 3 4, then 5 6 | 7 8 …),
+ * special guests in the front row. Each half lays out in the order listed
+ * here, which is the list's own order; a table without `reservedFor` shows
+ * "To be confirmed".
  */
 export type VipTable = { number: number; side: 'groom' | 'bride'; reservedFor?: string };
 
 export const VIP_TABLES: VipTable[] = [
   // The groom's half.
-  {
-    number: 1,
-    side: 'groom',
-    reservedFor: "The groom's maternal family, the bride's mates, mothers of the bride & Al Mashriq",
-  },
-  { number: 2, side: 'groom', reservedFor: "The groom's paternal family" },
-  { number: 5, side: 'groom', reservedFor: "The groom's friends" },
-  { number: 6, side: 'groom', reservedFor: 'Green: Rebecca, Amani, Anoon & Julia' },
-  { number: 9, side: 'groom', reservedFor: 'Colleagues & Mogz' },
-  { number: 10, side: 'groom', reservedFor: "Women's Museum & MTN" },
-  // These two came without a side; they sit here to balance the halves.
-  { number: 13, side: 'groom', reservedFor: 'Eva & Ecobank' },
-  { number: 14, side: 'groom', reservedFor: 'Olympic' },
+  { number: 1, side: 'groom', reservedFor: 'Special guests' },
+  { number: 2, side: 'groom', reservedFor: 'The executive committee board' },
+  { number: 5, side: 'groom', reservedFor: "The groom's paternal family" },
+  { number: 6, side: 'groom', reservedFor: "The groom's maternal family" },
+  { number: 9, side: 'groom', reservedFor: 'Mothers of the groom' },
+  { number: 10, side: 'groom', reservedFor: "The groom's church" },
+  { number: 13, side: 'groom', reservedFor: 'Mogz' },
+  { number: 14, side: 'groom', reservedFor: "The groom's friends" },
+  { number: 17, side: 'groom', reservedFor: "The groom's brothers & sisters" },
+  { number: 18, side: 'groom', reservedFor: 'Ecobank' },
+  { number: 21, side: 'groom', reservedFor: 'Eva & Achol Philip' },
+  { number: 22, side: 'groom', reservedFor: 'Rebecca, Anoon, Julia, Amani & Olympic' },
   // The bride's half.
-  { number: 3, side: 'bride', reservedFor: "The bride's maternal family" },
-  { number: 4, side: 'bride', reservedFor: "The bride's paternal family" },
-  { number: 7, side: 'bride', reservedFor: "Mothers of the bride's friends" },
-  { number: 8, side: 'bride', reservedFor: "The bride's church" },
-  { number: 11, side: 'bride', reservedFor: "The bride's friends" },
-  { number: 12, side: 'bride', reservedFor: 'Pink: Mathiang & Manas' },
-  { number: 15, side: 'bride', reservedFor: "The bride's colleagues" },
-  { number: 16, side: 'bride' },
+  { number: 3, side: 'bride', reservedFor: 'Special guests' },
+  { number: 4, side: 'bride', reservedFor: "The bride's favourite ones" },
+  { number: 7, side: 'bride', reservedFor: "The bride's paternal family" },
+  { number: 8, side: 'bride', reservedFor: "The bride's maternal family" },
+  { number: 11, side: 'bride', reservedFor: 'Mothers of the bride' },
+  { number: 12, side: 'bride', reservedFor: "The bride's church" },
+  { number: 15, side: 'bride', reservedFor: 'Eye Radio' },
+  { number: 16, side: 'bride', reservedFor: 'Al Mashriq' },
+  { number: 19, side: 'bride', reservedFor: "Mothers of the bride's friends" },
+  { number: 20, side: 'bride', reservedFor: 'Friends, with Banak & his wife' },
+  { number: 23, side: 'bride', reservedFor: "The bride's brothers & sisters" },
+  { number: 24, side: 'bride', reservedFor: "Friends of the bride's mother" },
 ];
 
 /** The day as one calendar event, from the blessing to the end of the reception (UTC). */
