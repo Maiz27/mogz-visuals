@@ -40,38 +40,38 @@ export const INVITE = {
 /**
  * The reception's reserved VIP tables, from the couple's final guest list. The
  * plan is four columns: the groom's two on the left, the bride's two on the
- * right, numbered across the room a row at a time (1 2 | 3 4, then 5 6 | 7 8 …),
- * special guests in the front row. Each half lays out in the order listed
- * here, which is the list's own order; a table without `reservedFor` shows
- * "To be confirmed".
+ * right, numbered across the room a row at a time (1 2 | 3 4, then 5 6 | 7 8 …).
+ * The two inner columns (2 6 … 22 and 3 7 … 23) line the walkway, so the
+ * families sit there. Each half lays out in the order listed here, so keep it
+ * sorted by number; a table without `reservedFor` shows "To be confirmed".
  */
 export type VipTable = { number: number; side: 'groom' | 'bride'; reservedFor?: string };
 
 export const VIP_TABLES: VipTable[] = [
   // The groom's half.
-  { number: 1, side: 'groom', reservedFor: 'Special guests' },
-  { number: 2, side: 'groom', reservedFor: 'The executive committee board' },
-  { number: 5, side: 'groom', reservedFor: "The groom's paternal family" },
+  { number: 1, side: 'groom', reservedFor: 'The executive committee board' },
+  { number: 2, side: 'groom', reservedFor: "The groom's paternal family" },
+  { number: 5, side: 'groom', reservedFor: 'Special guests' },
   { number: 6, side: 'groom', reservedFor: "The groom's maternal family" },
-  { number: 9, side: 'groom', reservedFor: 'Mothers of the groom' },
-  { number: 10, side: 'groom', reservedFor: "The groom's church" },
+  { number: 9, side: 'groom', reservedFor: "The groom's church" },
+  { number: 10, side: 'groom', reservedFor: 'Mothers of the groom' },
   { number: 13, side: 'groom', reservedFor: "The groom's friends" },
   { number: 14, side: 'groom', reservedFor: 'Mogz' },
-  { number: 17, side: 'groom', reservedFor: "The groom's brothers & sisters" },
-  { number: 18, side: 'groom', reservedFor: 'Ecobank' },
+  { number: 17, side: 'groom', reservedFor: 'Ecobank' },
+  { number: 18, side: 'groom', reservedFor: "The groom's brothers & sisters" },
   { number: 21, side: 'groom', reservedFor: 'Eva & Achol Philip' },
-  { number: 22, side: 'groom', reservedFor: 'Rebecca, Anoon, Julia, Amani & Olympic' },
+  { number: 22, side: 'groom', reservedFor: 'Green (Rebecca, Anoon, Julia, Amani & Olympic)' },
   // The bride's half.
-  { number: 3, side: 'bride', reservedFor: 'Special guests' },
+  { number: 3, side: 'bride', reservedFor: "The bride's paternal family" },
   { number: 4, side: 'bride', reservedFor: "The bride's favourite ones" },
-  { number: 7, side: 'bride', reservedFor: "The bride's paternal family" },
-  { number: 8, side: 'bride', reservedFor: "The bride's maternal family" },
-  { number: 11, side: 'bride', reservedFor: 'Mothers of the bride' },
+  { number: 7, side: 'bride', reservedFor: 'Special guests' },
+  { number: 8, side: 'bride', reservedFor: 'Eye Radio' },
+  { number: 11, side: 'bride', reservedFor: "The bride's maternal family" },
   { number: 12, side: 'bride', reservedFor: "The bride's church" },
-  { number: 15, side: 'bride', reservedFor: 'Eye Radio' },
+  { number: 15, side: 'bride', reservedFor: 'Mothers of the bride' },
   { number: 16, side: 'bride', reservedFor: 'Al Mashriq' },
   { number: 19, side: 'bride', reservedFor: "Mothers of the bride's friends" },
-  { number: 20, side: 'bride', reservedFor: 'Friends, with Banak & his wife' },
+  { number: 20, side: 'bride', reservedFor: 'Friends, Banak & his wife + Mathinag Cirlo (Red)' },
   { number: 23, side: 'bride', reservedFor: "The bride's brothers & sisters" },
   { number: 24, side: 'bride', reservedFor: "Friends of the bride's mother" },
 ];
