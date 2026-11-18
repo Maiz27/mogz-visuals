@@ -34,6 +34,11 @@
     var(--iv-burgundy);
 }
 
+/* Tailwind 4 leaves buttons on the default arrow; show a hand on anything clickable. */
+.invite-root :is(a[href], button, [role='button'], summary, label[for]):not(:disabled) {
+  cursor: pointer;
+}
+
 /* The invitation is its own world: no site announcement bar above it. */
 html:has(.invite-root) aside[id^='announcement-bar-'] {
   display: none !important;
