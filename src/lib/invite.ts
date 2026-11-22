@@ -60,7 +60,7 @@ export const VIP_TABLES: VipTable[] = [
   { number: 17, side: 'groom', reservedFor: 'Ecobank' },
   { number: 18, side: 'groom', reservedFor: "The groom's brothers & sisters" },
   { number: 21, side: 'groom', reservedFor: 'Eva & Achol Philip' },
-  { number: 22, side: 'groom', reservedFor: 'Green (Rebecca, Anoon, Julia, Amani & Olympic)' },
+  { number: 22, side: 'groom', reservedFor: 'Green' },
   // The bride's half.
   { number: 3, side: 'bride', reservedFor: "The bride's paternal family" },
   { number: 4, side: 'bride', reservedFor: "The bride's favourite ones" },
@@ -71,7 +71,7 @@ export const VIP_TABLES: VipTable[] = [
   { number: 15, side: 'bride', reservedFor: 'Mothers of the bride' },
   { number: 16, side: 'bride', reservedFor: 'Al Mashriq' },
   { number: 19, side: 'bride', reservedFor: "Mothers of the bride's friends" },
-  { number: 20, side: 'bride', reservedFor: 'Friends, Banak & his wife + Mathinag Cirlo (Red)' },
+  { number: 20, side: 'bride', reservedFor: 'Red' },
   { number: 23, side: 'bride', reservedFor: "The bride's brothers & sisters" },
   { number: 24, side: 'bride', reservedFor: "Friends of the bride's mother" },
 ];
