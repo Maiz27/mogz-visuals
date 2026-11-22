@@ -82,7 +82,8 @@ const SeatingSection = () => {
         data-iv='rise'
         className='iv-rise iv-serif mx-auto mt-5 block max-w-xs text-lg italic leading-snug text-[var(--iv-ink-soft)]'
       >
-        A few tables are set aside for family and honoured guests. Find yours on the plan.
+        Every guest has a seat. A few tables up front are reserved for family and honoured guests;
+        everyone else is warmly welcome in the general seating behind them.
       </span>
 
       {/* The plan: the couple's table at the head, the VIP tables before it. */}
@@ -147,7 +148,7 @@ const SeatingSection = () => {
               <span key={i} className='size-1.5 rounded-full bg-[var(--iv-ink-soft)]' />
             ))}
           </div>
-          <span className='iv-caps text-[8px] text-[var(--iv-ink-soft)]'>General seating</span>
+          <span className='iv-caps text-[10px] text-[var(--iv-burgundy)]'>General seating · open to all guests</span>
         </div>
 
         <div className='mt-5 flex flex-col items-center gap-1 text-[var(--iv-ink-soft)]'>
@@ -179,6 +180,7 @@ const SeatingSection = () => {
       </div>
 
       {assigned.length > 0 ? (
+        <>
         <ul data-iv='rise' className='iv-rise mx-auto mt-6 max-w-sm text-left'>
           {assigned.map((t) => (
             <li key={t.number} className='border-b border-[#171717]/10'>
@@ -208,6 +210,13 @@ const SeatingSection = () => {
             </li>
           ))}
         </ul>
+        <span
+          data-iv='rise'
+          className='iv-rise iv-serif mx-auto mt-6 block max-w-xs text-lg italic leading-snug text-[var(--iv-ink-soft)]'
+        >
+          Not on this list? You&rsquo;re still invited. Please take any seat in the general seating.
+        </span>
+        </>
       ) : (
         <span
           data-iv='rise'
